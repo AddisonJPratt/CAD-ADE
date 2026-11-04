@@ -1,0 +1,134 @@
+{
+  "design": "planter_flip.py",
+  "command": "magic.py run runs/_batch_tools/planter_flip.py --brief evals/briefs/planter_pot.yaml --out runs/_batch_tools/planter_flip_run",
+  "brief": "evals/briefs/planter_pot.yaml",
+  "pass": false,
+  "gates": [
+    {
+      "name": "1 Execute",
+      "status": "PASS",
+      "detail": "built in 3.82 s; no hard-coded literals"
+    },
+    {
+      "name": "2 Geometry",
+      "status": "PASS",
+      "detail": "1/1 solids, volume 77314 mm\u00b3, 3/3 dims in \u00b10.1"
+    },
+    {
+      "name": "3 Printability",
+      "status": "FAIL",
+      "detail": "pot: overhang_brief_pct 82.5 > 15.0; pot: support_risk_pct 15.4 > 15.0"
+    },
+    {
+      "name": "4 Renders",
+      "status": "PASS",
+      "detail": "5 PNGs from reloaded STL"
+    },
+    {
+      "name": "Sweep",
+      "status": "SKIPPED",
+      "detail": "-"
+    },
+    {
+      "name": "5 Exports",
+      "status": "SKIPPED",
+      "detail": "-"
+    }
+  ],
+  "assumptions": [
+    "Size is a guess for a 10 cm herb pot.",
+    "PLA softens in direct summer sun; use PETG outdoors. Unverified here."
+  ],
+  "params": {
+    "rim_dia": 100.0,
+    "height": 90.0,
+    "taper_deg": 8.0,
+    "wall": 2.4
+  },
+  "geometry": {
+    "pass": true,
+    "problems": [],
+    "dimensions": [
+      {
+        "name": "rim_dia",
+        "spec": 100.0,
+        "measured": 100.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "height",
+        "spec": 90.0,
+        "measured": 90.00000010000001,
+        "delta": 1.000000082740371e-07,
+        "pass": true
+      },
+      {
+        "name": "drain_holes",
+        "spec": 1,
+        "measured": 1.0,
+        "delta": 0.0,
+        "pass": true
+      }
+    ],
+    "solids": 1,
+    "expected_solids": 1,
+    "volume": 77313.94248575487,
+    "bbox": {
+      "pot": [
+        100.0,
+        100.0,
+        90.00000010000001
+      ]
+    }
+  },
+  "overlaps": [],
+  "printability": {
+    "pot": {
+      "pass": false,
+      "problems": [
+        "overhang_brief_pct 82.5 > 15.0",
+        "support_risk_pct 15.4 > 15.0"
+      ],
+      "metrics": {
+        "watertight": true,
+        "winding_consistent": true,
+        "components": 1,
+        "faces": 12450,
+        "mesh_volume": 77241.05464690461,
+        "extents": [
+          100.0,
+          99.96891784667969,
+          90.0
+        ],
+        "inertia": [
+          125658921.42521629,
+          125424201.11744982,
+          129970563.2321386
+        ],
+        "fits_bed": true,
+        "allow_supports": false,
+        "overhang_brief_pct": 82.5100325094211,
+        "support_risk_pct": 15.41449697346212,
+        "flat_undersides_above_bed_mm2": 3977.6719875455883,
+        "bed_contact_mm2": 555.34409755446,
+        "min_feature": {
+          "mm": 2.4,
+          "resolution_mm": 0.4,
+          "where": {
+            "axis": "X",
+            "offset": -31.25
+          }
+        },
+        "min_feature_warning": false
+      }
+    }
+  },
+  "renders": [
+    "runs/_batch_tools/planter_flip_run/renders/iso.png",
+    "runs/_batch_tools/planter_flip_run/renders/front.png",
+    "runs/_batch_tools/planter_flip_run/renders/top.png",
+    "runs/_batch_tools/planter_flip_run/renders/side.png",
+    "runs/_batch_tools/planter_flip_run/renders/section.png"
+  ]
+}

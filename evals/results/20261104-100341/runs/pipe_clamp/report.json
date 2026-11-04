@@ -1,0 +1,569 @@
+{
+  "design": "pipe_clamp.py",
+  "command": "magic.py run /home/hatch/workspace/magic-cad/designs/pipe_clamp.py --brief /home/hatch/workspace/magic-cad/evals/briefs/pipe_clamp.yaml --out /home/hatch/workspace/magic-cad/evals/results/20261104-100341/runs/pipe_clamp",
+  "brief": "/home/hatch/workspace/magic-cad/evals/briefs/pipe_clamp.yaml",
+  "pass": true,
+  "gates": [
+    {
+      "name": "1 Execute",
+      "status": "PASS",
+      "detail": "built in 4.01 s; no hard-coded literals"
+    },
+    {
+      "name": "2 Geometry",
+      "status": "PASS",
+      "detail": "1/1 solids, volume 15784 mm\u00b3, 4/4 dims in \u00b10.1"
+    },
+    {
+      "name": "3 Printability",
+      "status": "PASS",
+      "detail": "watertight, single component, fits bed; overhang brief 12.8 %, support risk 2.0 %"
+    },
+    {
+      "name": "4 Renders",
+      "status": "PASS",
+      "detail": "5 PNGs from reloaded STL"
+    },
+    {
+      "name": "Sweep",
+      "status": "PASS",
+      "detail": "19/19 pass; dead params: none"
+    },
+    {
+      "name": "5 Exports",
+      "status": "PASS",
+      "detail": "clamp.stl, clamp.step"
+    }
+  ],
+  "assumptions": [
+    "PIPE BORE IS NOT A HARD DIMENSION. A hole_count probe has a fixed diameter and pipe_dia is a param, so it would fail the sweep. Bore diameter is checked out-of-band on the reloaded STEP at defaults.",
+    "Strap strain is a hand estimate, no FEA: about 1.2 % root strain to pass a 32 mm pipe through a 27 mm mouth with a 2 mm strap, using 1.5 t d / L^2 with d 2.4 mm per side and L about 25 mm of free arc. Load on the wall screws is not rated. Unverified on a real print.",
+    "PLA creeps under sustained clamp load and softens on warm pipes; use PETG or better on hot lines. Not suitable for pressure service, and the part does not seal anything.",
+    "The M3 bolt spans the open mouth (about 27 mm), so it needs a bolt of about 40 mm. It is not in standard_parts.json.",
+    "Wall anchors are the installer's choice.",
+    "Holes are plain, not counterbored. Horizontal counterbores read 21.6 % on the overhang gate against this part's small bed contact. Heads therefore stand proud of the plate and the ears."
+  ],
+  "params": {
+    "pipe_dia": 32.0,
+    "strap_width": 18.0,
+    "strap_t": 2.0,
+    "base_t": 7.0,
+    "hole_spacing": 70.0,
+    "mouth_ratio": 0.85
+  },
+  "geometry": {
+    "pass": true,
+    "problems": [],
+    "dimensions": [
+      {
+        "name": "hole_spacing",
+        "spec": 70.0,
+        "measured": 70.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "strap_width",
+        "spec": 18.0,
+        "measured": 18.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "mount_holes",
+        "spec": 2,
+        "measured": 2.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "clamp_bolts",
+        "spec": 1,
+        "measured": 1.0,
+        "delta": 0.0,
+        "pass": true
+      }
+    ],
+    "solids": 1,
+    "expected_solids": 1,
+    "volume": 15784.453416082852,
+    "bbox": {
+      "clamp": [
+        81.0,
+        49.0,
+        18.0
+      ]
+    }
+  },
+  "overlaps": [],
+  "printability": {
+    "clamp": {
+      "pass": true,
+      "problems": [],
+      "metrics": {
+        "watertight": true,
+        "winding_consistent": true,
+        "components": 1,
+        "faces": 3240,
+        "mesh_volume": 15785.621319795837,
+        "extents": [
+          81.0,
+          49.0,
+          18.0
+        ],
+        "inertia": [
+          3320724.302777397,
+          7100174.836931787,
+          9552519.525231343
+        ],
+        "fits_bed": true,
+        "allow_supports": false,
+        "overhang_brief_pct": 12.766629743799704,
+        "support_risk_pct": 2.0034418017119497,
+        "flat_undersides_above_bed_mm2": 0.6781005859375,
+        "bed_contact_mm2": 894.2948851763281,
+        "min_feature": {
+          "mm": 1.6,
+          "resolution_mm": 0.4,
+          "where": {
+            "axis": "Y",
+            "offset": 33.69
+          }
+        },
+        "min_feature_warning": false
+      }
+    }
+  },
+  "renders": [
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-100341/runs/pipe_clamp/renders/iso.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-100341/runs/pipe_clamp/renders/front.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-100341/runs/pipe_clamp/renders/top.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-100341/runs/pipe_clamp/renders/side.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-100341/runs/pipe_clamp/renders/section.png"
+  ],
+  "sweep": {
+    "pass": true,
+    "total": 19,
+    "passed": 19,
+    "pass_share": 1.0,
+    "required_share": 1.0,
+    "dead_params": [],
+    "printable_passed": 18,
+    "max_support_risk_pct": 2.5058049800019,
+    "max_overhang_brief_pct": 15.488579008809364,
+    "rows": [
+      {
+        "label": "default",
+        "params": {},
+        "seconds": 12.54,
+        "pass": true,
+        "problems": [],
+        "volume": 15784.453416082852,
+        "bbox": {
+          "clamp": [
+            81.0,
+            49.0,
+            18.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 2.0034418017119497,
+        "overhang_brief_pct": 12.766629743799704
+      },
+      {
+        "label": "pipe_dia=min",
+        "params": {
+          "pipe_dia": 20.0
+        },
+        "seconds": 11.74,
+        "pass": true,
+        "problems": [],
+        "volume": 14018.624351023496,
+        "bbox": {
+          "clamp": [
+            81.0,
+            37.0,
+            18.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 2.2101701312391806,
+        "overhang_brief_pct": 14.083982662431561
+      },
+      {
+        "label": "pipe_dia=max",
+        "params": {
+          "pipe_dia": 40.0
+        },
+        "seconds": 12.44,
+        "pass": true,
+        "problems": [],
+        "volume": 16906.141487586705,
+        "bbox": {
+          "clamp": [
+            81.0,
+            57.0,
+            18.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 1.8910460818420218,
+        "overhang_brief_pct": 12.05040502534716
+      },
+      {
+        "label": "strap_width=min",
+        "params": {
+          "strap_width": 14.0
+        },
+        "seconds": 11.74,
+        "pass": true,
+        "problems": [],
+        "volume": 12207.511520169872,
+        "bbox": {
+          "clamp": [
+            81.0,
+            49.0,
+            14.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 2.003441803169024,
+        "overhang_brief_pct": 12.766629680356127
+      },
+      {
+        "label": "strap_width=max",
+        "params": {
+          "strap_width": 30.0
+        },
+        "seconds": 13.68,
+        "pass": true,
+        "problems": [],
+        "volume": 26515.279103821787,
+        "bbox": {
+          "clamp": [
+            81.0,
+            49.0,
+            30.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 2.0034405659994223,
+        "overhang_brief_pct": 12.766630811289676
+      },
+      {
+        "label": "strap_t=min",
+        "params": {
+          "strap_t": 1.6
+        },
+        "seconds": 14.08,
+        "pass": true,
+        "problems": [],
+        "volume": 14890.664736796516,
+        "bbox": {
+          "clamp": [
+            80.2,
+            48.2,
+            18.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 1.6982502110011701,
+        "overhang_brief_pct": 13.089064319715298
+      },
+      {
+        "label": "strap_t=max",
+        "params": {
+          "strap_t": 2.8
+        },
+        "seconds": 13.48,
+        "pass": true,
+        "problems": [],
+        "volume": 17701.595408031462,
+        "bbox": {
+          "clamp": [
+            82.6,
+            50.6,
+            18.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 2.5058049800019,
+        "overhang_brief_pct": 12.144668002986778
+      },
+      {
+        "label": "base_t=min",
+        "params": {
+          "base_t": 6.0
+        },
+        "seconds": 13.28,
+        "pass": true,
+        "problems": [],
+        "volume": 14373.172122577582,
+        "bbox": {
+          "clamp": [
+            81.0,
+            48.0,
+            18.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 2.20598246827405,
+        "overhang_brief_pct": 12.374410839081623
+      },
+      {
+        "label": "base_t=max",
+        "params": {
+          "base_t": 10.0
+        },
+        "seconds": 11.97,
+        "pass": true,
+        "problems": [],
+        "volume": 20006.708797422096,
+        "bbox": {
+          "clamp": [
+            81.0,
+            52.0,
+            18.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 1.5715385033358205,
+        "overhang_brief_pct": 13.611031792256995
+      },
+      {
+        "label": "hole_spacing=min",
+        "params": {
+          "hole_spacing": 60.0
+        },
+        "seconds": 11.47,
+        "pass": true,
+        "problems": [],
+        "volume": 14158.45987640978,
+        "bbox": {
+          "clamp": [
+            71.0,
+            49.0,
+            18.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 2.192180344021006,
+        "overhang_brief_pct": 13.969336944978394
+      },
+      {
+        "label": "hole_spacing=max",
+        "params": {
+          "hole_spacing": 90.0
+        },
+        "seconds": 12.27,
+        "pass": true,
+        "problems": [],
+        "volume": 19035.391392841677,
+        "bbox": {
+          "clamp": [
+            101.0,
+            49.0,
+            18.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 1.7092290647303165,
+        "overhang_brief_pct": 10.891803594248055
+      },
+      {
+        "label": "mouth_ratio=min",
+        "params": {
+          "mouth_ratio": 0.75
+        },
+        "seconds": 12.05,
+        "pass": true,
+        "problems": [],
+        "volume": 15702.326223336311,
+        "bbox": {
+          "clamp": [
+            81.0,
+            49.0,
+            18.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 2.0121849039085946,
+        "overhang_brief_pct": 12.822343839642862
+      },
+      {
+        "label": "mouth_ratio=max",
+        "params": {
+          "mouth_ratio": 0.9
+        },
+        "seconds": 12.09,
+        "pass": true,
+        "problems": [],
+        "volume": 15843.375814406902,
+        "bbox": {
+          "clamp": [
+            81.0,
+            49.0,
+            18.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 1.9972098535185812,
+        "overhang_brief_pct": 12.726917596883686
+      },
+      {
+        "label": "all=min",
+        "params": {
+          "pipe_dia": 20.0,
+          "strap_width": 14.0,
+          "strap_t": 1.6,
+          "base_t": 6.0,
+          "hole_spacing": 60.0,
+          "mouth_ratio": 0.75
+        },
+        "seconds": 12.67,
+        "pass": true,
+        "problems": [],
+        "volume": 8177.463253380922,
+        "bbox": {
+          "clamp": [
+            70.2,
+            35.2,
+            14.0
+          ]
+        },
+        "printable": false,
+        "support_risk_pct": 2.293316151022883,
+        "overhang_brief_pct": 15.488579008809364
+      },
+      {
+        "label": "all=max",
+        "params": {
+          "pipe_dia": 40.0,
+          "strap_width": 30.0,
+          "strap_t": 2.8,
+          "base_t": 10.0,
+          "hole_spacing": 90.0,
+          "mouth_ratio": 0.9
+        },
+        "seconds": 12.58,
+        "pass": true,
+        "problems": [],
+        "volume": 46943.543202060195,
+        "bbox": {
+          "clamp": [
+            102.6,
+            61.6,
+            30.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 1.6351745827339075,
+        "overhang_brief_pct": 10.598125076202004
+      },
+      {
+        "label": "combo1",
+        "params": {
+          "pipe_dia": 40.0,
+          "strap_width": 30.0,
+          "strap_t": 1.6,
+          "base_t": 10.0,
+          "hole_spacing": 90.0,
+          "mouth_ratio": 0.9
+        },
+        "seconds": 11.92,
+        "pass": true,
+        "problems": [],
+        "volume": 41422.39940597947,
+        "bbox": {
+          "clamp": [
+            100.2,
+            59.2,
+            30.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 1.058537270686086,
+        "overhang_brief_pct": 11.186782560731169
+      },
+      {
+        "label": "combo2",
+        "params": {
+          "pipe_dia": 38.365,
+          "strap_width": 27.278,
+          "strap_t": 2.761,
+          "base_t": 7.432,
+          "hole_spacing": 86.75,
+          "mouth_ratio": 0.783
+        },
+        "seconds": 9.12,
+        "pass": true,
+        "problems": [],
+        "volume": 33793.96619181658,
+        "bbox": {
+          "clamp": [
+            99.272,
+            57.319,
+            27.278
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 2.0292367980484114,
+        "overhang_brief_pct": 10.428690959842084
+      },
+      {
+        "label": "combo3",
+        "params": {
+          "pipe_dia": 20.0,
+          "strap_width": 30.0,
+          "strap_t": 1.6,
+          "base_t": 6.0,
+          "hole_spacing": 90.0,
+          "mouth_ratio": 0.75
+        },
+        "seconds": 8.65,
+        "pass": true,
+        "problems": [],
+        "volume": 24321.46977839264,
+        "bbox": {
+          "clamp": [
+            100.2,
+            35.2,
+            30.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 1.7704094060078348,
+        "overhang_brief_pct": 11.956984808793457
+      },
+      {
+        "label": "combo4",
+        "params": {
+          "pipe_dia": 26.203,
+          "strap_width": 25.677,
+          "strap_t": 2.679,
+          "base_t": 8.736,
+          "hole_spacing": 74.164,
+          "mouth_ratio": 0.765
+        },
+        "seconds": 8.75,
+        "pass": true,
+        "problems": [],
+        "volume": 28107.849686219943,
+        "bbox": {
+          "clamp": [
+            86.522,
+            46.297,
+            25.677
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 2.153714939879638,
+        "overhang_brief_pct": 12.938595372349182
+      }
+    ]
+  },
+  "exports": [
+    "clamp.stl",
+    "clamp.step"
+  ]
+}

@@ -1,0 +1,653 @@
+{
+  "design": "box_with_lid.py",
+  "command": "magic.py run /home/hatch/workspace/magic-cad/designs/box_with_lid.py --brief /home/hatch/workspace/magic-cad/evals/briefs/box_with_lid.yaml --out /home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/box_with_lid",
+  "brief": "/home/hatch/workspace/magic-cad/evals/briefs/box_with_lid.yaml",
+  "pass": true,
+  "gates": [
+    {
+      "name": "1 Execute",
+      "status": "PASS",
+      "detail": "built in 12.14 s; no hard-coded literals"
+    },
+    {
+      "name": "2 Geometry",
+      "status": "PASS",
+      "detail": "2/2 solids, volume 36799 mm\u00b3, 4/4 dims in \u00b10.1"
+    },
+    {
+      "name": "3 Printability",
+      "status": "PASS",
+      "detail": "watertight, single component, fits bed; overhang brief 0.0 %, support risk 0.0 %"
+    },
+    {
+      "name": "4 Renders",
+      "status": "PASS",
+      "detail": "5 PNGs from reloaded STL"
+    },
+    {
+      "name": "Sweep",
+      "status": "PASS",
+      "detail": "17/17 pass; dead params: none"
+    },
+    {
+      "name": "5 Exports",
+      "status": "PASS",
+      "detail": "box.stl, box.step, lid.stl, lid.step"
+    }
+  ],
+  "assumptions": [
+    "Size is a guess; every outer dimension is an editable param.",
+    "Parts are laid out apart on the bed, so overlap is checked in the print layout."
+  ],
+  "params": {
+    "outer_x": 80.0,
+    "outer_y": 60.0,
+    "box_height": 30.0,
+    "lid_height": 8.0,
+    "wall": 2.0
+  },
+  "geometry": {
+    "pass": true,
+    "problems": [],
+    "dimensions": [
+      {
+        "name": "outer_x",
+        "spec": 80.0,
+        "measured": 80.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "outer_y",
+        "spec": 60.0,
+        "measured": 60.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "box_height",
+        "spec": 30.0,
+        "measured": 30.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "lid_height",
+        "spec": 8.0,
+        "measured": 8.0,
+        "delta": 0.0,
+        "pass": true
+      }
+    ],
+    "solids": 2,
+    "expected_solids": 2,
+    "volume": 36799.287962130315,
+    "bbox": {
+      "box": [
+        80.0,
+        60.0,
+        30.0
+      ],
+      "lid": [
+        80.0,
+        60.0,
+        8.0
+      ]
+    }
+  },
+  "overlaps": [
+    {
+      "a": "box",
+      "b": "lid",
+      "volume": 0.0,
+      "pass": true
+    }
+  ],
+  "printability": {
+    "box": {
+      "pass": true,
+      "problems": [],
+      "metrics": {
+        "watertight": true,
+        "winding_consistent": true,
+        "components": 1,
+        "faces": 1576,
+        "mesh_volume": 24190.100256777707,
+        "extents": [
+          80.0,
+          60.0,
+          30.0
+        ],
+        "inertia": [
+          13717969.769472267,
+          20991077.51947376,
+          30344398.283231825
+        ],
+        "fits_bed": true,
+        "allow_supports": false,
+        "overhang_brief_pct": 0.0,
+        "support_risk_pct": 0.0,
+        "flat_undersides_above_bed_mm2": 0.0,
+        "bed_contact_mm2": 4786.245300039736,
+        "min_feature": {
+          "mm": 2.0,
+          "resolution_mm": 0.4,
+          "where": {
+            "axis": "X",
+            "offset": -35.0
+          }
+        },
+        "min_feature_warning": false
+      }
+    },
+    "lid": {
+      "pass": true,
+      "problems": [],
+      "metrics": {
+        "watertight": true,
+        "winding_consistent": true,
+        "components": 1,
+        "faces": 1580,
+        "mesh_volume": 12608.643294923299,
+        "extents": [
+          80.0,
+          60.0,
+          8.0
+        ],
+        "inertia": [
+          4466998.817662016,
+          7640484.477439962,
+          12009123.144351587
+        ],
+        "fits_bed": true,
+        "allow_supports": false,
+        "overhang_brief_pct": 0.0,
+        "support_risk_pct": 0.0,
+        "flat_undersides_above_bed_mm2": 0.0,
+        "bed_contact_mm2": 4786.2453045509465,
+        "min_feature": {
+          "mm": 2.0,
+          "resolution_mm": 0.4,
+          "where": {
+            "axis": "X",
+            "offset": -35.0
+          }
+        },
+        "min_feature_warning": false
+      }
+    }
+  },
+  "renders": [
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/box_with_lid/renders/iso.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/box_with_lid/renders/front.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/box_with_lid/renders/top.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/box_with_lid/renders/side.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/box_with_lid/renders/section.png"
+  ],
+  "sweep": {
+    "pass": true,
+    "total": 17,
+    "passed": 17,
+    "pass_share": 1.0,
+    "required_share": 1.0,
+    "dead_params": [],
+    "printable_passed": 17,
+    "max_support_risk_pct": 0.0,
+    "max_overhang_brief_pct": 0.0,
+    "rows": [
+      {
+        "label": "default",
+        "params": {},
+        "seconds": 16.47,
+        "pass": true,
+        "problems": [],
+        "volume": 36799.287962130315,
+        "bbox": {
+          "box": [
+            80.0,
+            60.0,
+            30.0
+          ],
+          "lid": [
+            80.0,
+            60.0,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "outer_x=min",
+        "params": {
+          "outer_x": 50.0
+        },
+        "seconds": 16.46,
+        "pass": true,
+        "problems": [],
+        "volume": 25549.287962130322,
+        "bbox": {
+          "box": [
+            50.0,
+            60.0,
+            30.0
+          ],
+          "lid": [
+            50.0,
+            60.0,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "outer_x=max",
+        "params": {
+          "outer_x": 150.0
+        },
+        "seconds": 16.46,
+        "pass": true,
+        "problems": [],
+        "volume": 63049.28796213046,
+        "bbox": {
+          "box": [
+            150.0,
+            60.0,
+            30.0
+          ],
+          "lid": [
+            150.0,
+            60.0,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "outer_y=min",
+        "params": {
+          "outer_y": 40.0
+        },
+        "seconds": 16.46,
+        "pass": true,
+        "problems": [],
+        "volume": 27699.287962130285,
+        "bbox": {
+          "box": [
+            80.0,
+            40.0,
+            30.0
+          ],
+          "lid": [
+            80.0,
+            40.0,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "outer_y=max",
+        "params": {
+          "outer_y": 120.0
+        },
+        "seconds": 14.32,
+        "pass": true,
+        "problems": [],
+        "volume": 64099.28796213074,
+        "bbox": {
+          "box": [
+            80.0,
+            120.0,
+            30.0
+          ],
+          "lid": [
+            80.0,
+            120.0,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "box_height=min",
+        "params": {
+          "box_height": 15.0
+        },
+        "seconds": 14.56,
+        "pass": true,
+        "problems": [],
+        "volume": 28793.80128448407,
+        "bbox": {
+          "box": [
+            80.0,
+            60.0,
+            15.0
+          ],
+          "lid": [
+            80.0,
+            60.0,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "box_height=max",
+        "params": {
+          "box_height": 80.0
+        },
+        "seconds": 14.42,
+        "pass": true,
+        "problems": [],
+        "volume": 63484.24355428457,
+        "bbox": {
+          "box": [
+            80.0,
+            60.0,
+            80.0
+          ],
+          "lid": [
+            80.0,
+            60.0,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "lid_height=min",
+        "params": {
+          "lid_height": 5.0
+        },
+        "seconds": 14.32,
+        "pass": true,
+        "problems": [],
+        "volume": 35380.20292525171,
+        "bbox": {
+          "box": [
+            80.0,
+            60.0,
+            30.0
+          ],
+          "lid": [
+            80.0,
+            60.0,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "lid_height=max",
+        "params": {
+          "lid_height": 15.0
+        },
+        "seconds": 13.68,
+        "pass": true,
+        "problems": [],
+        "volume": 39970.48638151389,
+        "bbox": {
+          "box": [
+            80.0,
+            60.0,
+            30.0
+          ],
+          "lid": [
+            80.0,
+            60.0,
+            15.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "wall=min",
+        "params": {
+          "wall": 1.2
+        },
+        "seconds": 13.51,
+        "pass": true,
+        "problems": [],
+        "volume": 22911.58259263709,
+        "bbox": {
+          "box": [
+            80.0,
+            60.0,
+            30.000000000000004
+          ],
+          "lid": [
+            80.0,
+            60.00000000000001,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "wall=max",
+        "params": {
+          "wall": 3.2
+        },
+        "seconds": 13.48,
+        "pass": true,
+        "problems": [],
+        "volume": 55643.902753290844,
+        "bbox": {
+          "box": [
+            80.0,
+            60.0,
+            30.000000000000004
+          ],
+          "lid": [
+            80.0,
+            60.0,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "all=min",
+        "params": {
+          "outer_x": 50.0,
+          "outer_y": 40.0,
+          "box_height": 15.0,
+          "lid_height": 5.0,
+          "wall": 1.2
+        },
+        "seconds": 13.3,
+        "pass": true,
+        "problems": [],
+        "volume": 8306.750492102165,
+        "bbox": {
+          "box": [
+            50.0,
+            40.0,
+            15.0
+          ],
+          "lid": [
+            50.0,
+            40.0,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "all=max",
+        "params": {
+          "outer_x": 150.0,
+          "outer_y": 120.0,
+          "box_height": 80.0,
+          "lid_height": 15.0,
+          "wall": 3.2
+        },
+        "seconds": 13.39,
+        "pass": true,
+        "problems": [],
+        "volume": 259626.97004706325,
+        "bbox": {
+          "box": [
+            150.0,
+            120.0,
+            80.0
+          ],
+          "lid": [
+            150.0,
+            120.0,
+            15.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo1",
+        "params": {
+          "outer_x": 150.0,
+          "outer_y": 120.0,
+          "box_height": 15.0,
+          "lid_height": 15.0,
+          "wall": 3.2
+        },
+        "seconds": 13.39,
+        "pass": true,
+        "problems": [],
+        "volume": 151683.43783637334,
+        "bbox": {
+          "box": [
+            150.0,
+            120.0,
+            15.000000000000002
+          ],
+          "lid": [
+            150.0,
+            120.0,
+            15.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo2",
+        "params": {
+          "outer_x": 90.493,
+          "outer_y": 102.704,
+          "box_height": 34.715,
+          "lid_height": 9.766,
+          "wall": 2.367
+        },
+        "seconds": 13.38,
+        "pass": true,
+        "problems": [],
+        "volume": 77918.96274664463,
+        "bbox": {
+          "box": [
+            90.49300000000001,
+            102.70400000000001,
+            34.715
+          ],
+          "lid": [
+            90.49300000000001,
+            102.70400000000002,
+            9.766
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo3",
+        "params": {
+          "outer_x": 50.0,
+          "outer_y": 40.0,
+          "box_height": 80.0,
+          "lid_height": 5.0,
+          "wall": 1.2
+        },
+        "seconds": 12.96,
+        "pass": true,
+        "problems": [],
+        "volume": 21731.30970923041,
+        "bbox": {
+          "box": [
+            50.0,
+            40.0,
+            80.0
+          ],
+          "lid": [
+            50.0,
+            40.0,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo4",
+        "params": {
+          "outer_x": 111.837,
+          "outer_y": 60.041,
+          "box_height": 74.134,
+          "lid_height": 14.828,
+          "wall": 2.82
+        },
+        "seconds": 5.96,
+        "pass": true,
+        "problems": [],
+        "volume": 112323.19510955538,
+        "bbox": {
+          "box": [
+            111.837,
+            60.041000000000004,
+            74.134
+          ],
+          "lid": [
+            111.837,
+            60.041,
+            14.828
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      }
+    ]
+  },
+  "exports": [
+    "box.stl",
+    "box.step",
+    "lid.stl",
+    "lid.step"
+  ]
+}

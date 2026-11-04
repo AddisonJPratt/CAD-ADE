@@ -1,0 +1,583 @@
+{
+  "generated_at": "2026-11-04T11:25:32-06:00",
+  "summary": {
+    "mode": "full",
+    "pass_rate": {
+      "passed": 10,
+      "designs_present": 11,
+      "value": 0.9090909090909091,
+      "text": "10/11 (91%)"
+    },
+    "coverage": {
+      "designs_present": 11,
+      "total_briefs": 11,
+      "value": 1.0,
+      "text": "11/11 (100%)"
+    },
+    "passed": 10,
+    "failed": 1,
+    "errored": 0,
+    "no_design": 0,
+    "no_design_briefs": [],
+    "exit_code": 1
+  },
+  "briefs": [
+    {
+      "name": "box_with_lid",
+      "brief": "evals/briefs/box_with_lid.yaml",
+      "status": "PASS",
+      "reason": null,
+      "gates": [
+        {
+          "name": "1 Execute",
+          "status": "PASS",
+          "detail": "built in 12.14 s; no hard-coded literals"
+        },
+        {
+          "name": "2 Geometry",
+          "status": "PASS",
+          "detail": "2/2 solids, volume 36799 mm\u00b3, 4/4 dims in \u00b10.1"
+        },
+        {
+          "name": "3 Printability",
+          "status": "PASS",
+          "detail": "watertight, single component, fits bed; overhang brief 0.0 %, support risk 0.0 %"
+        },
+        {
+          "name": "4 Renders",
+          "status": "PASS",
+          "detail": "5 PNGs from reloaded STL"
+        },
+        {
+          "name": "Sweep",
+          "status": "PASS",
+          "detail": "17/17 pass; dead params: none"
+        },
+        {
+          "name": "5 Exports",
+          "status": "PASS",
+          "detail": "box.stl, box.step, lid.stl, lid.step"
+        }
+      ],
+      "runs": true,
+      "dimensional": {
+        "passed": 4,
+        "total": 4
+      },
+      "printable": true,
+      "parametric": {
+        "passed": 17,
+        "total": 17,
+        "share": 1.0
+      },
+      "seconds": 83.5,
+      "report_path": "evals/results/20261104-110955/runs/box_with_lid/report.json"
+    },
+    {
+      "name": "cable_clip",
+      "brief": "evals/briefs/cable_clip.yaml",
+      "status": "PASS",
+      "reason": null,
+      "gates": [
+        {
+          "name": "1 Execute",
+          "status": "PASS",
+          "detail": "built in 3.73 s; no hard-coded literals"
+        },
+        {
+          "name": "2 Geometry",
+          "status": "PASS",
+          "detail": "1/1 solids, volume 1173 mm\u00b3, 2/2 dims in \u00b10.1"
+        },
+        {
+          "name": "3 Printability",
+          "status": "PASS",
+          "detail": "watertight, single component, fits bed; overhang brief 0.0 %, support risk 0.0 %"
+        },
+        {
+          "name": "4 Renders",
+          "status": "PASS",
+          "detail": "5 PNGs from reloaded STL"
+        },
+        {
+          "name": "Sweep",
+          "status": "PASS",
+          "detail": "13/13 pass; dead params: none"
+        },
+        {
+          "name": "5 Exports",
+          "status": "PASS",
+          "detail": "clip.stl, clip.step"
+        }
+      ],
+      "runs": true,
+      "dimensional": {
+        "passed": 2,
+        "total": 2
+      },
+      "printable": true,
+      "parametric": {
+        "passed": 13,
+        "total": 13,
+        "share": 1.0
+      },
+      "seconds": 51.2,
+      "report_path": "evals/results/20261104-110955/runs/cable_clip/report.json"
+    },
+    {
+      "name": "cable_spool",
+      "brief": "evals/briefs/cable_spool.yaml",
+      "status": "PASS",
+      "reason": null,
+      "gates": [
+        {
+          "name": "1 Execute",
+          "status": "PASS",
+          "detail": "built in 4.19 s; no hard-coded literals"
+        },
+        {
+          "name": "2 Geometry",
+          "status": "PASS",
+          "detail": "1/1 solids, volume 55577 mm\u00b3, 3/3 dims in \u00b10.1"
+        },
+        {
+          "name": "3 Printability",
+          "status": "PASS",
+          "detail": "watertight, single component, fits bed; overhang brief 10.6 %, support risk 0.0 %"
+        },
+        {
+          "name": "4 Renders",
+          "status": "PASS",
+          "detail": "5 PNGs from reloaded STL"
+        },
+        {
+          "name": "Sweep",
+          "status": "PASS",
+          "detail": "25/25 pass; dead params: none"
+        },
+        {
+          "name": "5 Exports",
+          "status": "PASS",
+          "detail": "spool.stl, spool.step"
+        }
+      ],
+      "runs": true,
+      "dimensional": {
+        "passed": 3,
+        "total": 3
+      },
+      "printable": true,
+      "parametric": {
+        "passed": 25,
+        "total": 25,
+        "share": 1.0
+      },
+      "seconds": 106.0,
+      "report_path": "evals/results/20261104-110955/runs/cable_spool/report.json"
+    },
+    {
+      "name": "doorstop",
+      "brief": "evals/briefs/doorstop.yaml",
+      "status": "PASS",
+      "reason": null,
+      "gates": [
+        {
+          "name": "1 Execute",
+          "status": "PASS",
+          "detail": "built in 4.03 s; no hard-coded literals"
+        },
+        {
+          "name": "2 Geometry",
+          "status": "PASS",
+          "detail": "1/1 solids, volume 87936 mm\u00b3, 3/3 dims in \u00b10.1"
+        },
+        {
+          "name": "3 Printability",
+          "status": "PASS",
+          "detail": "watertight, single component, fits bed; overhang brief 0.0 %, support risk 0.0 %"
+        },
+        {
+          "name": "4 Renders",
+          "status": "PASS",
+          "detail": "5 PNGs from reloaded STL"
+        },
+        {
+          "name": "Sweep",
+          "status": "PASS",
+          "detail": "21/21 pass; dead params: none"
+        },
+        {
+          "name": "5 Exports",
+          "status": "PASS",
+          "detail": "doorstop.stl, doorstop.step"
+        }
+      ],
+      "runs": true,
+      "dimensional": {
+        "passed": 3,
+        "total": 3
+      },
+      "printable": true,
+      "parametric": {
+        "passed": 21,
+        "total": 21,
+        "share": 1.0
+      },
+      "seconds": 76.6,
+      "report_path": "evals/results/20261104-110955/runs/doorstop/report.json"
+    },
+    {
+      "name": "drawer_tray",
+      "brief": "evals/briefs/drawer_tray.yaml",
+      "status": "PASS",
+      "reason": null,
+      "gates": [
+        {
+          "name": "1 Execute",
+          "status": "PASS",
+          "detail": "built in 4.22 s; no hard-coded literals"
+        },
+        {
+          "name": "2 Geometry",
+          "status": "PASS",
+          "detail": "1/1 solids, volume 122467 mm\u00b3, 3/3 dims in \u00b10.1"
+        },
+        {
+          "name": "3 Printability",
+          "status": "PASS",
+          "detail": "watertight, single component, fits bed; overhang brief 0.0 %, support risk 0.0 %"
+        },
+        {
+          "name": "4 Renders",
+          "status": "PASS",
+          "detail": "5 PNGs from reloaded STL"
+        },
+        {
+          "name": "Sweep",
+          "status": "PASS",
+          "detail": "27/27 pass; dead params: none"
+        },
+        {
+          "name": "5 Exports",
+          "status": "PASS",
+          "detail": "tray.stl, tray.step"
+        }
+      ],
+      "runs": true,
+      "dimensional": {
+        "passed": 3,
+        "total": 3
+      },
+      "printable": true,
+      "parametric": {
+        "passed": 27,
+        "total": 27,
+        "share": 1.0
+      },
+      "seconds": 104.0,
+      "report_path": "evals/results/20261104-110955/runs/drawer_tray/report.json"
+    },
+    {
+      "name": "gear_pair",
+      "brief": "evals/briefs/gear_pair.yaml",
+      "status": "PASS",
+      "reason": null,
+      "gates": [
+        {
+          "name": "1 Execute",
+          "status": "PASS",
+          "detail": "built in 7.82 s; no hard-coded literals"
+        },
+        {
+          "name": "2 Geometry",
+          "status": "PASS",
+          "detail": "2/2 solids, volume 14382 mm\u00b3, 2/2 dims in \u00b10.1"
+        },
+        {
+          "name": "3 Printability",
+          "status": "PASS",
+          "detail": "watertight, single component, fits bed; overhang brief 0.0 %, support risk 0.0 %"
+        },
+        {
+          "name": "4 Renders",
+          "status": "PASS",
+          "detail": "5 PNGs from reloaded STL"
+        },
+        {
+          "name": "Sweep",
+          "status": "PASS",
+          "detail": "25/25 pass; dead params: none"
+        },
+        {
+          "name": "5 Exports",
+          "status": "PASS",
+          "detail": "gear_a.stl, gear_a.step, gear_b.stl, gear_b.step"
+        }
+      ],
+      "runs": true,
+      "dimensional": {
+        "passed": 2,
+        "total": 2
+      },
+      "printable": true,
+      "parametric": {
+        "passed": 25,
+        "total": 25,
+        "share": 1.0
+      },
+      "seconds": 178.2,
+      "report_path": "evals/results/20261104-110955/runs/gear_pair/report.json"
+    },
+    {
+      "name": "phone_stand",
+      "brief": "evals/briefs/phone_stand.yaml",
+      "status": "PASS",
+      "reason": null,
+      "gates": [
+        {
+          "name": "1 Execute",
+          "status": "PASS",
+          "detail": "built in 3.83 s; no hard-coded literals"
+        },
+        {
+          "name": "2 Geometry",
+          "status": "PASS",
+          "detail": "2/2 solids, volume 164961 mm\u00b3, 3/3 dims in \u00b10.1"
+        },
+        {
+          "name": "3 Printability",
+          "status": "PASS",
+          "detail": "watertight, single component, fits bed; overhang brief 0.0 %, support risk 5.3 %"
+        },
+        {
+          "name": "4 Renders",
+          "status": "PASS",
+          "detail": "5 PNGs from reloaded STL"
+        },
+        {
+          "name": "Sweep",
+          "status": "PASS",
+          "detail": "13/13 pass; dead params: none"
+        },
+        {
+          "name": "5 Exports",
+          "status": "PASS",
+          "detail": "stand.stl, stand.step, slot_gauge.stl, slot_gauge.step"
+        }
+      ],
+      "runs": true,
+      "dimensional": {
+        "passed": 3,
+        "total": 3
+      },
+      "printable": true,
+      "parametric": {
+        "passed": 13,
+        "total": 13,
+        "share": 1.0
+      },
+      "seconds": 47.8,
+      "report_path": "evals/results/20261104-110955/runs/phone_stand/report.json"
+    },
+    {
+      "name": "pipe_clamp",
+      "brief": "evals/briefs/pipe_clamp.yaml",
+      "status": "PASS",
+      "reason": null,
+      "gates": [
+        {
+          "name": "1 Execute",
+          "status": "PASS",
+          "detail": "built in 4.03 s; no hard-coded literals"
+        },
+        {
+          "name": "2 Geometry",
+          "status": "PASS",
+          "detail": "1/1 solids, volume 15784 mm\u00b3, 4/4 dims in \u00b10.1"
+        },
+        {
+          "name": "3 Printability",
+          "status": "PASS",
+          "detail": "watertight, single component, fits bed; overhang brief 12.8 %, support risk 2.0 %"
+        },
+        {
+          "name": "4 Renders",
+          "status": "PASS",
+          "detail": "5 PNGs from reloaded STL"
+        },
+        {
+          "name": "Sweep",
+          "status": "PASS",
+          "detail": "19/19 pass; dead params: none"
+        },
+        {
+          "name": "5 Exports",
+          "status": "PASS",
+          "detail": "clamp.stl, clamp.step"
+        }
+      ],
+      "runs": true,
+      "dimensional": {
+        "passed": 4,
+        "total": 4
+      },
+      "printable": true,
+      "parametric": {
+        "passed": 19,
+        "total": 19,
+        "share": 1.0
+      },
+      "seconds": 65.6,
+      "report_path": "evals/results/20261104-110955/runs/pipe_clamp/report.json"
+    },
+    {
+      "name": "planter_pot",
+      "brief": "evals/briefs/planter_pot.yaml",
+      "status": "FAIL",
+      "reason": "failed gates: 3 Printability",
+      "gates": [
+        {
+          "name": "1 Execute",
+          "status": "PASS",
+          "detail": "built in 3.94 s; no hard-coded literals"
+        },
+        {
+          "name": "2 Geometry",
+          "status": "PASS",
+          "detail": "1/1 solids, volume 77314 mm\u00b3, 3/3 dims in \u00b10.1"
+        },
+        {
+          "name": "3 Printability",
+          "status": "FAIL",
+          "detail": "pot: overhang_brief_pct 83.6 > 15.0"
+        },
+        {
+          "name": "4 Renders",
+          "status": "PASS",
+          "detail": "5 PNGs from reloaded STL"
+        },
+        {
+          "name": "Sweep",
+          "status": "SKIPPED",
+          "detail": "-"
+        },
+        {
+          "name": "5 Exports",
+          "status": "SKIPPED",
+          "detail": "-"
+        }
+      ],
+      "runs": true,
+      "dimensional": {
+        "passed": 3,
+        "total": 3
+      },
+      "printable": false,
+      "parametric": null,
+      "seconds": 14.7,
+      "report_path": "evals/results/20261104-110955/runs/planter_pot/report.json"
+    },
+    {
+      "name": "project_enclosure",
+      "brief": "evals/briefs/project_enclosure.yaml",
+      "status": "PASS",
+      "reason": null,
+      "gates": [
+        {
+          "name": "1 Execute",
+          "status": "PASS",
+          "detail": "built in 4.53 s; no hard-coded literals"
+        },
+        {
+          "name": "2 Geometry",
+          "status": "PASS",
+          "detail": "2/2 solids, volume 64613 mm\u00b3, 6/6 dims in \u00b10.1"
+        },
+        {
+          "name": "3 Printability",
+          "status": "PASS",
+          "detail": "watertight, single component, fits bed; overhang brief 0.0 %, support risk 0.5 %"
+        },
+        {
+          "name": "4 Renders",
+          "status": "PASS",
+          "detail": "5 PNGs from reloaded STL"
+        },
+        {
+          "name": "Sweep",
+          "status": "PASS",
+          "detail": "27/27 pass; dead params: none"
+        },
+        {
+          "name": "5 Exports",
+          "status": "PASS",
+          "detail": "base.stl, base.step, lid.stl, lid.step"
+        }
+      ],
+      "runs": true,
+      "dimensional": {
+        "passed": 6,
+        "total": 6
+      },
+      "printable": true,
+      "parametric": {
+        "passed": 27,
+        "total": 27,
+        "share": 1.0
+      },
+      "seconds": 104.0,
+      "report_path": "evals/results/20261104-110955/runs/project_enclosure/report.json"
+    },
+    {
+      "name": "wall_bracket",
+      "brief": "evals/briefs/wall_bracket.yaml",
+      "status": "PASS",
+      "reason": null,
+      "gates": [
+        {
+          "name": "1 Execute",
+          "status": "PASS",
+          "detail": "built in 4.05 s; no hard-coded literals"
+        },
+        {
+          "name": "2 Geometry",
+          "status": "PASS",
+          "detail": "1/1 solids, volume 78220 mm\u00b3, 7/7 dims in \u00b10.1"
+        },
+        {
+          "name": "3 Printability",
+          "status": "PASS",
+          "detail": "watertight, single component, fits bed; overhang brief 4.6 %, support risk 0.9 %"
+        },
+        {
+          "name": "4 Renders",
+          "status": "PASS",
+          "detail": "5 PNGs from reloaded STL"
+        },
+        {
+          "name": "Sweep",
+          "status": "PASS",
+          "detail": "31/31 pass; dead params: none"
+        },
+        {
+          "name": "5 Exports",
+          "status": "PASS",
+          "detail": "bracket.stl, bracket.step"
+        }
+      ],
+      "runs": true,
+      "dimensional": {
+        "passed": 7,
+        "total": 7
+      },
+      "printable": true,
+      "parametric": {
+        "passed": 31,
+        "total": 31,
+        "share": 1.0
+      },
+      "seconds": 105.7,
+      "report_path": "evals/results/20261104-110955/runs/wall_bracket/report.json"
+    }
+  ]
+}

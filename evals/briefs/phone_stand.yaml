@@ -1,0 +1,25 @@
+name: phone_stand
+function: >
+  Desk stand that holds a phone in a case at a 15 degree tilt from vertical, in portrait
+  or landscape. A lip at the front stops the phone sliding off, a slot behind the lip
+  lets a charging cable pass under the phone, and the base is wide enough that tapping
+  the screen does not tip it over.
+hard_dimensions: {width: 80, depth: 90, slot_gap: 9}
+measures:
+  width: {probe: bbox_y}
+  depth: {probe: bbox_x}
+  slot_gap: {probe: bbox_z, part: slot_gauge}
+interfaces:
+  - "Phone: 9 mm gap between lip and back rest fits the phone with its case"
+  - "Cable: slot at least 12 mm wide through the base, on the centreline"
+soft_preferences: [No supports, Rounded front edges]
+assumptions:
+  - "Phone plus case is 9 mm thick, per the vision doc's example."
+  - "Width and depth are guesses from a typical 6 inch phone."
+  - "slot_gap is measured on a slot_gauge part: the eval expects a test gauge alongside the stand."
+  - "UNMEASURED: no probe reads the stand's internal lip-to-rest gap. The gate reads only the gauge, whose height equals the param by construction, so a wrong gap in the stand itself would still pass. The physical test is whether the printed gauge fits the slot."
+expected_solids: 2
+params:
+  width: {value: 80.0, min: 60.0, max: 110.0, unit: mm, intent: Base width}
+  depth: {value: 90.0, min: 70.0, max: 120.0, unit: mm, intent: Base depth; sets tip resistance}
+  slot_gap: {value: 9.0, min: 7.0, max: 16.0, unit: mm, intent: Phone-with-case thickness}

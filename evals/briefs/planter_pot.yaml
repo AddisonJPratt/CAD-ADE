@@ -1,0 +1,21 @@
+name: planter_pot
+function: >
+  Round tapered planter for a small herb, wider at the rim than at the base, with a drain
+  hole in the floor and a raised foot ring so water can leave. The taper must stay
+  printable without supports, and the wall must be even all the way up.
+hard_dimensions: {rim_dia: 100, height: 90, drain_holes: 1}
+measures:
+  rim_dia: {probe: bbox_x}
+  height: {probe: bbox_z}
+  drain_holes: {probe: hole_count, axis: Z, dia: 10}
+interfaces:
+  - "Saucer: flat 70 mm foot circle; a saucer is out of scope"
+soft_preferences: [No supports, Rounded rim, Plain outer surface]
+assumptions:
+  - "Size is a guess for a 10 cm herb pot."
+  - "PLA softens in direct summer sun; use PETG outdoors. Unverified here."
+params:
+  rim_dia: {value: 100.0, min: 70.0, max: 160.0, unit: mm, intent: Outer rim diameter}
+  height: {value: 90.0, min: 60.0, max: 150.0, unit: mm, intent: Overall height}
+  taper_deg: {value: 8.0, min: 3.0, max: 25.0, unit: deg, intent: Wall lean from vertical}
+  wall: {value: 2.4, min: 1.6, max: 3.2, unit: mm, intent: Even wall thickness}

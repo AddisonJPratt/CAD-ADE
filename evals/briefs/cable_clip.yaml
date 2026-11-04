@@ -1,0 +1,20 @@
+name: cable_clip
+function: >
+  Screw-down clip that holds one round cable against a desk underside or wall. The cable
+  snaps into an open C-shaped channel by flexing the arms in the layer plane, and a single
+  counterbored M3 screw fixes the base. It must grip the cable without crushing it.
+hard_dimensions: {clip_width: 12, mount_holes: 1}
+measures:
+  clip_width: {probe: bbox_z}
+  mount_holes: {probe: hole_count, axis: Z, dia: 3.4}
+interfaces:
+  - "Cable: 6 mm round cable, 0.25 mm sliding clearance in the channel"
+  - "Mount: 1x M3 counterbored screw through the base"
+soft_preferences: [No supports, Flex direction in the layer plane, Rounded mouth for the cable]
+assumptions:
+  - "Cable diameter 6 mm is a guess; it is an editable param."
+  - "PLA arms survive repeated flex only at low strain; arm thickness needs a check."
+params:
+  clip_width: {value: 12.0, min: 8.0, max: 20.0, unit: mm, intent: Print height of the clip}
+  cable_dia: {value: 6.0, min: 3.0, max: 10.0, unit: mm, intent: Round cable diameter}
+  arm_thickness: {value: 1.6, min: 1.2, max: 2.4, unit: mm, intent: Flexing arm wall}

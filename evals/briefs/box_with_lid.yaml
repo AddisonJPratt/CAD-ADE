@@ -1,0 +1,24 @@
+name: box_with_lid
+function: >
+  Small two-part storage box: an open tray and a separate lid that drops on with a sliding
+  fit, located by a raised inner lip. Both parts print flat without supports. The lid must
+  not rock on the box, and the two parts must not interfere when assembled in the stored pose.
+hard_dimensions: {outer_x: 80, outer_y: 60, box_height: 30, lid_height: 8}
+measures:
+  outer_x: {probe: bbox_x, part: box}
+  outer_y: {probe: bbox_y, part: box}
+  box_height: {probe: bbox_z, part: box}
+  lid_height: {probe: bbox_z, part: lid}
+interfaces:
+  - "Lid to box: lip with 0.25 mm per-side sliding clearance (CLAUDE.md starting value)"
+soft_preferences: [No supports, 2 mm walls, Small chamfer on outside edges]
+assumptions:
+  - "Size is a guess; every outer dimension is an editable param."
+  - "Parts are laid out apart on the bed, so overlap is checked in the print layout."
+expected_solids: 2
+params:
+  outer_x: {value: 80.0, min: 50.0, max: 150.0, unit: mm, intent: Outside length}
+  outer_y: {value: 60.0, min: 40.0, max: 120.0, unit: mm, intent: Outside width}
+  box_height: {value: 30.0, min: 15.0, max: 80.0, unit: mm, intent: Tray height without lid}
+  lid_height: {value: 8.0, min: 5.0, max: 15.0, unit: mm, intent: Lid height including lip}
+  wall: {value: 2.0, min: 1.2, max: 3.2, unit: mm, intent: Wall and floor thickness}

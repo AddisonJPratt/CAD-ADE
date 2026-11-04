@@ -1,0 +1,130 @@
+{
+  "generated_at": "2026-11-03T20:53:38-06:00",
+  "summary": {
+    "mode": "quick",
+    "pass_rate": {
+      "passed": 1,
+      "designs_present": 1,
+      "value": 1.0,
+      "text": "1/1 (100%)"
+    },
+    "coverage": {
+      "designs_present": 1,
+      "total_briefs": 5,
+      "value": 0.2,
+      "text": "1/5 (20%)"
+    },
+    "passed": 1,
+    "failed": 0,
+    "errored": 0,
+    "no_design": 4,
+    "no_design_briefs": [
+      "box_with_lid",
+      "cable_clip",
+      "phone_stand",
+      "planter_pot"
+    ],
+    "exit_code": 0
+  },
+  "briefs": [
+    {
+      "name": "box_with_lid",
+      "brief": "evals/briefs/box_with_lid.yaml",
+      "status": "NO_DESIGN",
+      "reason": "no design file",
+      "gates": [],
+      "runs": null,
+      "dimensional": null,
+      "printable": null,
+      "parametric": null,
+      "seconds": null,
+      "report_path": null
+    },
+    {
+      "name": "cable_clip",
+      "brief": "evals/briefs/cable_clip.yaml",
+      "status": "NO_DESIGN",
+      "reason": "no design file",
+      "gates": [],
+      "runs": null,
+      "dimensional": null,
+      "printable": null,
+      "parametric": null,
+      "seconds": null,
+      "report_path": null
+    },
+    {
+      "name": "phone_stand",
+      "brief": "evals/briefs/phone_stand.yaml",
+      "status": "NO_DESIGN",
+      "reason": "no design file",
+      "gates": [],
+      "runs": null,
+      "dimensional": null,
+      "printable": null,
+      "parametric": null,
+      "seconds": null,
+      "report_path": null
+    },
+    {
+      "name": "planter_pot",
+      "brief": "evals/briefs/planter_pot.yaml",
+      "status": "NO_DESIGN",
+      "reason": "no design file",
+      "gates": [],
+      "runs": null,
+      "dimensional": null,
+      "printable": null,
+      "parametric": null,
+      "seconds": null,
+      "report_path": null
+    },
+    {
+      "name": "wall_bracket",
+      "brief": "evals/briefs/wall_bracket.yaml",
+      "status": "PASS",
+      "reason": null,
+      "gates": [
+        {
+          "name": "1 Execute",
+          "status": "PASS",
+          "detail": "built in 10.9 s; no hard-coded literals"
+        },
+        {
+          "name": "2 Geometry",
+          "status": "PASS",
+          "detail": "1/1 solids, volume 78220 mm\u00b3, 7/7 dims in \u00b10.1"
+        },
+        {
+          "name": "3 Printability",
+          "status": "PASS",
+          "detail": "watertight, single component, fits bed; overhang brief 4.6 %, support risk 0.9 %"
+        },
+        {
+          "name": "4 Renders",
+          "status": "PASS",
+          "detail": "5 PNGs from reloaded STL"
+        },
+        {
+          "name": "Sweep",
+          "status": "NOT RUN",
+          "detail": "--no-sweep: parametric behaviour not verified"
+        },
+        {
+          "name": "5 Exports",
+          "status": "NOT RUN",
+          "detail": "check mode: no exports kept"
+        }
+      ],
+      "runs": true,
+      "dimensional": {
+        "passed": 7,
+        "total": 7
+      },
+      "printable": true,
+      "parametric": null,
+      "seconds": 30.2,
+      "report_path": "evals/results/20261103-205308/runs/wall_bracket/report.json"
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "design": "wrong_dim.py",
+  "command": "magic.py check tests/fixtures/wrong_dim.py --brief tests/fixtures/wrong_dim.yaml --out runs/_neg_wrong_dim",
+  "brief": "tests/fixtures/wrong_dim.yaml",
+  "pass": false,
+  "gates": [
+    {
+      "name": "1 Execute",
+      "status": "PASS",
+      "detail": "built in 6.86 s; no hard-coded literals"
+    },
+    {
+      "name": "2 Geometry",
+      "status": "FAIL",
+      "detail": "width: measured 60.5, spec 60.0"
+    },
+    {
+      "name": "3 Printability",
+      "status": "SKIPPED",
+      "detail": "-"
+    },
+    {
+      "name": "4 Renders",
+      "status": "SKIPPED",
+      "detail": "-"
+    },
+    {
+      "name": "Sweep",
+      "status": "SKIPPED",
+      "detail": "-"
+    },
+    {
+      "name": "5 Exports",
+      "status": "SKIPPED",
+      "detail": "-"
+    }
+  ],
+  "assumptions": [],
+  "params": {
+    "width": 60.0
+  },
+  "geometry": {
+    "pass": false,
+    "problems": [
+      "width: measured 60.5, spec 60.0"
+    ],
+    "dimensions": [
+      {
+        "name": "width",
+        "spec": 60.0,
+        "measured": 60.5,
+        "delta": 0.5,
+        "pass": false
+      }
+    ],
+    "solids": 1,
+    "expected_solids": 1,
+    "volume": 217800.0,
+    "bbox": {
+      "part": [
+        60.5,
+        60.0,
+        60.0
+      ]
+    }
+  },
+  "overlaps": []
+}

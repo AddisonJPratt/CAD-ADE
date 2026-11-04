@@ -1,0 +1,607 @@
+{
+  "design": "doorstop.py",
+  "command": "magic.py run /home/hatch/workspace/magic-cad/designs/doorstop.py --brief /home/hatch/workspace/magic-cad/evals/briefs/doorstop.yaml --out /home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/doorstop",
+  "brief": "/home/hatch/workspace/magic-cad/evals/briefs/doorstop.yaml",
+  "pass": true,
+  "gates": [
+    {
+      "name": "1 Execute",
+      "status": "PASS",
+      "detail": "built in 4.03 s; no hard-coded literals"
+    },
+    {
+      "name": "2 Geometry",
+      "status": "PASS",
+      "detail": "1/1 solids, volume 87936 mm\u00b3, 3/3 dims in \u00b10.1"
+    },
+    {
+      "name": "3 Printability",
+      "status": "PASS",
+      "detail": "watertight, single component, fits bed; overhang brief 0.0 %, support risk 0.0 %"
+    },
+    {
+      "name": "4 Renders",
+      "status": "PASS",
+      "detail": "5 PNGs from reloaded STL"
+    },
+    {
+      "name": "Sweep",
+      "status": "PASS",
+      "detail": "21/21 pass; dead params: none"
+    },
+    {
+      "name": "5 Exports",
+      "status": "PASS",
+      "detail": "doorstop.stl, doorstop.step"
+    }
+  ],
+  "assumptions": [
+    "PRINT ORIENTATION: on its side, with one side face on the bed. Printed flat on the ribs, every rib valley would be a downward face and the slope would need a long bed contact; this avoids both.",
+    "Rib form is not a hard dimension; no probe reads a tooth. Rib depth and pitch are params and checked by render only.",
+    "Rigid PLA ribs grip poorly on tile or polished wood; this is an estimate, not a tested holding force. TPU would grip better but is not this project's material.",
+    "Height and length are guesses for a typical interior door gap. wedge_height sets the door gap it can stop."
+  ],
+  "params": {
+    "length": 120.0,
+    "wedge_height": 32.0,
+    "width": 45.0,
+    "tip_t": 2.4,
+    "rib_depth": 1.6,
+    "rib_pitch": 6.0,
+    "cord_dia": 6.0
+  },
+  "geometry": {
+    "pass": true,
+    "problems": [],
+    "dimensions": [
+      {
+        "name": "length",
+        "spec": 120.0,
+        "measured": 120.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "wedge_height",
+        "spec": 32.0,
+        "measured": 32.00000000004195,
+        "delta": 4.1950443119276315e-11,
+        "pass": true
+      },
+      {
+        "name": "width",
+        "spec": 45.0,
+        "measured": 45.0,
+        "delta": 0.0,
+        "pass": true
+      }
+    ],
+    "solids": 1,
+    "expected_solids": 1,
+    "volume": 87935.65497535825,
+    "bbox": {
+      "doorstop": [
+        120.0,
+        32.00000000004195,
+        45.0
+      ]
+    }
+  },
+  "overlaps": [],
+  "printability": {
+    "doorstop": {
+      "pass": true,
+      "problems": [],
+      "metrics": {
+        "watertight": true,
+        "winding_consistent": true,
+        "components": 1,
+        "faces": 660,
+        "mesh_volume": 87936.18242938859,
+        "extents": [
+          120.0,
+          32.0,
+          45.0
+        ],
+        "inertia": [
+          19690320.22583791,
+          94143542.8952088,
+          84155401.55112803
+        ],
+        "fits_bed": true,
+        "allow_supports": false,
+        "overhang_brief_pct": 0.0,
+        "support_risk_pct": 0.0,
+        "flat_undersides_above_bed_mm2": 0.0,
+        "bed_contact_mm2": 1954.1373873197467,
+        "min_feature": {
+          "mm": 2.88,
+          "resolution_mm": 0.48,
+          "where": {
+            "axis": "Z",
+            "offset": 2.81
+          }
+        },
+        "min_feature_warning": false
+      }
+    }
+  },
+  "renders": [
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/doorstop/renders/iso.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/doorstop/renders/front.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/doorstop/renders/top.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/doorstop/renders/side.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/doorstop/renders/section.png"
+  ],
+  "sweep": {
+    "pass": true,
+    "total": 21,
+    "passed": 21,
+    "pass_share": 1.0,
+    "required_share": 1.0,
+    "dead_params": [],
+    "printable_passed": 21,
+    "max_support_risk_pct": 0.0,
+    "max_overhang_brief_pct": 0.0,
+    "rows": [
+      {
+        "label": "default",
+        "params": {},
+        "seconds": 13.05,
+        "pass": true,
+        "problems": [],
+        "volume": 87935.65497535825,
+        "bbox": {
+          "doorstop": [
+            120.0,
+            32.00000000004195,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "length=min",
+        "params": {
+          "length": 90.0
+        },
+        "seconds": 13.15,
+        "pass": true,
+        "problems": [],
+        "volume": 65795.65497525933,
+        "bbox": {
+          "doorstop": [
+            90.00000000000612,
+            32.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "length=max",
+        "params": {
+          "length": 160.0
+        },
+        "seconds": 12.65,
+        "pass": true,
+        "problems": [],
+        "volume": 117599.65497525313,
+        "bbox": {
+          "doorstop": [
+            160.0000000000006,
+            32.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "wedge_height=min",
+        "params": {
+          "wedge_height": 25.0
+        },
+        "seconds": 13.51,
+        "pass": true,
+        "problems": [],
+        "volume": 69251.65497528174,
+        "bbox": {
+          "doorstop": [
+            120.0,
+            25.000000000000984,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "wedge_height=max",
+        "params": {
+          "wedge_height": 50.0
+        },
+        "seconds": 12.78,
+        "pass": true,
+        "problems": [],
+        "volume": 136535.6549752151,
+        "bbox": {
+          "doorstop": [
+            120.00000000001228,
+            50.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "width=min",
+        "params": {
+          "width": 30.0
+        },
+        "seconds": 12.49,
+        "pass": true,
+        "problems": [],
+        "volume": 58623.76998357217,
+        "bbox": {
+          "doorstop": [
+            120.0,
+            32.00000000004195,
+            30.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "width=max",
+        "params": {
+          "width": 60.0
+        },
+        "seconds": 12.57,
+        "pass": true,
+        "problems": [],
+        "volume": 117247.53996714434,
+        "bbox": {
+          "doorstop": [
+            120.0,
+            32.00000000004195,
+            60.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "tip_t=min",
+        "params": {
+          "tip_t": 1.6
+        },
+        "seconds": 12.0,
+        "pass": true,
+        "problems": [],
+        "volume": 85775.65497531038,
+        "bbox": {
+          "doorstop": [
+            120.0,
+            32.00000000001707,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "tip_t=max",
+        "params": {
+          "tip_t": 3.2
+        },
+        "seconds": 11.92,
+        "pass": true,
+        "problems": [],
+        "volume": 90095.65497517868,
+        "bbox": {
+          "doorstop": [
+            120.00000000001234,
+            32.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "rib_depth=min",
+        "params": {
+          "rib_depth": 0.8
+        },
+        "seconds": 11.89,
+        "pass": true,
+        "problems": [],
+        "volume": 89771.6549753726,
+        "bbox": {
+          "doorstop": [
+            120.0,
+            32.00000000004195,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "rib_depth=max",
+        "params": {
+          "rib_depth": 2.4
+        },
+        "seconds": 11.81,
+        "pass": true,
+        "problems": [],
+        "volume": 86423.6549753792,
+        "bbox": {
+          "doorstop": [
+            120.0,
+            32.00000000004195,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "rib_pitch=min",
+        "params": {
+          "rib_pitch": 4.0
+        },
+        "seconds": 11.69,
+        "pass": true,
+        "problems": [],
+        "volume": 87863.65497537758,
+        "bbox": {
+          "doorstop": [
+            120.0,
+            32.00000000004195,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "rib_pitch=max",
+        "params": {
+          "rib_pitch": 9.0
+        },
+        "seconds": 12.16,
+        "pass": true,
+        "problems": [],
+        "volume": 88367.6549753511,
+        "bbox": {
+          "doorstop": [
+            120.0,
+            32.00000000004195,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "cord_dia=min",
+        "params": {
+          "cord_dia": 4.0
+        },
+        "seconds": 12.36,
+        "pass": true,
+        "problems": [],
+        "volume": 88642.51332241563,
+        "bbox": {
+          "doorstop": [
+            120.0,
+            32.00000000004195,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "cord_dia=max",
+        "params": {
+          "cord_dia": 8.0
+        },
+        "seconds": 12.09,
+        "pass": true,
+        "problems": [],
+        "volume": 86946.05328947777,
+        "bbox": {
+          "doorstop": [
+            120.0,
+            32.00000000004195,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "all=min",
+        "params": {
+          "length": 90.0,
+          "wedge_height": 25.0,
+          "width": 30.0,
+          "tip_t": 1.6,
+          "rib_depth": 0.8,
+          "rib_pitch": 4.0,
+          "cord_dia": 4.0
+        },
+        "seconds": 12.54,
+        "pass": true,
+        "problems": [],
+        "volume": 34573.00888157326,
+        "bbox": {
+          "doorstop": [
+            90.0,
+            25.000000000010456,
+            30.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "all=max",
+        "params": {
+          "length": 160.0,
+          "wedge_height": 50.0,
+          "width": 60.0,
+          "tip_t": 3.2,
+          "rib_depth": 2.4,
+          "rib_pitch": 9.0,
+          "cord_dia": 8.0
+        },
+        "seconds": 12.58,
+        "pass": true,
+        "problems": [],
+        "volume": 242624.07105269525,
+        "bbox": {
+          "doorstop": [
+            160.0,
+            50.000000000053376,
+            60.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo1",
+        "params": {
+          "length": 160.0,
+          "wedge_height": 50.0,
+          "width": 30.0,
+          "tip_t": 3.2,
+          "rib_depth": 2.4,
+          "rib_pitch": 9.0,
+          "cord_dia": 8.0
+        },
+        "seconds": 12.84,
+        "pass": true,
+        "problems": [],
+        "volume": 121312.03552634762,
+        "bbox": {
+          "doorstop": [
+            160.0,
+            50.000000000053376,
+            30.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo2",
+        "params": {
+          "length": 157.746,
+          "wedge_height": 33.951,
+          "width": 56.75,
+          "tip_t": 1.95,
+          "rib_depth": 1.023,
+          "rib_pitch": 4.699,
+          "cord_dia": 4.379
+        },
+        "seconds": 12.76,
+        "pass": true,
+        "problems": [],
+        "volume": 155747.70234627306,
+        "bbox": {
+          "doorstop": [
+            157.746,
+            33.951000000075894,
+            56.75
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo3",
+        "params": {
+          "length": 160.0,
+          "wedge_height": 25.0,
+          "width": 60.0,
+          "tip_t": 1.6,
+          "rib_depth": 0.8,
+          "rib_pitch": 9.0,
+          "cord_dia": 8.0
+        },
+        "seconds": 11.68,
+        "pass": true,
+        "problems": [],
+        "volume": 121424.07105239804,
+        "bbox": {
+          "doorstop": [
+            160.00000000000665,
+            25.0,
+            60.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo4",
+        "params": {
+          "length": 129.187,
+          "wedge_height": 33.845,
+          "width": 39.486,
+          "tip_t": 2.625,
+          "rib_depth": 1.127,
+          "rib_pitch": 6.763,
+          "cord_dia": 5.771
+        },
+        "seconds": 5.46,
+        "pass": true,
+        "problems": [],
+        "volume": 89577.64306812579,
+        "bbox": {
+          "doorstop": [
+            129.18700000001246,
+            33.845,
+            39.486
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      }
+    ]
+  },
+  "exports": [
+    "doorstop.stl",
+    "doorstop.step"
+  ]
+}

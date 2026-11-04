@@ -1,0 +1,955 @@
+{
+  "design": "project_enclosure.py",
+  "command": "magic.py run designs/project_enclosure.py --brief evals/briefs/project_enclosure.yaml --out runs/project_enclosure",
+  "brief": "evals/briefs/project_enclosure.yaml",
+  "pass": true,
+  "gates": [
+    {
+      "name": "1 Execute",
+      "status": "PASS",
+      "detail": "built in 4.35 s; no hard-coded literals"
+    },
+    {
+      "name": "2 Geometry",
+      "status": "PASS",
+      "detail": "2/2 solids, volume 64613 mm\u00b3, 6/6 dims in \u00b10.1"
+    },
+    {
+      "name": "3 Printability",
+      "status": "PASS",
+      "detail": "watertight, single component, fits bed; overhang brief 0.0 %, support risk 0.5 %"
+    },
+    {
+      "name": "4 Renders",
+      "status": "PASS",
+      "detail": "5 PNGs from reloaded STL"
+    },
+    {
+      "name": "Sweep",
+      "status": "PASS",
+      "detail": "27/27 pass; dead params: none"
+    },
+    {
+      "name": "5 Exports",
+      "status": "PASS",
+      "detail": "base.stl, base.step, lid.stl, lid.step"
+    }
+  ],
+  "assumptions": [
+    "Size is the brief's approximate figure; every outer dimension is an editable param.",
+    "Heat-set insert values come from standard_parts.json, which README flags as from memory; check against the vendor's sheet.",
+    "No board is specified, so there are no PCB standoffs, and the connector opening's position is a guess.",
+    "The hole probes confirm the holes exist at the right diameter. Hole alignment between lid and base is not probed; it is checked out-of-band on the reloaded STLs.",
+    "Parts are laid out apart on the bed, so the harness checks overlap in the print layout."
+  ],
+  "params": {
+    "outer_x": 100.0,
+    "outer_y": 60.0,
+    "outer_z": 35.0,
+    "lid_thickness": 5.0,
+    "wall": 2.4,
+    "floor": 2.0,
+    "port_w": 12.0,
+    "port_h": 6.0,
+    "vent_count": 5,
+    "vent_w": 2.0
+  },
+  "geometry": {
+    "pass": true,
+    "problems": [],
+    "dimensions": [
+      {
+        "name": "outer_x",
+        "spec": 100.0,
+        "measured": 100.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "outer_y",
+        "spec": 60.0,
+        "measured": 60.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "outer_z",
+        "spec": 35.0,
+        "measured": 35.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "lid_thickness",
+        "spec": 5.0,
+        "measured": 5.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "insert_holes",
+        "spec": 4,
+        "measured": 4.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "lid_holes",
+        "spec": 4,
+        "measured": 4.0,
+        "delta": 0.0,
+        "pass": true
+      }
+    ],
+    "solids": 2,
+    "expected_solids": 2,
+    "volume": 64612.86995565861,
+    "bbox": {
+      "base": [
+        100.0,
+        60.0,
+        35.0
+      ],
+      "lid": [
+        97.10000000000001,
+        57.1,
+        5.0
+      ]
+    }
+  },
+  "overlaps": [
+    {
+      "a": "base",
+      "b": "lid",
+      "volume": 0.0,
+      "pass": true
+    }
+  ],
+  "printability": {
+    "base": {
+      "pass": true,
+      "problems": [],
+      "metrics": {
+        "watertight": true,
+        "winding_consistent": true,
+        "components": 1,
+        "faces": 4272,
+        "mesh_volume": 38926.99726264132,
+        "extents": [
+          100.0,
+          60.0,
+          35.0
+        ],
+        "inertia": [
+          24487474.606126357,
+          53577200.798877195,
+          69581854.02658443
+        ],
+        "fits_bed": true,
+        "allow_supports": false,
+        "overhang_brief_pct": 0.0,
+        "support_risk_pct": 0.4792819214889399,
+        "flat_undersides_above_bed_mm2": 28.800018310546875,
+        "bed_contact_mm2": 5980.193231649013,
+        "min_feature": {
+          "mm": 1.2000000000000002,
+          "resolution_mm": 0.4,
+          "where": {
+            "axis": "X",
+            "offset": -43.75
+          }
+        },
+        "min_feature_warning": false
+      }
+    },
+    "lid": {
+      "pass": true,
+      "problems": [],
+      "metrics": {
+        "watertight": true,
+        "winding_consistent": true,
+        "components": 1,
+        "faces": 4672,
+        "mesh_volume": 25683.90000608999,
+        "extents": [
+          97.0999984741211,
+          57.099998474121094,
+          5.0
+        ],
+        "inertia": [
+          7147856.742573783,
+          20717854.008822322,
+          27758441.442997128
+        ],
+        "fits_bed": true,
+        "allow_supports": false,
+        "overhang_brief_pct": 0.0,
+        "support_risk_pct": 0.0,
+        "flat_undersides_above_bed_mm2": 0.0,
+        "bed_contact_mm2": 5198.460354902447,
+        "min_feature": {
+          "mm": 1.2000000000000002,
+          "resolution_mm": 0.4,
+          "where": {
+            "axis": "Y",
+            "offset": 39.82
+          }
+        },
+        "min_feature_warning": false
+      }
+    }
+  },
+  "renders": [
+    "runs/project_enclosure/renders/iso.png",
+    "runs/project_enclosure/renders/front.png",
+    "runs/project_enclosure/renders/top.png",
+    "runs/project_enclosure/renders/side.png",
+    "runs/project_enclosure/renders/section.png"
+  ],
+  "sweep": {
+    "pass": true,
+    "total": 27,
+    "passed": 27,
+    "pass_share": 1.0,
+    "required_share": 1.0,
+    "dead_params": [],
+    "printable_passed": 27,
+    "max_support_risk_pct": 0.7095357190040487,
+    "max_overhang_brief_pct": 0.0,
+    "rows": [
+      {
+        "label": "default",
+        "params": {},
+        "seconds": 13.93,
+        "pass": true,
+        "problems": [],
+        "volume": 64612.86995565861,
+        "bbox": {
+          "base": [
+            100.0,
+            60.0,
+            35.0
+          ],
+          "lid": [
+            97.10000000000001,
+            57.1,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.4792819214889399,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "outer_x=min",
+        "params": {
+          "outer_x": 80.0
+        },
+        "seconds": 13.93,
+        "pass": true,
+        "problems": [],
+        "volume": 53574.8699556573,
+        "bbox": {
+          "base": [
+            80.0,
+            60.0,
+            35.0
+          ],
+          "lid": [
+            77.10000000000001,
+            57.1,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.5988783267846979,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "outer_x=max",
+        "params": {
+          "outer_x": 140.0
+        },
+        "seconds": 13.92,
+        "pass": true,
+        "problems": [],
+        "volume": 86688.86995566048,
+        "bbox": {
+          "base": [
+            140.0,
+            60.0,
+            35.0
+          ],
+          "lid": [
+            137.1,
+            57.1,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.34249068177238573,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "outer_y=min",
+        "params": {
+          "outer_y": 50.0
+        },
+        "seconds": 13.92,
+        "pass": true,
+        "problems": [],
+        "volume": 56543.86995565861,
+        "bbox": {
+          "base": [
+            100.0,
+            50.0,
+            35.0
+          ],
+          "lid": [
+            97.10000000000001,
+            47.1,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.5749662032541049,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "outer_y=max",
+        "params": {
+          "outer_y": 90.0
+        },
+        "seconds": 14.76,
+        "pass": true,
+        "problems": [],
+        "volume": 88819.86995565888,
+        "bbox": {
+          "base": [
+            100.0,
+            90.0,
+            35.0
+          ],
+          "lid": [
+            97.10000000000001,
+            87.1,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.3196807625317444,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "outer_z=min",
+        "params": {
+          "outer_z": 25.0
+        },
+        "seconds": 14.36,
+        "pass": true,
+        "problems": [],
+        "volume": 55459.19181357583,
+        "bbox": {
+          "base": [
+            100.0,
+            60.0,
+            25.0
+          ],
+          "lid": [
+            97.10000000000001,
+            57.1,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.4792819214889399,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "outer_z=max",
+        "params": {
+          "outer_z": 50.0
+        },
+        "seconds": 14.16,
+        "pass": true,
+        "problems": [],
+        "volume": 78343.38716878295,
+        "bbox": {
+          "base": [
+            100.0,
+            60.0,
+            50.0
+          ],
+          "lid": [
+            97.10000000000001,
+            57.1,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.4792819214889399,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "lid_thickness=min",
+        "params": {
+          "lid_thickness": 4.4
+        },
+        "seconds": 14.55,
+        "pass": true,
+        "problems": [],
+        "volume": 61821.26246432705,
+        "bbox": {
+          "base": [
+            100.0,
+            60.0,
+            35.0
+          ],
+          "lid": [
+            97.10000000000001,
+            57.1,
+            4.4
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.4792819214889399,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "lid_thickness=max",
+        "params": {
+          "lid_thickness": 6.0
+        },
+        "seconds": 14.49,
+        "pass": true,
+        "problems": [],
+        "volume": 69265.54910787799,
+        "bbox": {
+          "base": [
+            100.0,
+            60.0,
+            35.0
+          ],
+          "lid": [
+            97.10000000000001,
+            57.1,
+            6.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.4792819214889399,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "wall=min",
+        "params": {
+          "wall": 1.6
+        },
+        "seconds": 13.46,
+        "pass": true,
+        "problems": [],
+        "volume": 58478.46132348644,
+        "bbox": {
+          "base": [
+            100.0,
+            60.0,
+            35.0
+          ],
+          "lid": [
+            97.9,
+            57.900000000000006,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.319446149204826,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "wall=max",
+        "params": {
+          "wall": 3.2
+        },
+        "seconds": 13.5,
+        "pass": true,
+        "problems": [],
+        "volume": 70440.6840843496,
+        "bbox": {
+          "base": [
+            100.0,
+            60.0,
+            35.0
+          ],
+          "lid": [
+            96.3,
+            56.300000000000004,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.6396602824125581,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "floor=min",
+        "params": {
+          "floor": 1.6
+        },
+        "seconds": 14.27,
+        "pass": true,
+        "problems": [],
+        "volume": 62586.928163446486,
+        "bbox": {
+          "base": [
+            100.0,
+            60.0,
+            35.0
+          ],
+          "lid": [
+            97.10000000000001,
+            57.1,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.4792819214889399,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "floor=max",
+        "params": {
+          "floor": 3.2
+        },
+        "seconds": 12.67,
+        "pass": true,
+        "problems": [],
+        "volume": 70690.69533229513,
+        "bbox": {
+          "base": [
+            100.0,
+            60.0,
+            35.0
+          ],
+          "lid": [
+            97.10000000000001,
+            57.1,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.4792819214889399,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "port_w=min",
+        "params": {
+          "port_w": 9.0
+        },
+        "seconds": 12.35,
+        "pass": true,
+        "problems": [],
+        "volume": 64656.06995565859,
+        "bbox": {
+          "base": [
+            100.0,
+            60.0,
+            35.0
+          ],
+          "lid": [
+            97.10000000000001,
+            57.1,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.359892666238216,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "port_w=max",
+        "params": {
+          "port_w": 16.0
+        },
+        "seconds": 13.0,
+        "pass": true,
+        "problems": [],
+        "volume": 64555.26995565866,
+        "bbox": {
+          "base": [
+            100.0,
+            60.0,
+            35.0
+          ],
+          "lid": [
+            97.10000000000001,
+            57.1,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.6380232519514202,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "port_h=min",
+        "params": {
+          "port_h": 4.0
+        },
+        "seconds": 12.86,
+        "pass": true,
+        "problems": [],
+        "volume": 64670.46995565867,
+        "bbox": {
+          "base": [
+            100.0,
+            60.0,
+            35.0
+          ],
+          "lid": [
+            97.10000000000001,
+            57.1,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.4792819214889399,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "port_h=max",
+        "params": {
+          "port_h": 8.0
+        },
+        "seconds": 13.21,
+        "pass": true,
+        "problems": [],
+        "volume": 64555.26995565863,
+        "bbox": {
+          "base": [
+            100.0,
+            60.0,
+            35.0
+          ],
+          "lid": [
+            97.10000000000001,
+            57.1,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.4792819214889399,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "vent_count=min",
+        "params": {
+          "vent_count": 3
+        },
+        "seconds": 13.03,
+        "pass": true,
+        "problems": [],
+        "volume": 65212.86995565859,
+        "bbox": {
+          "base": [
+            100.0,
+            60.0,
+            35.0
+          ],
+          "lid": [
+            97.10000000000001,
+            57.1,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.4792819214889399,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "vent_count=max",
+        "params": {
+          "vent_count": 9
+        },
+        "seconds": 13.17,
+        "pass": true,
+        "problems": [],
+        "volume": 63412.86995565858,
+        "bbox": {
+          "base": [
+            100.0,
+            60.0,
+            35.0
+          ],
+          "lid": [
+            97.10000000000001,
+            57.1,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.4792819214889399,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "vent_w=min",
+        "params": {
+          "vent_w": 1.6
+        },
+        "seconds": 13.79,
+        "pass": true,
+        "problems": [],
+        "volume": 64912.86995565861,
+        "bbox": {
+          "base": [
+            100.0,
+            60.0,
+            35.0
+          ],
+          "lid": [
+            97.10000000000001,
+            57.1,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.4792819214889399,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "vent_w=max",
+        "params": {
+          "vent_w": 3.0
+        },
+        "seconds": 13.77,
+        "pass": true,
+        "problems": [],
+        "volume": 63862.86995565859,
+        "bbox": {
+          "base": [
+            100.0,
+            60.0,
+            35.0
+          ],
+          "lid": [
+            97.10000000000001,
+            57.1,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.4792819214889399,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "all=min",
+        "params": {
+          "outer_x": 80.0,
+          "outer_y": 50.0,
+          "outer_z": 25.0,
+          "lid_thickness": 4.4,
+          "wall": 1.6,
+          "floor": 1.6,
+          "port_w": 9.0,
+          "port_h": 4.0,
+          "vent_count": 3,
+          "vent_w": 1.6
+        },
+        "seconds": 13.18,
+        "pass": true,
+        "problems": [],
+        "volume": 33601.53246673483,
+        "bbox": {
+          "base": [
+            80.0,
+            50.0,
+            25.0
+          ],
+          "lid": [
+            77.9,
+            47.900000000000006,
+            4.4
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.35949663282410604,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "all=max",
+        "params": {
+          "outer_x": 140.0,
+          "outer_y": 90.0,
+          "outer_z": 50.0,
+          "lid_thickness": 6.0,
+          "wall": 3.2,
+          "floor": 3.2,
+          "port_w": 16.0,
+          "port_h": 8.0,
+          "vent_count": 9,
+          "vent_w": 3.0
+        },
+        "seconds": 13.9,
+        "pass": true,
+        "problems": [],
+        "volume": 170725.07274485662,
+        "bbox": {
+          "base": [
+            140.0,
+            90.0,
+            50.0
+          ],
+          "lid": [
+            136.3,
+            86.30000000000001,
+            6.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.4058338631432911,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo1",
+        "params": {
+          "outer_x": 140.0,
+          "outer_y": 90.0,
+          "outer_z": 25.0,
+          "lid_thickness": 6.0,
+          "wall": 3.2,
+          "floor": 3.2,
+          "port_w": 16.0,
+          "port_h": 8.0,
+          "vent_count": 9,
+          "vent_w": 1.6
+        },
+        "seconds": 12.87,
+        "pass": true,
+        "problems": [],
+        "volume": 134702.89245734003,
+        "bbox": {
+          "base": [
+            140.0,
+            90.0,
+            25.0
+          ],
+          "lid": [
+            136.3,
+            86.30000000000001,
+            6.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.20332952159785123,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo2",
+        "params": {
+          "outer_x": 110.281,
+          "outer_y": 61.274,
+          "outer_z": 43.895,
+          "lid_thickness": 5.389,
+          "wall": 2.001,
+          "floor": 3.056,
+          "port_w": 15.879,
+          "port_h": 7.241,
+          "vent_count": 4,
+          "vent_w": 2.034
+        },
+        "seconds": 11.25,
+        "pass": true,
+        "problems": [],
+        "volume": 84272.0629212369,
+        "bbox": {
+          "base": [
+            110.281,
+            61.274,
+            43.895
+          ],
+          "lid": [
+            107.78,
+            58.773,
+            5.389
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.4689618709519025,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo3",
+        "params": {
+          "outer_x": 80.0,
+          "outer_y": 90.0,
+          "outer_z": 50.0,
+          "lid_thickness": 4.4,
+          "wall": 3.2,
+          "floor": 3.2,
+          "port_w": 16.0,
+          "port_h": 4.0,
+          "vent_count": 9,
+          "vent_w": 3.0
+        },
+        "seconds": 11.09,
+        "pass": true,
+        "problems": [],
+        "volume": 98337.38100135495,
+        "bbox": {
+          "base": [
+            80.0,
+            90.0,
+            50.0
+          ],
+          "lid": [
+            76.3,
+            86.30000000000001,
+            4.4
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.7095357190040487,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo4",
+        "params": {
+          "outer_x": 131.919,
+          "outer_y": 60.42,
+          "outer_z": 45.126,
+          "lid_thickness": 5.278,
+          "wall": 1.622,
+          "floor": 2.752,
+          "port_w": 11.792,
+          "port_h": 7.299,
+          "vent_count": 8,
+          "vent_w": 2.475
+        },
+        "seconds": 10.35,
+        "pass": true,
+        "problems": [],
+        "volume": 89089.51801893114,
+        "bbox": {
+          "base": [
+            131.919,
+            60.42,
+            45.126
+          ],
+          "lid": [
+            129.797,
+            58.298,
+            5.278
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.23966344484561816,
+        "overhang_brief_pct": 0.0
+      }
+    ]
+  },
+  "exports": [
+    "base.stl",
+    "base.step",
+    "lid.stl",
+    "lid.step"
+  ]
+}

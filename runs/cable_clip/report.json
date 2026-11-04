@@ -1,0 +1,410 @@
+{
+  "design": "cable_clip.py",
+  "command": "magic.py run designs/cable_clip.py --brief evals/briefs/cable_clip.yaml --out runs/cable_clip",
+  "brief": "evals/briefs/cable_clip.yaml",
+  "pass": true,
+  "gates": [
+    {
+      "name": "1 Execute",
+      "status": "PASS",
+      "detail": "built in 3.78 s; no hard-coded literals"
+    },
+    {
+      "name": "2 Geometry",
+      "status": "PASS",
+      "detail": "1/1 solids, volume 1173 mm\u00b3, 2/2 dims in \u00b10.1"
+    },
+    {
+      "name": "3 Printability",
+      "status": "PASS",
+      "detail": "watertight, single component, fits bed; overhang brief 0.0 %, support risk 0.0 %"
+    },
+    {
+      "name": "4 Renders",
+      "status": "PASS",
+      "detail": "5 PNGs from reloaded STL"
+    },
+    {
+      "name": "Sweep",
+      "status": "PASS",
+      "detail": "13/13 pass; dead params: none"
+    },
+    {
+      "name": "5 Exports",
+      "status": "PASS",
+      "detail": "clip.stl, clip.step"
+    }
+  ],
+  "assumptions": [
+    "Cable diameter 6 mm is a guess; it is an editable param.",
+    "PLA arms survive repeated flex only at low strain; arm thickness needs a check."
+  ],
+  "params": {
+    "clip_width": 12.0,
+    "cable_dia": 6.0,
+    "arm_thickness": 1.6
+  },
+  "geometry": {
+    "pass": true,
+    "problems": [],
+    "dimensions": [
+      {
+        "name": "clip_width",
+        "spec": 12.0,
+        "measured": 12.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "mount_holes",
+        "spec": 1,
+        "measured": 1.0,
+        "delta": 0.0,
+        "pass": true
+      }
+    ],
+    "solids": 1,
+    "expected_solids": 1,
+    "volume": 1172.5601440906732,
+    "bbox": {
+      "clip": [
+        17.214582518895,
+        9.700000000000001,
+        12.0
+      ]
+    }
+  },
+  "overlaps": [],
+  "printability": {
+    "clip": {
+      "pass": true,
+      "problems": [],
+      "metrics": {
+        "watertight": true,
+        "winding_consistent": true,
+        "components": 1,
+        "faces": 2764,
+        "mesh_volume": 1172.3932855106734,
+        "extents": [
+          17.213064670562744,
+          9.699999809265137,
+          12.0
+        ],
+        "inertia": [
+          23918.558987975826,
+          35557.15904773204,
+          32801.107027580954
+        ],
+        "fits_bed": true,
+        "allow_supports": false,
+        "overhang_brief_pct": 0.0,
+        "support_risk_pct": 0.0,
+        "flat_undersides_above_bed_mm2": 0.0,
+        "bed_contact_mm2": 104.12447493415975,
+        "min_feature": {
+          "mm": 1.6,
+          "resolution_mm": 0.4,
+          "where": {
+            "axis": "X",
+            "offset": -8.37
+          }
+        },
+        "min_feature_warning": false
+      }
+    }
+  },
+  "renders": [
+    "runs/cable_clip/renders/iso.png",
+    "runs/cable_clip/renders/front.png",
+    "runs/cable_clip/renders/top.png",
+    "runs/cable_clip/renders/side.png",
+    "runs/cable_clip/renders/section.png"
+  ],
+  "sweep": {
+    "pass": true,
+    "total": 13,
+    "passed": 13,
+    "pass_share": 1.0,
+    "required_share": 1.0,
+    "dead_params": [],
+    "printable_passed": 13,
+    "max_support_risk_pct": 0.0,
+    "max_overhang_brief_pct": 0.0,
+    "rows": [
+      {
+        "label": "default",
+        "params": {},
+        "seconds": 11.81,
+        "pass": true,
+        "problems": [],
+        "volume": 1172.5601440906732,
+        "bbox": {
+          "clip": [
+            17.214582518895,
+            9.700000000000001,
+            12.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "clip_width=min",
+        "params": {
+          "clip_width": 8.0
+        },
+        "seconds": 11.76,
+        "pass": true,
+        "problems": [],
+        "volume": 755.9959684501388,
+        "bbox": {
+          "clip": [
+            17.214582518895,
+            9.700000000000001,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "clip_width=max",
+        "params": {
+          "clip_width": 20.0
+        },
+        "seconds": 11.62,
+        "pass": true,
+        "problems": [],
+        "volume": 2005.688495371742,
+        "bbox": {
+          "clip": [
+            17.214582518895,
+            9.700000000000001,
+            20.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "cable_dia=min",
+        "params": {
+          "cable_dia": 3.0
+        },
+        "seconds": 11.55,
+        "pass": true,
+        "problems": [],
+        "volume": 1045.0899562016052,
+        "bbox": {
+          "clip": [
+            14.722386020032001,
+            9.7,
+            12.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "cable_dia=max",
+        "params": {
+          "cable_dia": 10.0
+        },
+        "seconds": 12.61,
+        "pass": true,
+        "problems": [],
+        "volume": 2017.536450432849,
+        "bbox": {
+          "clip": [
+            22.537480407475,
+            13.7,
+            12.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "arm_thickness=min",
+        "params": {
+          "arm_thickness": 1.2
+        },
+        "seconds": 12.5,
+        "pass": true,
+        "problems": [],
+        "volume": 913.8147418393457,
+        "bbox": {
+          "clip": [
+            15.938435821109,
+            8.900000000000002,
+            12.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "arm_thickness=max",
+        "params": {
+          "arm_thickness": 2.4
+        },
+        "seconds": 12.72,
+        "pass": true,
+        "problems": [],
+        "volume": 1755.1324222753794,
+        "bbox": {
+          "clip": [
+            19.760693864510998,
+            11.3,
+            12.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "all=min",
+        "params": {
+          "clip_width": 8.0,
+          "cable_dia": 3.0,
+          "arm_thickness": 1.2
+        },
+        "seconds": 12.28,
+        "pass": true,
+        "problems": [],
+        "volume": 519.527420116534,
+        "bbox": {
+          "clip": [
+            13.44589316685,
+            8.9,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "all=max",
+        "params": {
+          "clip_width": 20.0,
+          "cable_dia": 10.0,
+          "arm_thickness": 2.4
+        },
+        "seconds": 13.09,
+        "pass": true,
+        "problems": [],
+        "volume": 4690.034542942404,
+        "bbox": {
+          "clip": [
+            25.085214625627,
+            15.3,
+            20.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo1",
+        "params": {
+          "clip_width": 20.0,
+          "cable_dia": 10.0,
+          "arm_thickness": 1.2
+        },
+        "seconds": 12.98,
+        "pass": true,
+        "problems": [],
+        "volume": 2829.9001426586256,
+        "bbox": {
+          "clip": [
+            21.261521443122,
+            12.900000000000002,
+            20.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo2",
+        "params": {
+          "clip_width": 11.107,
+          "cable_dia": 6.579,
+          "arm_thickness": 1.686
+        },
+        "seconds": 12.9,
+        "pass": true,
+        "problems": [],
+        "volume": 1240.8189651976516,
+        "bbox": {
+          "clip": [
+            18.259173172769,
+            10.451,
+            11.107
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo3",
+        "params": {
+          "clip_width": 20.0,
+          "cable_dia": 10.0,
+          "arm_thickness": 2.4
+        },
+        "seconds": 12.66,
+        "pass": true,
+        "problems": [],
+        "volume": 4690.034542942404,
+        "bbox": {
+          "clip": [
+            25.085214625627,
+            15.3,
+            20.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo4",
+        "params": {
+          "clip_width": 15.001,
+          "cable_dia": 9.357,
+          "arm_thickness": 1.806
+        },
+        "seconds": 6.49,
+        "pass": true,
+        "problems": [],
+        "volume": 2585.4213193953137,
+        "bbox": {
+          "clip": [
+            22.338364817897002,
+            13.469000000000001,
+            15.001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      }
+    ]
+  },
+  "exports": [
+    "clip.stl",
+    "clip.step"
+  ]
+}

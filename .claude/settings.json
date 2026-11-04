@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__build123d",
+      "mcp__build123d__execute",
+      "mcp__build123d__measure",
+      "mcp__build123d__export",
+      "mcp__build123d__script",
+      "mcp__build123d__execute_file",
+      "mcp__build123d__render"
+    ]
+  }
+}

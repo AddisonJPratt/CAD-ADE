@@ -1,0 +1,870 @@
+{
+  "design": "gear_pair.py",
+  "command": "magic.py run /home/hatch/workspace/magic-cad/designs/gear_pair.py --brief /home/hatch/workspace/magic-cad/evals/briefs/gear_pair.yaml --out /home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/gear_pair",
+  "brief": "/home/hatch/workspace/magic-cad/evals/briefs/gear_pair.yaml",
+  "pass": true,
+  "gates": [
+    {
+      "name": "1 Execute",
+      "status": "PASS",
+      "detail": "built in 7.82 s; no hard-coded literals"
+    },
+    {
+      "name": "2 Geometry",
+      "status": "PASS",
+      "detail": "2/2 solids, volume 14382 mm\u00b3, 2/2 dims in \u00b10.1"
+    },
+    {
+      "name": "3 Printability",
+      "status": "PASS",
+      "detail": "watertight, single component, fits bed; overhang brief 0.0 %, support risk 0.0 %"
+    },
+    {
+      "name": "4 Renders",
+      "status": "PASS",
+      "detail": "5 PNGs from reloaded STL"
+    },
+    {
+      "name": "Sweep",
+      "status": "PASS",
+      "detail": "25/25 pass; dead params: none"
+    },
+    {
+      "name": "5 Exports",
+      "status": "PASS",
+      "detail": "gear_a.stl, gear_a.step, gear_b.stl, gear_b.step"
+    }
+  ],
+  "assumptions": [
+    "TOOTH FORM IS NOT GATED. No probe reads an involute, pitch, or module. Flanks are faceted involutes from the standard formulas (addendum 1 m, dedendum 1.25 m), with radial flanks below the base circle and straight root chords, no root fillets.",
+    "CENTRE DISTANCE IS NOT A HARD DIMENSION. It follows module and tooth counts, and a hard dimension can only be constant or follow a same-named param. Its only harness evidence is the overlap gate on the meshed print layout, at default params only. Sweep samples are not checked for overlap.",
+    "Mesh clearance and centre distance are checked out-of-band on reloaded files across one tooth pitch, at defaults and at the tightest corner. The results are in batch_ten_progress.md.",
+    "Printed in one pose, the two bodies are about one clearance apart at the flanks; whether they stay separate at this gap is unverified on a real printer.",
+    "No load rating. PLA gears at light duty only; backlash and wear are untested."
+  ],
+  "params": {
+    "module": 1.5,
+    "teeth_a": 20,
+    "teeth_b": 36,
+    "pressure_angle": 20.0,
+    "thickness": 8.0,
+    "web": 3.0,
+    "hub_wall": 3.0,
+    "flank_clearance": 0.35,
+    "flank_steps": 6
+  },
+  "geometry": {
+    "pass": true,
+    "problems": [],
+    "dimensions": [
+      {
+        "name": "thickness",
+        "spec": 8.0,
+        "measured": 8.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "axle_holes",
+        "spec": 2,
+        "measured": 2.0,
+        "delta": 0.0,
+        "pass": true
+      }
+    ],
+    "solids": 2,
+    "expected_solids": 2,
+    "volume": 14382.497569320301,
+    "bbox": {
+      "gear_a": [
+        32.993936589423,
+        32.993936589423,
+        8.0
+      ],
+      "gear_b": [
+        56.84250518189423,
+        56.842505181894225,
+        8.0
+      ]
+    }
+  },
+  "overlaps": [
+    {
+      "a": "gear_a",
+      "b": "gear_b",
+      "volume": 0.0,
+      "pass": true
+    }
+  ],
+  "printability": {
+    "gear_a": {
+      "pass": true,
+      "problems": [],
+      "metrics": {
+        "watertight": true,
+        "winding_consistent": true,
+        "components": 1,
+        "faces": 2792,
+        "mesh_volume": 4003.807197231961,
+        "extents": [
+          32.99393844604492,
+          32.99393844604492,
+          8.0
+        ],
+        "inertia": [
+          274357.8662642755,
+          274357.8642333156,
+          505211.3849193661
+        ],
+        "fits_bed": true,
+        "allow_supports": false,
+        "overhang_brief_pct": 0.0,
+        "support_risk_pct": 0.0,
+        "flat_undersides_above_bed_mm2": 0.0,
+        "bed_contact_mm2": 647.5850287419391,
+        "min_feature": {
+          "mm": 2.0,
+          "resolution_mm": 0.4,
+          "where": {
+            "axis": "X",
+            "offset": -14.43
+          }
+        },
+        "min_feature_warning": false
+      }
+    },
+    "gear_b": {
+      "pass": true,
+      "problems": [],
+      "metrics": {
+        "watertight": true,
+        "winding_consistent": true,
+        "components": 1,
+        "faces": 3816,
+        "mesh_volume": 10382.290787425152,
+        "extents": [
+          56.842501640319824,
+          56.842506408691406,
+          8.0
+        ],
+        "inertia": [
+          2286508.877517013,
+          2286508.692865383,
+          4470569.615723543
+        ],
+        "fits_bed": true,
+        "allow_supports": false,
+        "overhang_brief_pct": 0.0,
+        "support_risk_pct": 0.0,
+        "flat_undersides_above_bed_mm2": 0.0,
+        "bed_contact_mm2": 2204.4533065314067,
+        "min_feature": {
+          "mm": 1.6,
+          "resolution_mm": 0.4,
+          "where": {
+            "axis": "Z",
+            "offset": 0.5
+          }
+        },
+        "min_feature_warning": false
+      }
+    }
+  },
+  "renders": [
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/gear_pair/renders/iso.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/gear_pair/renders/front.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/gear_pair/renders/top.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/gear_pair/renders/side.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/gear_pair/renders/section.png"
+  ],
+  "sweep": {
+    "pass": true,
+    "total": 25,
+    "passed": 25,
+    "pass_share": 1.0,
+    "required_share": 1.0,
+    "dead_params": [],
+    "printable_passed": 25,
+    "max_support_risk_pct": 0.0,
+    "max_overhang_brief_pct": 0.0,
+    "rows": [
+      {
+        "label": "default",
+        "params": {},
+        "seconds": 23.36,
+        "pass": true,
+        "problems": [],
+        "volume": 14382.497569320301,
+        "bbox": {
+          "gear_a": [
+            32.993936589423,
+            32.993936589423,
+            8.0
+          ],
+          "gear_b": [
+            56.84250518189423,
+            56.842505181894225,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "module=min",
+        "params": {
+          "module": 1.0
+        },
+        "seconds": 22.49,
+        "pass": true,
+        "problems": [],
+        "volume": 6889.043427169641,
+        "bbox": {
+          "gear_a": [
+            21.99815178022618,
+            21.998151780226177,
+            8.0
+          ],
+          "gear_b": [
+            37.88504274580908,
+            37.88504274580909,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "module=max",
+        "params": {
+          "module": 3.0
+        },
+        "seconds": 23.56,
+        "pass": true,
+        "problems": [],
+        "volume": 56822.53631521203,
+        "bbox": {
+          "gear_a": [
+            65.97874814388109,
+            65.97874814388109,
+            8.0
+          ],
+          "gear_b": [
+            113.7135403561941,
+            113.71354035619407,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "teeth_a=min",
+        "params": {
+          "teeth_a": 18
+        },
+        "seconds": 23.36,
+        "pass": true,
+        "problems": [],
+        "volume": 13779.980405649932,
+        "bbox": {
+          "gear_a": [
+            29.993825989801323,
+            29.643835875575007,
+            8.0
+          ],
+          "gear_b": [
+            56.84250518189423,
+            56.842505181894225,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "teeth_a=max",
+        "params": {
+          "teeth_a": 36
+        },
+        "seconds": 26.98,
+        "pass": true,
+        "problems": [],
+        "volume": 20758.46202217894,
+        "bbox": {
+          "gear_a": [
+            56.995249021385135,
+            56.995249021385135,
+            8.0
+          ],
+          "gear_b": [
+            56.842505181894225,
+            56.842505181894225,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "teeth_b=min",
+        "params": {
+          "teeth_b": 18
+        },
+        "seconds": 18.66,
+        "pass": true,
+        "problems": [],
+        "volume": 7404.015952791307,
+        "bbox": {
+          "gear_a": [
+            32.993936589423,
+            32.993936589423,
+            8.0
+          ],
+          "gear_b": [
+            29.643835875573863,
+            29.993825989803508,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "teeth_b=max",
+        "params": {
+          "teeth_b": 60
+        },
+        "seconds": 29.1,
+        "pass": true,
+        "problems": [],
+        "volume": 29041.95638994314,
+        "bbox": {
+          "gear_a": [
+            32.993936589423,
+            32.993936589423,
+            8.0
+          ],
+          "gear_b": [
+            92.91069934445862,
+            92.9106993444586,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "pressure_angle=min",
+        "params": {
+          "pressure_angle": 20.0
+        },
+        "seconds": 23.42,
+        "pass": true,
+        "problems": [],
+        "volume": 14382.497569320301,
+        "bbox": {
+          "gear_a": [
+            32.993936589423,
+            32.993936589423,
+            8.0
+          ],
+          "gear_b": [
+            56.84250518189423,
+            56.842505181894225,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "pressure_angle=max",
+        "params": {
+          "pressure_angle": 25.0
+        },
+        "seconds": 21.48,
+        "pass": true,
+        "problems": [],
+        "volume": 14468.712363622359,
+        "bbox": {
+          "gear_a": [
+            32.99824108574,
+            32.99824108574,
+            8.0
+          ],
+          "gear_b": [
+            56.81945796646729,
+            56.81945796646728,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "thickness=min",
+        "params": {
+          "thickness": 5.0
+        },
+        "seconds": 22.82,
+        "pass": true,
+        "problems": [],
+        "volume": 10886.644302825034,
+        "bbox": {
+          "gear_a": [
+            32.993936589423,
+            32.993936589423,
+            5.0
+          ],
+          "gear_b": [
+            56.84250518189423,
+            56.842505181894225,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "thickness=max",
+        "params": {
+          "thickness": 15.0
+        },
+        "seconds": 22.18,
+        "pass": true,
+        "problems": [],
+        "volume": 22539.488524476,
+        "bbox": {
+          "gear_a": [
+            32.993936589423,
+            32.993936589423,
+            15.0
+          ],
+          "gear_b": [
+            56.84250518189423,
+            56.842505181894225,
+            15.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "web=min",
+        "params": {
+          "web": 2.0
+        },
+        "seconds": 22.6,
+        "pass": true,
+        "problems": [],
+        "volume": 12695.756838653786,
+        "bbox": {
+          "gear_a": [
+            32.993936589423,
+            32.993936589423,
+            8.0
+          ],
+          "gear_b": [
+            56.84250518189423,
+            56.842505181894225,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "web=max",
+        "params": {
+          "web": 4.0
+        },
+        "seconds": 23.7,
+        "pass": true,
+        "problems": [],
+        "volume": 16069.238299986824,
+        "bbox": {
+          "gear_a": [
+            32.993936589423,
+            32.993936589423,
+            8.0
+          ],
+          "gear_b": [
+            56.84250518189423,
+            56.842505181894225,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "hub_wall=min",
+        "params": {
+          "hub_wall": 2.0
+        },
+        "seconds": 23.28,
+        "pass": true,
+        "problems": [],
+        "volume": 14084.046267229247,
+        "bbox": {
+          "gear_a": [
+            32.993936589423,
+            32.993936589423,
+            8.0
+          ],
+          "gear_b": [
+            56.84250518189423,
+            56.842505181894225,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "hub_wall=max",
+        "params": {
+          "hub_wall": 5.0
+        },
+        "seconds": 22.01,
+        "pass": true,
+        "problems": [],
+        "volume": 15952.557585337108,
+        "bbox": {
+          "gear_a": [
+            32.993936589423,
+            32.993936589423,
+            8.0
+          ],
+          "gear_b": [
+            56.84250518189423,
+            56.842505181894225,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "flank_clearance=min",
+        "params": {
+          "flank_clearance": 0.25
+        },
+        "seconds": 22.88,
+        "pass": true,
+        "problems": [],
+        "volume": 14543.587216681024,
+        "bbox": {
+          "gear_a": [
+            32.99148511252635,
+            32.99148511252635,
+            8.0
+          ],
+          "gear_b": [
+            56.85073940307403,
+            56.85073940307402,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "flank_clearance=max",
+        "params": {
+          "flank_clearance": 0.5
+        },
+        "seconds": 24.58,
+        "pass": true,
+        "problems": [],
+        "volume": 14140.312203368965,
+        "bbox": {
+          "gear_a": [
+            32.996835364321385,
+            32.996835364321385,
+            8.0
+          ],
+          "gear_b": [
+            56.82973994152265,
+            56.82973994152265,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "flank_steps=min",
+        "params": {
+          "flank_steps": 4
+        },
+        "seconds": 19.17,
+        "pass": true,
+        "problems": [],
+        "volume": 14371.06817868915,
+        "bbox": {
+          "gear_a": [
+            32.993936589423186,
+            32.993936589423186,
+            8.0
+          ],
+          "gear_b": [
+            56.84250518189423,
+            56.842505181894225,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "flank_steps=max",
+        "params": {
+          "flank_steps": 10
+        },
+        "seconds": 30.78,
+        "pass": true,
+        "problems": [],
+        "volume": 14388.480386932119,
+        "bbox": {
+          "gear_a": [
+            32.993936589423,
+            32.993936589423,
+            8.0
+          ],
+          "gear_b": [
+            56.84250518189423,
+            56.842505181894225,
+            8.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "all=min",
+        "params": {
+          "module": 1.0,
+          "teeth_a": 18,
+          "teeth_b": 18,
+          "pressure_angle": 20.0,
+          "thickness": 5.0,
+          "web": 2.0,
+          "hub_wall": 2.0,
+          "flank_clearance": 0.25,
+          "flank_steps": 4
+        },
+        "seconds": 16.37,
+        "pass": true,
+        "problems": [],
+        "volume": 2200.773428536282,
+        "bbox": {
+          "gear_a": [
+            19.996274079854913,
+            19.759519997453978,
+            5.0
+          ],
+          "gear_b": [
+            19.759519997454333,
+            19.99627407985471,
+            5.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "all=max",
+        "params": {
+          "module": 3.0,
+          "teeth_a": 36,
+          "teeth_b": 60,
+          "pressure_angle": 25.0,
+          "thickness": 15.0,
+          "web": 4.0,
+          "hub_wall": 5.0,
+          "flank_clearance": 0.5,
+          "flank_steps": 10
+        },
+        "seconds": 50.17,
+        "pass": true,
+        "problems": [],
+        "volume": 224378.4960674154,
+        "bbox": {
+          "gear_a": [
+            113.99463998176323,
+            113.99463998176323,
+            15.0
+          ],
+          "gear_b": [
+            185.80418372683712,
+            185.80418372683675,
+            15.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo1",
+        "params": {
+          "module": 3.0,
+          "teeth_a": 36,
+          "teeth_b": 18,
+          "pressure_angle": 25.0,
+          "thickness": 15.0,
+          "web": 4.0,
+          "hub_wall": 5.0,
+          "flank_clearance": 0.5,
+          "flank_steps": 10
+        },
+        "seconds": 31.68,
+        "pass": true,
+        "problems": [],
+        "volume": 92260.33405563988,
+        "bbox": {
+          "gear_a": [
+            113.99463998176323,
+            113.99463998176323,
+            15.0
+          ],
+          "gear_b": [
+            59.23510984524068,
+            59.993528809846524,
+            15.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo2",
+        "params": {
+          "module": 2.167,
+          "teeth_a": 24,
+          "teeth_b": 50,
+          "pressure_angle": 20.696,
+          "thickness": 6.397,
+          "web": 2.19,
+          "hub_wall": 4.398,
+          "flank_clearance": 0.497,
+          "flank_steps": 8
+        },
+        "seconds": 33.98,
+        "pass": true,
+        "problems": [],
+        "volume": 37572.64345794867,
+        "bbox": {
+          "gear_a": [
+            56.334452013608,
+            56.334452013608,
+            6.397
+          ],
+          "gear_b": [
+            112.52388856773368,
+            112.67889672944901,
+            6.397
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo3",
+        "params": {
+          "module": 1.0,
+          "teeth_a": 36,
+          "teeth_b": 18,
+          "pressure_angle": 20.0,
+          "thickness": 15.0,
+          "web": 4.0,
+          "hub_wall": 2.0,
+          "flank_clearance": 0.5,
+          "flank_steps": 10
+        },
+        "seconds": 29.0,
+        "pass": true,
+        "problems": [],
+        "volume": 10468.494397986991,
+        "bbox": {
+          "gear_a": [
+            37.999519558027416,
+            37.999519558027416,
+            15.0
+          ],
+          "gear_b": [
+            19.711660723551372,
+            19.99979545260134,
+            15.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo4",
+        "params": {
+          "module": 1.632,
+          "teeth_a": 24,
+          "teeth_b": 53,
+          "pressure_angle": 22.385,
+          "thickness": 13.653,
+          "web": 2.521,
+          "hub_wall": 4.415,
+          "flank_clearance": 0.387,
+          "flank_steps": 4
+        },
+        "seconds": 14.94,
+        "pass": true,
+        "problems": [],
+        "volume": 39526.04036195906,
+        "bbox": {
+          "gear_a": [
+            42.428108004282606,
+            42.428108004282606,
+            13.653000000000002
+          ],
+          "gear_b": [
+            89.69897897812228,
+            89.73838880224733,
+            13.653000000000002
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      }
+    ]
+  },
+  "exports": [
+    "gear_a.stl",
+    "gear_a.step",
+    "gear_b.stl",
+    "gear_b.step"
+  ]
+}

@@ -1,0 +1,534 @@
+{
+  "design": "phone_stand.py",
+  "command": "magic.py run designs/phone_stand.py --brief evals/briefs/phone_stand.yaml --out runs/phone_stand",
+  "brief": "evals/briefs/phone_stand.yaml",
+  "pass": true,
+  "gates": [
+    {
+      "name": "1 Execute",
+      "status": "PASS",
+      "detail": "built in 3.89 s; no hard-coded literals"
+    },
+    {
+      "name": "2 Geometry",
+      "status": "PASS",
+      "detail": "2/2 solids, volume 164961 mm\u00b3, 3/3 dims in \u00b10.1"
+    },
+    {
+      "name": "3 Printability",
+      "status": "PASS",
+      "detail": "watertight, single component, fits bed; overhang brief 0.0 %, support risk 5.3 %"
+    },
+    {
+      "name": "4 Renders",
+      "status": "PASS",
+      "detail": "5 PNGs from reloaded STL"
+    },
+    {
+      "name": "Sweep",
+      "status": "PASS",
+      "detail": "13/13 pass; dead params: none"
+    },
+    {
+      "name": "5 Exports",
+      "status": "PASS",
+      "detail": "stand.stl, stand.step, slot_gauge.stl, slot_gauge.step"
+    }
+  ],
+  "assumptions": [
+    "Phone plus case is 9 mm thick, per the vision doc's example.",
+    "Width and depth are guesses from a typical 6 inch phone.",
+    "slot_gap is measured on a slot_gauge part: the eval expects a test gauge alongside the stand.",
+    "UNMEASURED: no probe reads the stand's internal lip-to-rest gap. The gate reads only the gauge, whose height equals the param by construction, so a wrong gap in the stand itself would still pass. The physical test is whether the printed gauge fits the slot."
+  ],
+  "params": {
+    "width": 80.0,
+    "depth": 90.0,
+    "slot_gap": 9.0
+  },
+  "geometry": {
+    "pass": true,
+    "problems": [],
+    "dimensions": [
+      {
+        "name": "width",
+        "spec": 80.0,
+        "measured": 80.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "depth",
+        "spec": 90.0,
+        "measured": 90.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "slot_gap",
+        "spec": 9.0,
+        "measured": 9.0,
+        "delta": 0.0,
+        "pass": true
+      }
+    ],
+    "solids": 2,
+    "expected_solids": 2,
+    "volume": 164960.5365509216,
+    "bbox": {
+      "stand": [
+        90.0,
+        80.0,
+        99.0
+      ],
+      "slot_gauge": [
+        43.978629789388,
+        6.0,
+        9.0
+      ]
+    }
+  },
+  "overlaps": [
+    {
+      "a": "stand",
+      "b": "slot_gauge",
+      "volume": 0.0,
+      "pass": true
+    }
+  ],
+  "printability": {
+    "stand": {
+      "pass": true,
+      "problems": [],
+      "metrics": {
+        "watertight": true,
+        "winding_consistent": true,
+        "components": 1,
+        "faces": 560,
+        "mesh_volume": 162585.43971206204,
+        "extents": [
+          90.0,
+          80.0,
+          99.0
+        ],
+        "inertia": [
+          204418159.72038367,
+          149777500.12694132,
+          125577686.36888254
+        ],
+        "fits_bed": true,
+        "allow_supports": false,
+        "overhang_brief_pct": 0.0,
+        "support_risk_pct": 5.270515798367553,
+        "flat_undersides_above_bed_mm2": 343.38512420654297,
+        "bed_contact_mm2": 6171.823962405062,
+        "min_feature": {
+          "mm": 4.3999999999999995,
+          "resolution_mm": 0.4,
+          "where": {
+            "axis": "X",
+            "offset": 50.63
+          }
+        },
+        "min_feature_warning": false
+      }
+    },
+    "slot_gauge": {
+      "pass": true,
+      "problems": [],
+      "metrics": {
+        "watertight": true,
+        "winding_consistent": true,
+        "components": 1,
+        "faces": 12,
+        "mesh_volume": 2374.8460235595703,
+        "extents": [
+          43.97863006591797,
+          6.0,
+          9.0
+        ],
+        "inertia": [
+          23154.74872970581,
+          398799.9572823476,
+          389894.2846939992
+        ],
+        "fits_bed": true,
+        "allow_supports": false,
+        "overhang_brief_pct": 0.0,
+        "support_risk_pct": 0.0,
+        "flat_undersides_above_bed_mm2": 0.0,
+        "bed_contact_mm2": 263.8717803955078,
+        "min_feature": {
+          "mm": 6.000000000000001,
+          "resolution_mm": 0.4,
+          "where": {
+            "axis": "X",
+            "offset": 45.77
+          }
+        },
+        "min_feature_warning": false
+      }
+    }
+  },
+  "renders": [
+    "runs/phone_stand/renders/iso.png",
+    "runs/phone_stand/renders/front.png",
+    "runs/phone_stand/renders/top.png",
+    "runs/phone_stand/renders/side.png",
+    "runs/phone_stand/renders/section.png"
+  ],
+  "sweep": {
+    "pass": true,
+    "total": 13,
+    "passed": 13,
+    "pass_share": 1.0,
+    "required_share": 1.0,
+    "dead_params": [],
+    "printable_passed": 13,
+    "max_support_risk_pct": 7.2825004785669964,
+    "max_overhang_brief_pct": 0.0,
+    "rows": [
+      {
+        "label": "default",
+        "params": {},
+        "seconds": 12.18,
+        "pass": true,
+        "problems": [],
+        "volume": 164960.5365509216,
+        "bbox": {
+          "stand": [
+            90.0,
+            80.0,
+            99.0
+          ],
+          "slot_gauge": [
+            43.978629789388,
+            6.0,
+            9.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 5.270515798367553,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "width=min",
+        "params": {
+          "width": 60.0
+        },
+        "seconds": 12.28,
+        "pass": true,
+        "problems": [],
+        "volume": 122677.88096845965,
+        "bbox": {
+          "stand": [
+            90.0,
+            60.0,
+            99.0
+          ],
+          "slot_gauge": [
+            43.978629789388,
+            6.0,
+            9.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 7.2825004785669964,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "width=max",
+        "params": {
+          "width": 110.0
+        },
+        "seconds": 12.38,
+        "pass": true,
+        "problems": [],
+        "volume": 228384.51992461455,
+        "bbox": {
+          "stand": [
+            90.0,
+            110.0,
+            99.0
+          ],
+          "slot_gauge": [
+            43.978629789388,
+            6.0,
+            9.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 3.726286847961301,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "depth=min",
+        "params": {
+          "depth": 70.0
+        },
+        "seconds": 12.07,
+        "pass": true,
+        "problems": [],
+        "volume": 114912.57598982425,
+        "bbox": {
+          "stand": [
+            70.0,
+            80.0,
+            79.0
+          ],
+          "slot_gauge": [
+            29.337613638011,
+            6.0,
+            9.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 5.481884692714248,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "depth=max",
+        "params": {
+          "depth": 120.0
+        },
+        "seconds": 11.8,
+        "pass": true,
+        "problems": [],
+        "volume": 256109.42893845355,
+        "bbox": {
+          "stand": [
+            120.0,
+            80.0,
+            129.0
+          ],
+          "slot_gauge": [
+            65.940154016455,
+            6.0,
+            9.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 5.083952400319186,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "slot_gap=min",
+        "params": {
+          "slot_gap": 7.0
+        },
+        "seconds": 11.85,
+        "pass": true,
+        "problems": [],
+        "volume": 146284.11376595742,
+        "bbox": {
+          "stand": [
+            90.0,
+            80.0,
+            97.0
+          ],
+          "slot_gauge": [
+            47.513283765346,
+            6.0,
+            7.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 5.10446126683848,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "slot_gap=max",
+        "params": {
+          "slot_gap": 16.0
+        },
+        "seconds": 11.58,
+        "pass": true,
+        "problems": [],
+        "volume": 236213.40071181962,
+        "bbox": {
+          "stand": [
+            90.0,
+            80.0,
+            106.0
+          ],
+          "slot_gauge": [
+            31.607340873536003,
+            6.0,
+            16.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 5.844031689909599,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "all=min",
+        "params": {
+          "width": 60.0,
+          "depth": 70.0,
+          "slot_gap": 7.0
+        },
+        "seconds": 11.51,
+        "pass": true,
+        "problems": [],
+        "volume": 74157.85971346467,
+        "bbox": {
+          "stand": [
+            70.0,
+            60.0,
+            77.0
+          ],
+          "slot_gauge": [
+            32.872267613969,
+            6.0,
+            7.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 7.281753928887166,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "all=max",
+        "params": {
+          "width": 110.0,
+          "depth": 120.0,
+          "slot_gap": 16.0
+        },
+        "seconds": 11.18,
+        "pass": true,
+        "problems": [],
+        "volume": 479401.1657214928,
+        "bbox": {
+          "stand": [
+            120.0,
+            110.0,
+            136.0
+          ],
+          "slot_gauge": [
+            53.568865100602,
+            6.0,
+            16.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 3.907615095290364,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo1",
+        "params": {
+          "width": 110.0,
+          "depth": 120.0,
+          "slot_gap": 7.0
+        },
+        "seconds": 11.61,
+        "pass": true,
+        "problems": [],
+        "volume": 320639.93957233697,
+        "bbox": {
+          "stand": [
+            120.0,
+            110.0,
+            127.0
+          ],
+          "slot_gauge": [
+            69.47480799241299,
+            6.0,
+            7.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 3.498759210796517,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo2",
+        "params": {
+          "width": 72.946,
+          "depth": 95.564,
+          "slot_gap": 10.644
+        },
+        "seconds": 11.62,
+        "pass": true,
+        "problems": [],
+        "volume": 179264.22496092215,
+        "bbox": {
+          "stand": [
+            95.56400000000001,
+            72.946,
+            106.208
+          ],
+          "slot_gauge": [
+            45.146274914463994,
+            6.0,
+            10.644
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 5.932344582874684,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo3",
+        "params": {
+          "width": 110.0,
+          "depth": 120.0,
+          "slot_gap": 16.0
+        },
+        "seconds": 11.49,
+        "pass": true,
+        "problems": [],
+        "volume": 479401.1657214928,
+        "bbox": {
+          "stand": [
+            120.0,
+            110.0,
+            136.0
+          ],
+          "slot_gauge": [
+            53.568865100602,
+            6.0,
+            16.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 3.907615095290364,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo4",
+        "params": {
+          "width": 89.169,
+          "depth": 115.406,
+          "slot_gap": 11.542
+        },
+        "seconds": 4.48,
+        "pass": true,
+        "problems": [],
+        "volume": 303243.96451682213,
+        "bbox": {
+          "stand": [
+            115.406,
+            89.169,
+            126.948
+          ],
+          "slot_gauge": [
+            58.08456740304101,
+            6.0,
+            11.542
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 4.678477533206479,
+        "overhang_brief_pct": 0.0
+      }
+    ]
+  },
+  "exports": [
+    "stand.stl",
+    "stand.step",
+    "slot_gauge.stl",
+    "slot_gauge.step"
+  ]
+}

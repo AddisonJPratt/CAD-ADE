@@ -1,0 +1,133 @@
+{
+  "design": "planter_pot.py",
+  "command": "magic.py run /home/hatch/workspace/magic-cad/designs/planter_pot.py --brief /home/hatch/workspace/magic-cad/evals/briefs/planter_pot.yaml --out /home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/planter_pot",
+  "brief": "/home/hatch/workspace/magic-cad/evals/briefs/planter_pot.yaml",
+  "pass": false,
+  "gates": [
+    {
+      "name": "1 Execute",
+      "status": "PASS",
+      "detail": "built in 3.94 s; no hard-coded literals"
+    },
+    {
+      "name": "2 Geometry",
+      "status": "PASS",
+      "detail": "1/1 solids, volume 77314 mm\u00b3, 3/3 dims in \u00b10.1"
+    },
+    {
+      "name": "3 Printability",
+      "status": "FAIL",
+      "detail": "pot: overhang_brief_pct 83.6 > 15.0"
+    },
+    {
+      "name": "4 Renders",
+      "status": "PASS",
+      "detail": "5 PNGs from reloaded STL"
+    },
+    {
+      "name": "Sweep",
+      "status": "SKIPPED",
+      "detail": "-"
+    },
+    {
+      "name": "5 Exports",
+      "status": "SKIPPED",
+      "detail": "-"
+    }
+  ],
+  "assumptions": [
+    "Size is a guess for a 10 cm herb pot.",
+    "PLA softens in direct summer sun; use PETG outdoors. Unverified here."
+  ],
+  "params": {
+    "rim_dia": 100.0,
+    "height": 90.0,
+    "taper_deg": 8.0,
+    "wall": 2.4
+  },
+  "geometry": {
+    "pass": true,
+    "problems": [],
+    "dimensions": [
+      {
+        "name": "rim_dia",
+        "spec": 100.0,
+        "measured": 100.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "height",
+        "spec": 90.0,
+        "measured": 90.0000001,
+        "delta": 9.999999406318238e-08,
+        "pass": true
+      },
+      {
+        "name": "drain_holes",
+        "spec": 1,
+        "measured": 1.0,
+        "delta": 0.0,
+        "pass": true
+      }
+    ],
+    "solids": 1,
+    "expected_solids": 1,
+    "volume": 77313.94248575496,
+    "bbox": {
+      "pot": [
+        100.0,
+        100.0,
+        90.0000001
+      ]
+    }
+  },
+  "overlaps": [],
+  "printability": {
+    "pot": {
+      "pass": false,
+      "problems": [
+        "overhang_brief_pct 83.6 > 15.0"
+      ],
+      "metrics": {
+        "watertight": true,
+        "winding_consistent": true,
+        "components": 1,
+        "faces": 12450,
+        "mesh_volume": 77241.07682184789,
+        "extents": [
+          100.0,
+          99.96891784667969,
+          90.0
+        ],
+        "inertia": [
+          125658958.20662105,
+          125424238.03875357,
+          129970579.20312165
+        ],
+        "fits_bed": true,
+        "allow_supports": false,
+        "overhang_brief_pct": 83.625768704286,
+        "support_risk_pct": 12.998222270727956,
+        "flat_undersides_above_bed_mm2": 3606.4703255873715,
+        "bed_contact_mm2": 936.7031978631853,
+        "min_feature": {
+          "mm": 2.4,
+          "resolution_mm": 0.4,
+          "where": {
+            "axis": "X",
+            "offset": -31.25
+          }
+        },
+        "min_feature_warning": false
+      }
+    }
+  },
+  "renders": [
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/planter_pot/renders/iso.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/planter_pot/renders/front.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/planter_pot/renders/top.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/planter_pot/renders/side.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261104-110955/runs/planter_pot/renders/section.png"
+  ]
+}

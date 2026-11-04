@@ -1,0 +1,172 @@
+{
+  "design": "wall_bracket.py",
+  "command": "magic.py check /home/hatch/workspace/magic-cad/designs/wall_bracket.py --brief /home/hatch/workspace/magic-cad/evals/briefs/wall_bracket.yaml --out /home/hatch/workspace/magic-cad/evals/results/20261103-205308/runs/wall_bracket --no-sweep",
+  "brief": "/home/hatch/workspace/magic-cad/evals/briefs/wall_bracket.yaml",
+  "pass": true,
+  "gates": [
+    {
+      "name": "1 Execute",
+      "status": "PASS",
+      "detail": "built in 10.9 s; no hard-coded literals"
+    },
+    {
+      "name": "2 Geometry",
+      "status": "PASS",
+      "detail": "1/1 solids, volume 78220 mm\u00b3, 7/7 dims in \u00b10.1"
+    },
+    {
+      "name": "3 Printability",
+      "status": "PASS",
+      "detail": "watertight, single component, fits bed; overhang brief 4.6 %, support risk 0.9 %"
+    },
+    {
+      "name": "4 Renders",
+      "status": "PASS",
+      "detail": "5 PNGs from reloaded STL"
+    },
+    {
+      "name": "Sweep",
+      "status": "NOT RUN",
+      "detail": "--no-sweep: parametric behaviour not verified"
+    },
+    {
+      "name": "5 Exports",
+      "status": "NOT RUN",
+      "detail": "check mode: no exports kept"
+    }
+  ],
+  "assumptions": [
+    "Only width (60) and the 2x M4 + 2x M4 holes were specified. Everything else is my choice.",
+    "Shelf depth 80 and wall height 80 are chosen; a typical small bookshelf bracket.",
+    "Hole spacing 40 in both legs; holes centred on the free part of each leg.",
+    "Load: 5 kg per bracket at the shelf's front edge (the vision doc's example). Hand estimate only, no FEA: under 2 MPa in the plate beyond the gusset. Load-test before trusting it over anything fragile.",
+    "Thickness 8 mm, set by the M4 counterbore (4.2 deep) plus a 3.8 mm floor, not by load.",
+    "Printed shelf-face-down. Layers cross the wall leg, its weaker direction; the gusset and low stress are what make that acceptable. Unverified on a real print.",
+    "Wall anchors are the installer's choice; M4 screws into a real wall usually need plugs."
+  ],
+  "params": {
+    "width": 60.0,
+    "shelf_depth": 80.0,
+    "wall_height": 80.0,
+    "thickness": 8.0,
+    "wall_hole_spacing": 40.0,
+    "shelf_hole_spacing": 40.0,
+    "inner_radius": 4.0,
+    "outer_radius": 1.0,
+    "corner_radius": 4.0,
+    "gusset_thickness": 5.0,
+    "gusset_reach": 0.7,
+    "gusset_edge_radius": 1.0
+  },
+  "geometry": {
+    "pass": true,
+    "problems": [],
+    "dimensions": [
+      {
+        "name": "width",
+        "spec": 60.0,
+        "measured": 60.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "shelf_depth",
+        "spec": 80.0,
+        "measured": 80.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "wall_height",
+        "spec": 80.0,
+        "measured": 80.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "wall_hole_spacing",
+        "spec": 40.0,
+        "measured": 40.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "shelf_hole_spacing",
+        "spec": 40.0,
+        "measured": 40.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "wall_holes",
+        "spec": 2,
+        "measured": 2.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "shelf_holes",
+        "spec": 2,
+        "measured": 2.0,
+        "delta": 0.0,
+        "pass": true
+      }
+    ],
+    "solids": 1,
+    "expected_solids": 1,
+    "volume": 78219.66701176565,
+    "bbox": {
+      "bracket": [
+        80.0,
+        60.0,
+        80.0
+      ]
+    }
+  },
+  "overlaps": [],
+  "printability": {
+    "bracket": {
+      "pass": true,
+      "problems": [],
+      "metrics": {
+        "watertight": true,
+        "winding_consistent": true,
+        "components": 1,
+        "faces": 4800,
+        "mesh_volume": 78220.12406696333,
+        "extents": [
+          80.0,
+          60.0,
+          80.0
+        ],
+        "inertia": [
+          65898337.177605346,
+          88989534.90812713,
+          65914509.09758337
+        ],
+        "fits_bed": true,
+        "allow_supports": false,
+        "overhang_brief_pct": 4.577742064393634,
+        "support_risk_pct": 0.9468816053710755,
+        "flat_undersides_above_bed_mm2": 0.0,
+        "bed_contact_mm2": 4701.327211284835,
+        "min_feature": {
+          "mm": 3.9999999999999996,
+          "resolution_mm": 0.4,
+          "where": {
+            "axis": "Y",
+            "offset": -18.75
+          }
+        },
+        "min_feature_warning": false
+      }
+    }
+  },
+  "renders": [
+    "/home/hatch/workspace/magic-cad/evals/results/20261103-205308/runs/wall_bracket/renders/iso.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261103-205308/runs/wall_bracket/renders/front.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261103-205308/runs/wall_bracket/renders/top.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261103-205308/runs/wall_bracket/renders/side.png",
+    "/home/hatch/workspace/magic-cad/evals/results/20261103-205308/runs/wall_bracket/renders/section.png"
+  ]
+}

@@ -1,0 +1,4 @@
+three 0.160.0 (npm tarball sha1 cd1e4dbd01aee0719280a9086d75545db52b7a8f), files copied unmodified:
+build/three.module.js, examples/jsm/controls/OrbitControls.js,
+examples/jsm/loaders/STLLoader.js, examples/jsm/utils/BufferGeometryUtils.js,
+examples/jsm/environments/RoomEnvironment.js, LICENSE.

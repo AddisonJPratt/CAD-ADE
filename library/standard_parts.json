@@ -1,0 +1,33 @@
+{
+  "_notes": "All values in mm. Screws: ISO 273 medium clearance, ISO coarse tap drill, ISO 4762 socket-head dimensions. Counterbore = head + tool clearance. Insert values are typical for Ruthex-style tapered inserts; confirm against your vendor's datasheet before relying on them.",
+  "fits": {
+    "_source": "Mirrors the CLAUDE.md clearance table (per-side, mm). Uncalibrated starting values.",
+    "sliding": 0.25, "press": 0.10, "print_in_place": 0.35
+  },
+  "brief_constants": {
+    "_source": "Values an eval brief pins without declaring them as params, so the design can't take them from PARAMS.",
+    "phone_stand": {"tilt_deg": 15.0, "cable_slot_width": 12.0},
+    "planter_pot": {"drain_dia": 10.0, "foot_dia": 70.0}
+  },
+  "screws": {
+    "M3": {"clearance": 3.4, "tap": 2.5, "head_dia": 5.5, "head_height": 3.0, "counterbore_dia": 6.5, "counterbore_depth": 3.2},
+    "M4": {"clearance": 4.5, "tap": 3.3, "head_dia": 7.0, "head_height": 4.0, "counterbore_dia": 8.0, "counterbore_depth": 4.2},
+    "M5": {"clearance": 5.5, "tap": 4.2, "head_dia": 8.5, "head_height": 5.0, "counterbore_dia": 10.0, "counterbore_depth": 5.2}
+  },
+  "heatset_inserts": {
+    "M3": {"hole_dia": 4.0, "insert_length": 5.7, "insert_od": 4.6, "boss_od": 8.0, "hole_extra_depth": 1.0, "floor": 1.2},
+    "M4": {"hole_dia": 5.6, "insert_length": 8.1, "insert_od": 6.3, "boss_od": 10.0, "hole_extra_depth": 1.0, "floor": 1.2}
+  },
+  "bearings": {
+    "608": {"bore": 8.0, "od": 22.0, "width": 7.0}
+  },
+  "motor_mounts": {
+    "NEMA17": {"hole_spacing": 31.0, "screw": "M3"}
+  },
+  "extrusions": {
+    "2020": {"profile": 20.0, "slot_width": 6.0}
+  },
+  "grids": {
+    "gridfinity": {"pitch": 42.0}
+  }
+}

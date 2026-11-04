@@ -1,0 +1,9 @@
+name: wrong_dim
+function: Test fixture.
+hard_dimensions: {width: 60}
+measures: {width: {probe: bbox_x}}
+interfaces: []
+soft_preferences: []
+assumptions: []
+params:
+  width: {value: 60.0, min: 50.0, max: 70.0, unit: mm, intent: Test}

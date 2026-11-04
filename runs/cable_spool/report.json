@@ -1,0 +1,701 @@
+{
+  "design": "cable_spool.py",
+  "command": "magic.py run designs/cable_spool.py --brief evals/briefs/cable_spool.yaml --out runs/cable_spool",
+  "brief": "evals/briefs/cable_spool.yaml",
+  "pass": true,
+  "gates": [
+    {
+      "name": "1 Execute",
+      "status": "PASS",
+      "detail": "built in 4.05 s; no hard-coded literals"
+    },
+    {
+      "name": "2 Geometry",
+      "status": "PASS",
+      "detail": "1/1 solids, volume 55577 mm\u00b3, 3/3 dims in \u00b10.1"
+    },
+    {
+      "name": "3 Printability",
+      "status": "PASS",
+      "detail": "watertight, single component, fits bed; overhang brief 10.6 %, support risk 0.0 %"
+    },
+    {
+      "name": "4 Renders",
+      "status": "PASS",
+      "detail": "5 PNGs from reloaded STL"
+    },
+    {
+      "name": "Sweep",
+      "status": "PASS",
+      "detail": "25/25 pass; dead params: none"
+    },
+    {
+      "name": "5 Exports",
+      "status": "PASS",
+      "detail": "spool.stl, spool.step"
+    }
+  ],
+  "assumptions": [
+    "RETAINING LIP IS TABS, NOT A FULL RING. Each tab's underside is a 44 deg self-supporting cone, but it still counts as downward-facing, and a full ring reads well over the 15 % overhang limit. Gaps between tabs also let a hand reach the coil.",
+    "A single centre screw lets the spool turn on the wall if over-torqued by a pull. No anti-rotation key; the brief asks for a centre screw only.",
+    "Coil capacity is not a hard dimension and is not measured. Tab reach and spacing, retention, and cable pull load are unverified on a real print.",
+    "Wall anchors are the installer's choice."
+  ],
+  "params": {
+    "flange_dia": 90.0,
+    "hub_dia": 50.0,
+    "spool_height": 40.0,
+    "flange_t": 6.0,
+    "wall": 3.0,
+    "lip_reach": 7.0,
+    "lip_arc": 50.0,
+    "lip_count": 3,
+    "notch_w": 4.0
+  },
+  "geometry": {
+    "pass": true,
+    "problems": [],
+    "dimensions": [
+      {
+        "name": "flange_dia",
+        "spec": 90.0,
+        "measured": 90.0000002,
+        "delta": 2.0000000233721948e-07,
+        "pass": true
+      },
+      {
+        "name": "spool_height",
+        "spec": 40.0,
+        "measured": 40.0000001,
+        "delta": 1.0000000116860974e-07,
+        "pass": true
+      },
+      {
+        "name": "mount_holes",
+        "spec": 1,
+        "measured": 1.0,
+        "delta": 0.0,
+        "pass": true
+      }
+    ],
+    "solids": 1,
+    "expected_solids": 1,
+    "volume": 55576.61045997638,
+    "bbox": {
+      "spool": [
+        90.0000002,
+        90.0000002,
+        40.0000001
+      ]
+    }
+  },
+  "overlaps": [],
+  "printability": {
+    "spool": {
+      "pass": true,
+      "problems": [],
+      "metrics": {
+        "watertight": true,
+        "winding_consistent": true,
+        "components": 1,
+        "faces": 19430,
+        "mesh_volume": 55552.59743081206,
+        "extents": [
+          89.99410247802734,
+          89.99410247802734,
+          40.0
+        ],
+        "inertia": [
+          32164841.039070304,
+          32164843.95291566,
+          48586522.49855352
+        ],
+        "fits_bed": true,
+        "allow_supports": false,
+        "overhang_brief_pct": 10.641771383393367,
+        "support_risk_pct": 0.0,
+        "flat_undersides_above_bed_mm2": 0.0,
+        "bed_contact_mm2": 6311.278673908458,
+        "min_feature": {
+          "mm": 2.0,
+          "resolution_mm": 0.4,
+          "where": {
+            "axis": "Y",
+            "offset": -28.12
+          }
+        },
+        "min_feature_warning": false
+      }
+    }
+  },
+  "renders": [
+    "runs/cable_spool/renders/iso.png",
+    "runs/cable_spool/renders/front.png",
+    "runs/cable_spool/renders/top.png",
+    "runs/cable_spool/renders/side.png",
+    "runs/cable_spool/renders/section.png"
+  ],
+  "sweep": {
+    "pass": true,
+    "total": 25,
+    "passed": 25,
+    "pass_share": 1.0,
+    "required_share": 1.0,
+    "dead_params": [],
+    "printable_passed": 22,
+    "max_support_risk_pct": 0.6534667932103718,
+    "max_overhang_brief_pct": 15.736607298644865,
+    "rows": [
+      {
+        "label": "default",
+        "params": {},
+        "seconds": 12.69,
+        "pass": true,
+        "problems": [],
+        "volume": 55576.61045997638,
+        "bbox": {
+          "spool": [
+            90.0000002,
+            90.0000002,
+            40.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 10.641771383393367
+      },
+      {
+        "label": "flange_dia=min",
+        "params": {
+          "flange_dia": 80.0
+        },
+        "seconds": 12.59,
+        "pass": true,
+        "problems": [],
+        "volume": 47580.76305388003,
+        "bbox": {
+          "spool": [
+            80.0000002,
+            80.0000002,
+            40.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 13.121156786197222
+      },
+      {
+        "label": "flange_dia=max",
+        "params": {
+          "flange_dia": 130.0
+        },
+        "seconds": 12.79,
+        "pass": true,
+        "problems": [],
+        "volume": 96984.84664601891,
+        "bbox": {
+          "spool": [
+            130.0000002,
+            130.0000002,
+            40.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 5.379590302151445
+      },
+      {
+        "label": "hub_dia=min",
+        "params": {
+          "hub_dia": 36.0
+        },
+        "seconds": 12.82,
+        "pass": true,
+        "problems": [],
+        "volume": 50348.10690321485,
+        "bbox": {
+          "spool": [
+            90.0000002,
+            90.0000002,
+            40.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 8.243434016063963
+      },
+      {
+        "label": "hub_dia=max",
+        "params": {
+          "hub_dia": 60.0
+        },
+        "seconds": 14.0,
+        "pass": true,
+        "problems": [],
+        "volume": 59311.25585766136,
+        "bbox": {
+          "spool": [
+            90.0000002,
+            90.0000002,
+            40.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 12.279536181793292
+      },
+      {
+        "label": "spool_height=min",
+        "params": {
+          "spool_height": 28.0
+        },
+        "seconds": 13.9,
+        "pass": true,
+        "problems": [],
+        "volume": 50261.03565192903,
+        "bbox": {
+          "spool": [
+            90.0000002,
+            90.0000002,
+            28.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 10.641771473953959
+      },
+      {
+        "label": "spool_height=max",
+        "params": {
+          "spool_height": 60.0
+        },
+        "seconds": 13.87,
+        "pass": true,
+        "problems": [],
+        "volume": 64435.901806721995,
+        "bbox": {
+          "spool": [
+            90.0000002,
+            90.0000002,
+            60.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 10.641770178549097
+      },
+      {
+        "label": "flange_t=min",
+        "params": {
+          "flange_t": 5.2
+        },
+        "seconds": 13.76,
+        "pass": true,
+        "problems": [],
+        "volume": 50913.021771548934,
+        "bbox": {
+          "spool": [
+            90.0000002,
+            90.0000002,
+            40.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 10.641771383393367
+      },
+      {
+        "label": "flange_t=max",
+        "params": {
+          "flange_t": 8.0
+        },
+        "seconds": 13.99,
+        "pass": true,
+        "problems": [],
+        "volume": 67215.15156250706,
+        "bbox": {
+          "spool": [
+            90.0000002,
+            90.0000002,
+            40.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 10.641771383393367
+      },
+      {
+        "label": "wall=min",
+        "params": {
+          "wall": 2.0
+        },
+        "seconds": 13.86,
+        "pass": true,
+        "problems": [],
+        "volume": 50334.55839737556,
+        "bbox": {
+          "spool": [
+            90.0000002,
+            90.0000002,
+            40.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 10.641771383393362
+      },
+      {
+        "label": "wall=max",
+        "params": {
+          "wall": 4.0
+        },
+        "seconds": 13.9,
+        "pass": true,
+        "problems": [],
+        "volume": 60677.87471746177,
+        "bbox": {
+          "spool": [
+            90.0000002,
+            90.0000002,
+            40.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 10.641771383393364
+      },
+      {
+        "label": "lip_reach=min",
+        "params": {
+          "lip_reach": 4.0
+        },
+        "seconds": 13.5,
+        "pass": true,
+        "problems": [],
+        "volume": 53972.936284608666,
+        "bbox": {
+          "spool": [
+            90.0000002,
+            90.0000002,
+            40.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 6.056761165885078
+      },
+      {
+        "label": "lip_reach=max",
+        "params": {
+          "lip_reach": 10.0
+        },
+        "seconds": 12.27,
+        "pass": true,
+        "problems": [],
+        "volume": 57996.39901502758,
+        "bbox": {
+          "spool": [
+            90.0000002,
+            90.0000002,
+            40.0000001
+          ]
+        },
+        "printable": false,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 15.18836651789749
+      },
+      {
+        "label": "lip_arc=min",
+        "params": {
+          "lip_arc": 30.0
+        },
+        "seconds": 11.87,
+        "pass": true,
+        "problems": [],
+        "volume": 54537.046839160466,
+        "bbox": {
+          "spool": [
+            90.0000002,
+            90.0000002,
+            40.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 6.669122126152333
+      },
+      {
+        "label": "lip_arc=max",
+        "params": {
+          "lip_arc": 70.0
+        },
+        "seconds": 11.88,
+        "pass": true,
+        "problems": [],
+        "volume": 56616.17408079216,
+        "bbox": {
+          "spool": [
+            90.0000002,
+            90.0000002,
+            40.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 14.290218468812991
+      },
+      {
+        "label": "lip_count=min",
+        "params": {
+          "lip_count": 2
+        },
+        "seconds": 11.52,
+        "pass": true,
+        "problems": [],
+        "volume": 54710.30742536267,
+        "bbox": {
+          "spool": [
+            90.0000002,
+            90.0000002,
+            40.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 7.355430258721522
+      },
+      {
+        "label": "lip_count=max",
+        "params": {
+          "lip_count": 4
+        },
+        "seconds": 12.56,
+        "pass": true,
+        "problems": [],
+        "volume": 56442.91348914265,
+        "bbox": {
+          "spool": [
+            90.0000002,
+            90.0000002,
+            40.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 13.702949615115477
+      },
+      {
+        "label": "notch_w=min",
+        "params": {
+          "notch_w": 3.0
+        },
+        "seconds": 11.09,
+        "pass": true,
+        "problems": [],
+        "volume": 55659.92150101726,
+        "bbox": {
+          "spool": [
+            90.0000002,
+            90.0000002,
+            40.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 10.62069198315703
+      },
+      {
+        "label": "notch_w=max",
+        "params": {
+          "notch_w": 6.0
+        },
+        "seconds": 11.7,
+        "pass": true,
+        "problems": [],
+        "volume": 55338.422854920806,
+        "bbox": {
+          "spool": [
+            90.0000002,
+            90.0000002,
+            40.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 10.715821058838776
+      },
+      {
+        "label": "all=min",
+        "params": {
+          "flange_dia": 80.0,
+          "hub_dia": 36.0,
+          "spool_height": 28.0,
+          "flange_t": 5.2,
+          "wall": 2.0,
+          "lip_reach": 4.0,
+          "lip_arc": 30.0,
+          "lip_count": 2,
+          "notch_w": 3.0
+        },
+        "seconds": 11.69,
+        "pass": true,
+        "problems": [],
+        "volume": 30949.89226035676,
+        "bbox": {
+          "spool": [
+            80.0000002,
+            80.0000002,
+            28.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 2.35882075044837
+      },
+      {
+        "label": "all=max",
+        "params": {
+          "flange_dia": 130.0,
+          "hub_dia": 60.0,
+          "spool_height": 60.0,
+          "flange_t": 8.0,
+          "wall": 4.0,
+          "lip_reach": 10.0,
+          "lip_arc": 70.0,
+          "lip_count": 4,
+          "notch_w": 6.0
+        },
+        "seconds": 12.97,
+        "pass": true,
+        "problems": [],
+        "volume": 154111.24581903635,
+        "bbox": {
+          "spool": [
+            130.0000002,
+            130.0000002,
+            60.0000001
+          ]
+        },
+        "printable": false,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 15.736607298644865
+      },
+      {
+        "label": "combo1",
+        "params": {
+          "flange_dia": 130.0,
+          "hub_dia": 60.0,
+          "spool_height": 28.0,
+          "flange_t": 8.0,
+          "wall": 4.0,
+          "lip_reach": 10.0,
+          "lip_arc": 70.0,
+          "lip_count": 4,
+          "notch_w": 6.0
+        },
+        "seconds": 12.07,
+        "pass": true,
+        "problems": [],
+        "volume": 131592.30968418813,
+        "bbox": {
+          "spool": [
+            130.0000002,
+            130.0000002,
+            28.0000001
+          ]
+        },
+        "printable": false,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 15.736606251019547
+      },
+      {
+        "label": "combo2",
+        "params": {
+          "flange_dia": 109.169,
+          "hub_dia": 57.795,
+          "spool_height": 44.15,
+          "flange_t": 5.989,
+          "wall": 3.512,
+          "lip_reach": 7.71,
+          "lip_arc": 40.02,
+          "lip_count": 4,
+          "notch_w": 5.948
+        },
+        "seconds": 12.57,
+        "pass": true,
+        "problems": [],
+        "volume": 82529.03100468681,
+        "bbox": {
+          "spool": [
+            109.1690002,
+            109.1690002,
+            44.1500001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 9.874365806402052
+      },
+      {
+        "label": "combo3",
+        "params": {
+          "flange_dia": 80.0,
+          "hub_dia": 60.0,
+          "spool_height": 28.0,
+          "flange_t": 5.2,
+          "wall": 4.0,
+          "lip_reach": 10.0,
+          "lip_arc": 30.0,
+          "lip_count": 4,
+          "notch_w": 6.0
+        },
+        "seconds": 12.11,
+        "pass": true,
+        "problems": [],
+        "volume": 43699.89873566346,
+        "bbox": {
+          "spool": [
+            80.0000002,
+            80.0000002,
+            28.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.6534667932103718,
+        "overhang_brief_pct": 8.985083723394526
+      },
+      {
+        "label": "combo4",
+        "params": {
+          "flange_dia": 95.81,
+          "hub_dia": 51.37,
+          "spool_height": 34.543,
+          "flange_t": 6.747,
+          "wall": 2.885,
+          "lip_reach": 7.128,
+          "lip_arc": 32.491,
+          "lip_count": 4,
+          "notch_w": 5.748
+        },
+        "seconds": 6.28,
+        "pass": true,
+        "problems": [],
+        "volume": 62634.93668235451,
+        "bbox": {
+          "spool": [
+            95.8100002,
+            95.8100002,
+            34.5430001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 8.728131841928677
+      }
+    ]
+  },
+  "exports": [
+    "spool.stl",
+    "spool.step"
+  ]
+}

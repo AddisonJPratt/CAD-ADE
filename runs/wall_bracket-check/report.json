@@ -1,0 +1,869 @@
+{
+  "design": "wall_bracket.py",
+  "command": "magic.py check /home/hatch/workspace/magic-cad/designs/wall_bracket.py --out /home/hatch/workspace/magic-cad/runs/wall_bracket-check --brief /home/hatch/workspace/magic-cad/briefs/wall_bracket.yaml",
+  "brief": "/home/hatch/workspace/magic-cad/briefs/wall_bracket.yaml",
+  "pass": true,
+  "gates": [
+    {
+      "name": "1 Execute",
+      "status": "PASS",
+      "detail": "built in 4.86 s; no hard-coded literals"
+    },
+    {
+      "name": "2 Geometry",
+      "status": "PASS",
+      "detail": "1/1 solids, volume 78220 mm\u00b3, 7/7 dims in \u00b10.1"
+    },
+    {
+      "name": "3 Printability",
+      "status": "PASS",
+      "detail": "watertight, single component, fits bed; overhang brief 4.6 %, support risk 0.9 %"
+    },
+    {
+      "name": "4 Renders",
+      "status": "PASS",
+      "detail": "5 PNGs from reloaded STL"
+    },
+    {
+      "name": "Sweep",
+      "status": "PASS",
+      "detail": "31/31 pass; dead params: none"
+    },
+    {
+      "name": "5 Exports",
+      "status": "NOT RUN",
+      "detail": "check mode: no exports kept"
+    }
+  ],
+  "assumptions": [
+    "Only width (60) and the 2x M4 + 2x M4 holes were specified. Everything else is my choice.",
+    "Shelf depth 80 and wall height 80 are chosen; a typical small bookshelf bracket.",
+    "Hole spacing 40 in both legs; holes centred on the free part of each leg.",
+    "Load: 5 kg per bracket at the shelf's front edge (the vision doc's example). Hand estimate only, no FEA: under 2 MPa in the plate beyond the gusset. Load-test before trusting it over anything fragile.",
+    "Thickness 8 mm, set by the M4 counterbore (4.2 deep) plus a 3.8 mm floor, not by load.",
+    "Printed shelf-face-down. Layers cross the wall leg, its weaker direction; the gusset and low stress are what make that acceptable. Unverified on a real print.",
+    "Wall anchors are the installer's choice; M4 screws into a real wall usually need plugs."
+  ],
+  "params": {
+    "width": 60.0,
+    "shelf_depth": 80.0,
+    "wall_height": 80.0,
+    "thickness": 8.0,
+    "wall_hole_spacing": 40.0,
+    "shelf_hole_spacing": 40.0,
+    "inner_radius": 4.0,
+    "outer_radius": 1.0,
+    "corner_radius": 4.0,
+    "gusset_thickness": 5.0,
+    "gusset_reach": 0.7,
+    "gusset_edge_radius": 1.0
+  },
+  "geometry": {
+    "pass": true,
+    "problems": [],
+    "dimensions": [
+      {
+        "name": "width",
+        "spec": 60.0,
+        "measured": 60.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "shelf_depth",
+        "spec": 80.0,
+        "measured": 80.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "wall_height",
+        "spec": 80.0,
+        "measured": 80.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "wall_hole_spacing",
+        "spec": 40.0,
+        "measured": 40.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "shelf_hole_spacing",
+        "spec": 40.0,
+        "measured": 40.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "wall_holes",
+        "spec": 2,
+        "measured": 2.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "shelf_holes",
+        "spec": 2,
+        "measured": 2.0,
+        "delta": 0.0,
+        "pass": true
+      }
+    ],
+    "solids": 1,
+    "expected_solids": 1,
+    "volume": 78219.66701176565,
+    "bbox": {
+      "bracket": [
+        80.0,
+        60.0,
+        80.0
+      ]
+    }
+  },
+  "overlaps": [],
+  "printability": {
+    "bracket": {
+      "pass": true,
+      "problems": [],
+      "metrics": {
+        "watertight": true,
+        "winding_consistent": true,
+        "components": 1,
+        "faces": 4800,
+        "mesh_volume": 78220.12406696333,
+        "extents": [
+          80.0,
+          60.0,
+          80.0
+        ],
+        "inertia": [
+          65898337.177605346,
+          88989534.90812713,
+          65914509.09758337
+        ],
+        "fits_bed": true,
+        "allow_supports": false,
+        "overhang_brief_pct": 4.577742064393634,
+        "support_risk_pct": 0.9468816053710755,
+        "flat_undersides_above_bed_mm2": 0.0,
+        "bed_contact_mm2": 4701.327211284835,
+        "min_feature": {
+          "mm": 3.9999999999999996,
+          "resolution_mm": 0.4,
+          "where": {
+            "axis": "Y",
+            "offset": -18.75
+          }
+        },
+        "min_feature_warning": false
+      }
+    }
+  },
+  "renders": [
+    "/home/hatch/workspace/magic-cad/runs/wall_bracket-check/renders/iso.png",
+    "/home/hatch/workspace/magic-cad/runs/wall_bracket-check/renders/front.png",
+    "/home/hatch/workspace/magic-cad/runs/wall_bracket-check/renders/top.png",
+    "/home/hatch/workspace/magic-cad/runs/wall_bracket-check/renders/side.png",
+    "/home/hatch/workspace/magic-cad/runs/wall_bracket-check/renders/section.png"
+  ],
+  "sweep": {
+    "pass": true,
+    "total": 31,
+    "passed": 31,
+    "pass_share": 1.0,
+    "required_share": 1.0,
+    "dead_params": [],
+    "printable_passed": 31,
+    "max_support_risk_pct": 2.802086150006114,
+    "max_overhang_brief_pct": 6.383661619106239,
+    "rows": [
+      {
+        "label": "default",
+        "params": {},
+        "seconds": 14.17,
+        "pass": true,
+        "problems": [],
+        "volume": 78219.66701176565,
+        "bbox": {
+          "bracket": [
+            80.0,
+            60.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.9468816053710755,
+        "overhang_brief_pct": 4.577742064393634
+      },
+      {
+        "label": "width=min",
+        "params": {
+          "width": 56.0
+        },
+        "seconds": 14.08,
+        "pass": true,
+        "problems": [],
+        "volume": 73342.7909015695,
+        "bbox": {
+          "bracket": [
+            80.0,
+            56.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.9449554401796254,
+        "overhang_brief_pct": 4.827249537936754
+      },
+      {
+        "label": "width=max",
+        "params": {
+          "width": 100.0
+        },
+        "seconds": 14.07,
+        "pass": true,
+        "problems": [],
+        "volume": 126988.42811372715,
+        "bbox": {
+          "bracket": [
+            80.0,
+            100.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.9578149191241034,
+        "overhang_brief_pct": 3.1614857669995673
+      },
+      {
+        "label": "shelf_depth=min",
+        "params": {
+          "shelf_depth": 60.0
+        },
+        "seconds": 14.16,
+        "pass": true,
+        "problems": [],
+        "volume": 66859.58570069328,
+        "bbox": {
+          "bracket": [
+            60.0,
+            60.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 1.2477777600285942,
+        "overhang_brief_pct": 6.032438170408085
+      },
+      {
+        "label": "shelf_depth=max",
+        "params": {
+          "shelf_depth": 120.0
+        },
+        "seconds": 15.34,
+        "pass": true,
+        "problems": [],
+        "volume": 100938.2752231185,
+        "bbox": {
+          "bracket": [
+            120.0,
+            60.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.6387959177982574,
+        "overhang_brief_pct": 3.0882878354385532
+      },
+      {
+        "label": "wall_height=min",
+        "params": {
+          "wall_height": 60.0
+        },
+        "seconds": 14.96,
+        "pass": true,
+        "problems": [],
+        "volume": 66859.58570068858,
+        "bbox": {
+          "bracket": [
+            80.0,
+            60.0,
+            60.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.9468816053710755,
+        "overhang_brief_pct": 4.577742064393634
+      },
+      {
+        "label": "wall_height=max",
+        "params": {
+          "wall_height": 120.0
+        },
+        "seconds": 15.45,
+        "pass": true,
+        "problems": [],
+        "volume": 100938.27522313838,
+        "bbox": {
+          "bracket": [
+            80.0,
+            60.0,
+            120.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.9468815900085417,
+        "overhang_brief_pct": 4.577743612557254
+      },
+      {
+        "label": "thickness=min",
+        "params": {
+          "thickness": 7.0
+        },
+        "seconds": 15.05,
+        "pass": true,
+        "problems": [],
+        "volume": 69776.57476402045,
+        "bbox": {
+          "bracket": [
+            80.0,
+            60.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.9499429458573135,
+        "overhang_brief_pct": 4.26923462286186
+      },
+      {
+        "label": "thickness=max",
+        "params": {
+          "thickness": 10.0
+        },
+        "seconds": 14.47,
+        "pass": true,
+        "problems": [],
+        "volume": 94753.20150725608,
+        "bbox": {
+          "bracket": [
+            80.0,
+            60.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.9408177397831774,
+        "overhang_brief_pct": 5.188829810668413
+      },
+      {
+        "label": "wall_hole_spacing=min",
+        "params": {
+          "wall_hole_spacing": 24.0
+        },
+        "seconds": 14.78,
+        "pass": true,
+        "problems": [],
+        "volume": 78219.66701176557,
+        "bbox": {
+          "bracket": [
+            80.0,
+            60.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.946881605608936,
+        "overhang_brief_pct": 4.577742040423184
+      },
+      {
+        "label": "wall_hole_spacing=max",
+        "params": {
+          "wall_hole_spacing": 42.0
+        },
+        "seconds": 14.17,
+        "pass": true,
+        "problems": [],
+        "volume": 78219.66701176553,
+        "bbox": {
+          "bracket": [
+            80.0,
+            60.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.9468816053710755,
+        "overhang_brief_pct": 4.577742064393634
+      },
+      {
+        "label": "shelf_hole_spacing=min",
+        "params": {
+          "shelf_hole_spacing": 24.0
+        },
+        "seconds": 14.5,
+        "pass": true,
+        "problems": [],
+        "volume": 78219.66701176565,
+        "bbox": {
+          "bracket": [
+            80.0,
+            60.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.9468816063314777,
+        "overhang_brief_pct": 4.577742069036742
+      },
+      {
+        "label": "shelf_hole_spacing=max",
+        "params": {
+          "shelf_hole_spacing": 42.0
+        },
+        "seconds": 14.18,
+        "pass": true,
+        "problems": [],
+        "volume": 78219.66701176565,
+        "bbox": {
+          "bracket": [
+            80.0,
+            60.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.9468816053710755,
+        "overhang_brief_pct": 4.577742064393634
+      },
+      {
+        "label": "inner_radius=min",
+        "params": {
+          "inner_radius": 3.0
+        },
+        "seconds": 14.4,
+        "pass": true,
+        "problems": [],
+        "volume": 78137.04530467355,
+        "bbox": {
+          "bracket": [
+            80.0,
+            60.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.9468816053710755,
+        "overhang_brief_pct": 4.577742064393634
+      },
+      {
+        "label": "inner_radius=max",
+        "params": {
+          "inner_radius": 6.0
+        },
+        "seconds": 13.36,
+        "pass": true,
+        "problems": [],
+        "volume": 78455.72903202864,
+        "bbox": {
+          "bracket": [
+            80.0,
+            60.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.9468816053710755,
+        "overhang_brief_pct": 4.577742064393634
+      },
+      {
+        "label": "outer_radius=min",
+        "params": {
+          "outer_radius": 0.5
+        },
+        "seconds": 14.69,
+        "pass": true,
+        "problems": [],
+        "volume": 78229.32409441272,
+        "bbox": {
+          "bracket": [
+            80.0,
+            60.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.4750751444553976,
+        "overhang_brief_pct": 4.11846951875322
+      },
+      {
+        "label": "outer_radius=max",
+        "params": {
+          "outer_radius": 3.0
+        },
+        "seconds": 14.18,
+        "pass": true,
+        "problems": [],
+        "volume": 78116.65813019659,
+        "bbox": {
+          "bracket": [
+            80.0,
+            60.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 2.802086150006114,
+        "overhang_brief_pct": 6.383661619106239
+      },
+      {
+        "label": "corner_radius=min",
+        "params": {
+          "corner_radius": 2.0
+        },
+        "seconds": 13.86,
+        "pass": true,
+        "problems": [],
+        "volume": 78302.07411702104,
+        "bbox": {
+          "bracket": [
+            80.0,
+            60.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.9459011534560654,
+        "overhang_brief_pct": 4.573002025144802
+      },
+      {
+        "label": "corner_radius=max",
+        "params": {
+          "corner_radius": 8.0
+        },
+        "seconds": 14.27,
+        "pass": true,
+        "problems": [],
+        "volume": 77890.03859074407,
+        "bbox": {
+          "bracket": [
+            80.0,
+            60.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.9508238215354562,
+        "overhang_brief_pct": 4.596800887228771
+      },
+      {
+        "label": "gusset_thickness=min",
+        "params": {
+          "gusset_thickness": 4.0
+        },
+        "seconds": 14.3,
+        "pass": true,
+        "problems": [],
+        "volume": 76953.02064115164,
+        "bbox": {
+          "bracket": [
+            80.0,
+            60.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.9468816053710755,
+        "overhang_brief_pct": 4.577742064393634
+      },
+      {
+        "label": "gusset_thickness=max",
+        "params": {
+          "gusset_thickness": 8.0
+        },
+        "seconds": 13.38,
+        "pass": true,
+        "problems": [],
+        "volume": 82019.60612360771,
+        "bbox": {
+          "bracket": [
+            80.0,
+            60.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.9468816053710755,
+        "overhang_brief_pct": 4.577742064393634
+      },
+      {
+        "label": "gusset_reach=min",
+        "params": {
+          "gusset_reach": 0.5
+        },
+        "seconds": 14.0,
+        "pass": true,
+        "problems": [],
+        "volume": 75118.00760521361,
+        "bbox": {
+          "bracket": [
+            80.0,
+            60.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.9468816053710755,
+        "overhang_brief_pct": 4.577742064393634
+      },
+      {
+        "label": "gusset_reach=max",
+        "params": {
+          "gusset_reach": 0.85
+        },
+        "seconds": 13.98,
+        "pass": true,
+        "problems": [],
+        "volume": 81226.31156667975,
+        "bbox": {
+          "bracket": [
+            80.0,
+            60.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.9468816053710755,
+        "overhang_brief_pct": 4.577742064393634
+      },
+      {
+        "label": "gusset_edge_radius=min",
+        "params": {
+          "gusset_edge_radius": 0.5
+        },
+        "seconds": 14.18,
+        "pass": true,
+        "problems": [],
+        "volume": 78242.44329646125,
+        "bbox": {
+          "bracket": [
+            80.0,
+            60.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.9468816053710755,
+        "overhang_brief_pct": 4.577742064393634
+      },
+      {
+        "label": "gusset_edge_radius=max",
+        "params": {
+          "gusset_edge_radius": 1.5
+        },
+        "seconds": 14.2,
+        "pass": true,
+        "problems": [],
+        "volume": 78181.88229956265,
+        "bbox": {
+          "bracket": [
+            80.0,
+            60.0,
+            80.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.9468816053710755,
+        "overhang_brief_pct": 4.577742064393634
+      },
+      {
+        "label": "all=min",
+        "params": {
+          "width": 56.0,
+          "shelf_depth": 60.0,
+          "wall_height": 60.0,
+          "thickness": 7.0,
+          "wall_hole_spacing": 24.0,
+          "shelf_hole_spacing": 24.0,
+          "inner_radius": 3.0,
+          "outer_radius": 0.5,
+          "corner_radius": 2.0,
+          "gusset_thickness": 4.0,
+          "gusset_reach": 0.5,
+          "gusset_edge_radius": 0.5
+        },
+        "seconds": 14.18,
+        "pass": true,
+        "problems": [],
+        "volume": 44709.43962287123,
+        "bbox": {
+          "bracket": [
+            60.0,
+            56.0,
+            60.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.6269823329074742,
+        "overhang_brief_pct": 5.3215587403076094
+      },
+      {
+        "label": "all=max",
+        "params": {
+          "width": 100.0,
+          "shelf_depth": 120.0,
+          "wall_height": 120.0,
+          "thickness": 10.0,
+          "wall_hole_spacing": 42.0,
+          "shelf_hole_spacing": 42.0,
+          "inner_radius": 6.0,
+          "outer_radius": 3.0,
+          "corner_radius": 8.0,
+          "gusset_thickness": 8.0,
+          "gusset_reach": 0.85,
+          "gusset_edge_radius": 1.5
+        },
+        "seconds": 14.18,
+        "pass": true,
+        "problems": [],
+        "volume": 263551.8151787457,
+        "bbox": {
+          "bracket": [
+            120.0,
+            100.0,
+            120.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 1.9115834461776502,
+        "overhang_brief_pct": 3.6378334318656753
+      },
+      {
+        "label": "combo1",
+        "params": {
+          "width": 100.0,
+          "shelf_depth": 120.0,
+          "wall_height": 60.0,
+          "thickness": 10.0,
+          "wall_hole_spacing": 42.0,
+          "shelf_hole_spacing": 42.0,
+          "inner_radius": 6.0,
+          "outer_radius": 3.0,
+          "corner_radius": 8.0,
+          "gusset_thickness": 4.0,
+          "gusset_reach": 0.5,
+          "gusset_edge_radius": 1.5
+        },
+        "seconds": 13.78,
+        "pass": true,
+        "problems": [],
+        "volume": 171433.28075006805,
+        "bbox": {
+          "bracket": [
+            120.0,
+            100.0,
+            60.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 1.9115834604301196,
+        "overhang_brief_pct": 3.6378327134043125
+      },
+      {
+        "label": "combo2",
+        "params": {
+          "width": 62.149,
+          "shelf_depth": 65.69,
+          "wall_height": 107.964,
+          "thickness": 9.962,
+          "wall_hole_spacing": 33.586,
+          "shelf_hole_spacing": 36.693,
+          "inner_radius": 4.806,
+          "outer_radius": 0.867,
+          "corner_radius": 2.593,
+          "gusset_thickness": 4.295,
+          "gusset_reach": 0.798,
+          "gusset_edge_radius": 0.83
+        },
+        "seconds": 11.58,
+        "pass": true,
+        "problems": [],
+        "volume": 107752.00147601262,
+        "bbox": {
+          "bracket": [
+            65.69,
+            62.149,
+            107.964
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.9861971878543949,
+        "overhang_brief_pct": 5.9304044624280525
+      },
+      {
+        "label": "combo3",
+        "params": {
+          "width": 56.0,
+          "shelf_depth": 120.0,
+          "wall_height": 120.0,
+          "thickness": 10.0,
+          "wall_hole_spacing": 24.0,
+          "shelf_hole_spacing": 42.0,
+          "inner_radius": 6.0,
+          "outer_radius": 3.0,
+          "corner_radius": 2.0,
+          "gusset_thickness": 4.0,
+          "gusset_reach": 0.5,
+          "gusset_edge_radius": 1.5
+        },
+        "seconds": 10.86,
+        "pass": true,
+        "problems": [],
+        "volume": 133776.39540164222,
+        "bbox": {
+          "bracket": [
+            120.0,
+            56.0,
+            120.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 1.8860848325807267,
+        "overhang_brief_pct": 4.927555437268208
+      },
+      {
+        "label": "combo4",
+        "params": {
+          "width": 87.251,
+          "shelf_depth": 107.103,
+          "wall_height": 97.516,
+          "thickness": 8.836,
+          "wall_hole_spacing": 38.905,
+          "shelf_hole_spacing": 29.996,
+          "inner_radius": 5.191,
+          "outer_radius": 2.259,
+          "corner_radius": 2.378,
+          "gusset_thickness": 7.668,
+          "gusset_reach": 0.578,
+          "gusset_edge_radius": 1.303
+        },
+        "seconds": 10.37,
+        "pass": true,
+        "problems": [],
+        "volume": 161185.7084192894,
+        "bbox": {
+          "bracket": [
+            107.103,
+            87.251,
+            97.516
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 1.609478932083256,
+        "overhang_brief_pct": 3.6276107479171973
+      }
+    ]
+  }
+}

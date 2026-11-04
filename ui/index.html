@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en" data-surface="studio">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ece9e3">
+<title>Magic CAD Studio</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="/studio.css">
+<script type="importmap">{"imports":{"three":"/vendor/three.module.js","three/addons/":"/vendor/"}}</script>
+</head>
+<body>
+<a class="skip" href="#view">Skip to content</a>
+<header class="rail">
+  <a class="brand" href="#/overview">Magic CAD</a>
+  <a class="to-studio" href="#/studio">Studio</a>
+  <nav aria-label="Views">
+    <ul class="nav">
+      <li><a href="#/overview" data-nav="overview">Overview</a></li>
+      <li><a href="#/design/wall_bracket" data-nav="design">Design</a></li>
+      <li><a href="#/brief/wall_bracket" data-nav="brief">Brief</a></li>
+      <li><a href="#/evals" data-nav="evals">Evals</a></li>
+      <li><a href="#/library" data-nav="library">Library</a></li>
+    </ul>
+  </nav>
+  <div class="freshness">
+    <p id="read-at" role="status">Reading project files</p>
+    <button type="button" id="reload" class="button">Reload data</button>
+  </div>
+</header>
+<main id="view" tabindex="-1" aria-busy="true">
+  <noscript><p class="note">This studio reads project files with JavaScript. Enable it to see the data.</p></noscript>
+</main>
+
+<div class="studio" id="studio">
+  <header class="st-top" data-chrome>
+    <p class="st-wordmark">Magic CAD Studio</p>
+    <div class="st-switch" id="st-switch">
+      <button type="button" class="st-switch-button" id="st-switch-button" aria-expanded="false" aria-controls="st-menu">
+        <span class="st-mark" id="st-switch-mark" aria-hidden="true"></span>
+        <span id="st-switch-name">Designs</span>
+        <svg class="st-chevron" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <ul class="st-menu" id="st-menu" hidden></ul>
+    </div>
+    <a class="st-link" href="#/overview">Mission control</a>
+  </header>
+
+  <canvas class="st-canvas" id="st-canvas" tabindex="0" role="img" aria-label="3D view of the part"></canvas>
+
+  <div class="st-stage" id="st-stage" role="main">
+    <p class="st-absent" id="st-absent" hidden></p>
+    <aside class="st-panel" id="st-panel" data-chrome aria-labelledby="st-name">
+      <div class="st-panel-head">
+        <h1 class="st-name" id="st-name" tabindex="-1">Studio</h1>
+        <button type="button" class="st-icon-button" id="st-collapse" aria-expanded="true" aria-controls="st-panel-body" aria-label="Hide details">
+          <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 7.5 6 4l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <p class="st-panel-summary" id="st-summary"></p>
+      <div class="st-panel-fold">
+        <div class="st-panel-body" id="st-panel-body">
+          <p class="st-function" id="st-function"></p>
+          <dl class="st-facts" id="st-facts"></dl>
+          <p class="st-provenance" id="st-provenance"></p>
+          <ul class="st-notices" id="st-notices"></ul>
+        </div>
+      </div>
+    </aside>
+
+    <div class="st-dock" id="st-dock" data-chrome>
+      <section class="st-replay" id="st-replay" aria-label="Build replay" hidden>
+        <ol class="st-stages" id="st-stages"></ol>
+        <p class="st-line" id="st-line"></p>
+        <p class="visually-hidden" id="st-live" role="status"></p>
+        <p class="st-honest">Build replay — a visualisation of the verification run.</p>
+        <button type="button" class="st-icon-button st-replay-close" id="st-replay-close" aria-label="Close build replay">
+          <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="m3 3 6 6M9 3l-6 6" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg>
+        </button>
+      </section>
+      <div class="st-controls">
+        <div class="st-chips" role="group" aria-label="Camera view">
+          <button type="button" class="st-chip" data-cam="iso" aria-pressed="false">Iso</button>
+          <button type="button" class="st-chip" data-cam="front" aria-pressed="false">Front</button>
+          <button type="button" class="st-chip" data-cam="top" aria-pressed="false">Top</button>
+          <button type="button" class="st-chip" data-cam="side" aria-pressed="false">Side</button>
+        </div>
+        <button type="button" class="st-build" id="st-build" disabled>Build</button>
+      </div>
+      <p class="st-hint" id="st-hint">Drag to orbit, scroll to zoom, right-drag to pan</p>
+    </div>
+  </div>
+</div>
+<script src="/app.js"></script>
+</body>
+</html>

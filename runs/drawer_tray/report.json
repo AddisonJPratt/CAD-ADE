@@ -1,0 +1,747 @@
+{
+  "design": "drawer_tray.py",
+  "command": "magic.py run designs/drawer_tray.py --brief evals/briefs/drawer_tray.yaml --out runs/drawer_tray",
+  "brief": "evals/briefs/drawer_tray.yaml",
+  "pass": true,
+  "gates": [
+    {
+      "name": "1 Execute",
+      "status": "PASS",
+      "detail": "built in 4.61 s; no hard-coded literals"
+    },
+    {
+      "name": "2 Geometry",
+      "status": "PASS",
+      "detail": "1/1 solids, volume 122467 mm\u00b3, 3/3 dims in \u00b10.1"
+    },
+    {
+      "name": "3 Printability",
+      "status": "PASS",
+      "detail": "watertight, single component, fits bed; overhang brief 0.0 %, support risk 0.0 %"
+    },
+    {
+      "name": "4 Renders",
+      "status": "PASS",
+      "detail": "5 PNGs from reloaded STL"
+    },
+    {
+      "name": "Sweep",
+      "status": "PASS",
+      "detail": "27/27 pass; dead params: none"
+    },
+    {
+      "name": "5 Exports",
+      "status": "PASS",
+      "detail": "tray.stl, tray.step"
+    }
+  ],
+  "assumptions": [
+    "Outer size is a guess for a typical desk drawer; 245 mm is the bed-limited maximum on the 250 mm placeholder bed.",
+    "Compartment sizes and divider height are not hard dimensions: no probe reads an internal wall. They are checked by eye in the section render only.",
+    "A 240 mm long, thin-walled, flat part in PLA can warp at the corners on a real bed; unverified, no slicer or printer has seen it."
+  ],
+  "params": {
+    "outer_x": 240.0,
+    "outer_y": 120.0,
+    "height": 45.0,
+    "wall": 1.8,
+    "floor": 1.6,
+    "divider_t": 1.6,
+    "divider_ratio": 0.75,
+    "split_x": 0.6,
+    "split_y": 0.5,
+    "scoop_r": 6.0
+  },
+  "geometry": {
+    "pass": true,
+    "problems": [],
+    "dimensions": [
+      {
+        "name": "outer_x",
+        "spec": 240.0,
+        "measured": 240.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "outer_y",
+        "spec": 120.0,
+        "measured": 120.0,
+        "delta": 0.0,
+        "pass": true
+      },
+      {
+        "name": "height",
+        "spec": 45.0,
+        "measured": 45.0,
+        "delta": 0.0,
+        "pass": true
+      }
+    ],
+    "solids": 1,
+    "expected_solids": 1,
+    "volume": 122466.64291483595,
+    "bbox": {
+      "tray": [
+        240.0,
+        120.0,
+        45.0
+      ]
+    }
+  },
+  "overlaps": [],
+  "printability": {
+    "tray": {
+      "pass": true,
+      "problems": [],
+      "metrics": {
+        "watertight": true,
+        "winding_consistent": true,
+        "components": 1,
+        "faces": 21012,
+        "mesh_volume": 122481.82265361345,
+        "extents": [
+          240.0,
+          120.0,
+          45.0
+        ],
+        "inertia": [
+          252190940.77894738,
+          751014523.7555019,
+          956145928.076704
+        ],
+        "fits_bed": true,
+        "allow_supports": false,
+        "overhang_brief_pct": 0.0,
+        "support_risk_pct": 0.0,
+        "flat_undersides_above_bed_mm2": 0.0,
+        "bed_contact_mm2": 28725.64726361388,
+        "min_feature": {
+          "mm": 1.92,
+          "resolution_mm": 0.96,
+          "where": {
+            "axis": "X",
+            "offset": -105.0
+          }
+        },
+        "min_feature_warning": false
+      }
+    }
+  },
+  "renders": [
+    "runs/drawer_tray/renders/iso.png",
+    "runs/drawer_tray/renders/front.png",
+    "runs/drawer_tray/renders/top.png",
+    "runs/drawer_tray/renders/side.png",
+    "runs/drawer_tray/renders/section.png"
+  ],
+  "sweep": {
+    "pass": true,
+    "total": 27,
+    "passed": 27,
+    "pass_share": 1.0,
+    "required_share": 1.0,
+    "dead_params": [],
+    "printable_passed": 27,
+    "max_support_risk_pct": 0.0,
+    "max_overhang_brief_pct": 0.0,
+    "rows": [
+      {
+        "label": "default",
+        "params": {},
+        "seconds": 15.84,
+        "pass": true,
+        "problems": [],
+        "volume": 122466.64291483595,
+        "bbox": {
+          "tray": [
+            240.0,
+            120.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "outer_x=min",
+        "params": {
+          "outer_x": 120.0
+        },
+        "seconds": 15.83,
+        "pass": true,
+        "problems": [],
+        "volume": 75582.1790743748,
+        "bbox": {
+          "tray": [
+            120.0,
+            120.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "outer_x=max",
+        "params": {
+          "outer_x": 245.0
+        },
+        "seconds": 15.84,
+        "pass": true,
+        "problems": [],
+        "volume": 124420.16224152151,
+        "bbox": {
+          "tray": [
+            245.0,
+            120.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "outer_y=min",
+        "params": {
+          "outer_y": 80.0
+        },
+        "seconds": 15.83,
+        "pass": true,
+        "problems": [],
+        "volume": 97537.73632281041,
+        "bbox": {
+          "tray": [
+            240.0,
+            80.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "outer_y=max",
+        "params": {
+          "outer_y": 200.0
+        },
+        "seconds": 13.74,
+        "pass": true,
+        "problems": [],
+        "volume": 172324.45609620673,
+        "bbox": {
+          "tray": [
+            240.0,
+            200.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "height=min",
+        "params": {
+          "height": 25.0
+        },
+        "seconds": 14.39,
+        "pass": true,
+        "problems": [],
+        "volume": 91042.46366005314,
+        "bbox": {
+          "tray": [
+            240.0,
+            120.0,
+            25.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "height=max",
+        "params": {
+          "height": 70.0
+        },
+        "seconds": 13.99,
+        "pass": true,
+        "problems": [],
+        "volume": 161570.1523965501,
+        "bbox": {
+          "tray": [
+            240.0,
+            120.0,
+            70.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "wall=min",
+        "params": {
+          "wall": 1.2
+        },
+        "seconds": 14.79,
+        "pass": true,
+        "problems": [],
+        "volume": 104598.0447213164,
+        "bbox": {
+          "tray": [
+            240.0,
+            120.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "wall=max",
+        "params": {
+          "wall": 3.0
+        },
+        "seconds": 21.77,
+        "pass": true,
+        "problems": [],
+        "volume": 157745.42610780284,
+        "bbox": {
+          "tray": [
+            240.0,
+            120.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "floor=min",
+        "params": {
+          "floor": 1.2
+        },
+        "seconds": 21.67,
+        "pass": true,
+        "problems": [],
+        "volume": 111603.54219073756,
+        "bbox": {
+          "tray": [
+            240.0,
+            120.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "floor=max",
+        "params": {
+          "floor": 2.4
+        },
+        "seconds": 21.27,
+        "pass": true,
+        "problems": [],
+        "volume": 144192.69356658575,
+        "bbox": {
+          "tray": [
+            240.0,
+            120.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "divider_t=min",
+        "params": {
+          "divider_t": 1.2
+        },
+        "seconds": 20.89,
+        "pass": true,
+        "problems": [],
+        "volume": 119827.59027545222,
+        "bbox": {
+          "tray": [
+            240.0,
+            120.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "divider_t=max",
+        "params": {
+          "divider_t": 3.0
+        },
+        "seconds": 15.0,
+        "pass": true,
+        "problems": [],
+        "volume": 131662.31415268008,
+        "bbox": {
+          "tray": [
+            240.0,
+            120.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "divider_ratio=min",
+        "params": {
+          "divider_ratio": 0.5
+        },
+        "seconds": 14.99,
+        "pass": true,
+        "problems": [],
+        "volume": 117770.4718440949,
+        "bbox": {
+          "tray": [
+            240.0,
+            120.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "divider_ratio=max",
+        "params": {
+          "divider_ratio": 1.0
+        },
+        "seconds": 14.99,
+        "pass": true,
+        "problems": [],
+        "volume": 127162.8139855768,
+        "bbox": {
+          "tray": [
+            240.0,
+            120.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "split_x=min",
+        "params": {
+          "split_x": 0.4
+        },
+        "seconds": 14.98,
+        "pass": true,
+        "problems": [],
+        "volume": 125659.52430992849,
+        "bbox": {
+          "tray": [
+            240.0,
+            120.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "split_x=max",
+        "params": {
+          "split_x": 0.75
+        },
+        "seconds": 14.02,
+        "pass": true,
+        "problems": [],
+        "volume": 120071.98186851668,
+        "bbox": {
+          "tray": [
+            240.0,
+            120.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "split_y=min",
+        "params": {
+          "split_y": 0.3
+        },
+        "seconds": 13.68,
+        "pass": true,
+        "problems": [],
+        "volume": 122466.2853441077,
+        "bbox": {
+          "tray": [
+            240.0,
+            120.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "split_y=max",
+        "params": {
+          "split_y": 0.65
+        },
+        "seconds": 13.88,
+        "pass": true,
+        "problems": [],
+        "volume": 122466.64291483536,
+        "bbox": {
+          "tray": [
+            240.0,
+            120.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "scoop_r=min",
+        "params": {
+          "scoop_r": 4.0
+        },
+        "seconds": 13.77,
+        "pass": true,
+        "problems": [],
+        "volume": 116653.2214145209,
+        "bbox": {
+          "tray": [
+            240.0,
+            120.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "scoop_r=max",
+        "params": {
+          "scoop_r": 8.0
+        },
+        "seconds": 13.05,
+        "pass": true,
+        "problems": [],
+        "volume": 130554.36843291501,
+        "bbox": {
+          "tray": [
+            240.0,
+            120.0,
+            45.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "all=min",
+        "params": {
+          "outer_x": 120.0,
+          "outer_y": 80.0,
+          "height": 25.0,
+          "wall": 1.2,
+          "floor": 1.2,
+          "divider_t": 1.2,
+          "divider_ratio": 0.5,
+          "split_x": 0.4,
+          "split_y": 0.3,
+          "scoop_r": 4.0
+        },
+        "seconds": 13.54,
+        "pass": true,
+        "problems": [],
+        "volume": 27235.000954583265,
+        "bbox": {
+          "tray": [
+            120.0,
+            80.0,
+            25.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "all=max",
+        "params": {
+          "outer_x": 245.0,
+          "outer_y": 200.0,
+          "height": 70.0,
+          "wall": 3.0,
+          "floor": 2.4,
+          "divider_t": 3.0,
+          "divider_ratio": 1.0,
+          "split_x": 0.75,
+          "split_y": 0.65,
+          "scoop_r": 8.0
+        },
+        "seconds": 13.37,
+        "pass": true,
+        "problems": [],
+        "volume": 370210.6693139928,
+        "bbox": {
+          "tray": [
+            245.0,
+            200.0,
+            70.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo1",
+        "params": {
+          "outer_x": 245.0,
+          "outer_y": 200.0,
+          "height": 25.0,
+          "wall": 3.0,
+          "floor": 2.4,
+          "divider_t": 3.0,
+          "divider_ratio": 1.0,
+          "split_x": 0.75,
+          "split_y": 0.65,
+          "scoop_r": 4.0
+        },
+        "seconds": 12.68,
+        "pass": true,
+        "problems": [],
+        "volume": 198680.40182196267,
+        "bbox": {
+          "tray": [
+            245.0,
+            200.0,
+            25.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo2",
+        "params": {
+          "outer_x": 183.086,
+          "outer_y": 113.821,
+          "height": 59.011,
+          "wall": 2.313,
+          "floor": 1.501,
+          "divider_t": 2.838,
+          "divider_ratio": 0.991,
+          "split_x": 0.684,
+          "split_y": 0.616,
+          "scoop_r": 5.241
+        },
+        "seconds": 10.84,
+        "pass": true,
+        "problems": [],
+        "volume": 141938.95739142568,
+        "bbox": {
+          "tray": [
+            183.086,
+            113.821,
+            59.011
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo3",
+        "params": {
+          "outer_x": 120.0,
+          "outer_y": 200.0,
+          "height": 70.0,
+          "wall": 1.2,
+          "floor": 2.4,
+          "divider_t": 3.0,
+          "divider_ratio": 1.0,
+          "split_x": 0.4,
+          "split_y": 0.65,
+          "scoop_r": 8.0
+        },
+        "seconds": 10.44,
+        "pass": true,
+        "problems": [],
+        "volume": 186379.4734299387,
+        "bbox": {
+          "tray": [
+            120.0,
+            200.0,
+            70.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo4",
+        "params": {
+          "outer_x": 228.164,
+          "outer_y": 111.259,
+          "height": 61.226,
+          "wall": 2.188,
+          "floor": 1.217,
+          "divider_t": 2.495,
+          "divider_ratio": 0.699,
+          "split_x": 0.689,
+          "split_y": 0.534,
+          "scoop_r": 4.005
+        },
+        "seconds": 10.5,
+        "pass": true,
+        "problems": [],
+        "volume": 140011.61467450325,
+        "bbox": {
+          "tray": [
+            228.164,
+            111.25900000000001,
+            61.226
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 0.0,
+        "overhang_brief_pct": 0.0
+      }
+    ]
+  },
+  "exports": [
+    "tray.stl",
+    "tray.step"
+  ]
+}
