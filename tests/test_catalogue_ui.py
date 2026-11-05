@@ -34,6 +34,8 @@ class CatalogueUI(unittest.TestCase):
             status, data = get('/api/library?project=' + quote(folder))
             self.assertEqual(status, 200)
             self.assertIn('my-board', [c['id'] for c in data['_components']])
+            self.assertIn(str((project / 'catalogue.json').resolve()), data['_catalogue_sources'])
+            self.assertIn('library/components.json', data['_catalogue_sources'])
             status, data = get('/api/library?project=' + quote(folder + '/missing'))
             self.assertEqual(status, 400)
             self.assertTrue(data['message'])

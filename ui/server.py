@@ -309,8 +309,13 @@ def library_payload(project=None):
             return HTTPStatus.BAD_REQUEST, {"status": "BAD_PROJECT", "message": str(error)}
     else:
         components = read_json(ROOT / "library" / "components.json")
+    sources = ["library/components.json"]
+    if project:
+        project_catalogue = Path(project).expanduser().resolve() / "catalogue.json"
+        if project_catalogue.is_file():
+            sources.append(str(project_catalogue))
     return HTTPStatus.OK, {**data, "_components": components if isinstance(components, list) else [],
-                           "_project": project or "", "_source": source_of(path)}
+                           "_project": project or "", "_catalogue_sources": sources, "_source": source_of(path)}
 
 
 def model_run(runs):

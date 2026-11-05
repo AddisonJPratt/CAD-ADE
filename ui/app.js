@@ -508,14 +508,16 @@ function libraryCategory(name, parts) {
   return `<h2>${label(name).replace(/^./, (c) => c.toUpperCase())}</h2>${table(`${label(name)} dimensions`, headers, rows)}`;
 }
 
-function renderLibrary(data) {
+function renderLibrary(data, announce = false) {
   const categories = Object.entries(data).filter(([key]) => !key.startsWith("_"));
   view.innerHTML = `
     <h1 tabindex="-1">Standard parts</h1>
-    ${titleBlock([["Source", esc(data._source.path)], ["Modified", when(data._source.modified)], ["Categories", String(categories.length)]])}
+    ${titleBlock([["Standard parts source", esc(data._source.path)], ["Modified", when(data._source.modified)], ["Categories", String(categories.length)]])}
     ${data._notes ? `<p class="note catalogue-notes">${esc(data._notes)}</p>` : ""}
     ${categories.map(([name, parts]) => libraryCategory(name, parts)).join("")}
     <h2>Purchased components</h2>
+    <p class="note">Catalogue sources: ${(data._catalogue_sources || []).map((source) => `<span class="path">${esc(source)}</span>`).join(", ")}</p>
+    <p id="catalogue-loaded" role="status" tabindex="-1">${announce ? (data._project ? `Showing catalogue for ${esc(data._project)}.` : "Showing the shared catalogue.") : ""}</p>
     <form id="catalogue-project-form">
       <label for="catalogue-project">Project folder</label>
       <input id="catalogue-project" name="project" type="text" value="${esc(data._project || "")}" placeholder="/path/to/project" autocomplete="off">
@@ -541,7 +543,10 @@ function renderLibrary(data) {
     try {
       const result = await fetchJson(`/api/library${project ? `?project=${encodeURIComponent(project)}` : ""}`);
       if (!form.isConnected) return;
-      if (result.ok) renderLibrary(result.data);
+      if (result.ok) {
+        renderLibrary(result.data, true);
+        document.getElementById("catalogue-loaded").focus();
+      }
       else error.textContent = result.data.message || "Could not read this project catalogue.";
     } catch {
       if (form.isConnected) error.textContent = "Could not read the catalogue. Check that Mission Control is running.";
