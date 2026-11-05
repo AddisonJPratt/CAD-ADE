@@ -128,7 +128,14 @@ class Engine:
             try:
                 _, run.verdict = run_project(run.project, run.emit, run.samples, run.timeout)
                 snapshot = Path(self.artifacts.name) / run.id
-                shutil.copytree(run.project / "outputs", snapshot / "outputs")
+                for relative in ["verdict.json", *(path for design in run.verdict["designs"]
+                                                   for path in design["artifacts"])]:
+                    source = artifact_path(run.project, relative)
+                    if source is None:
+                        raise ProjectError(f"missing run artifact: {relative}")
+                    target = snapshot / "outputs" / relative
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copyfile(source, target)
                 run.artifact_project = snapshot
                 run.set_status("done")
             except Exception as err:  # the run fails; the engine keeps serving
