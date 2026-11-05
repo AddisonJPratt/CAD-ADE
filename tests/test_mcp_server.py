@@ -46,8 +46,10 @@ def test_listing():
     check("list_designs: bracket has its brief", bracket["has_brief"] and bracket["brief_path"] == "briefs/wall_bracket.yaml")
     briefs = srv.list_eval_briefs()
     by_name = {b["name"]: b for b in briefs["briefs"]}
-    check("list_eval_briefs: symlinked brief found", by_name["wall_bracket"]["is_symlink"]
-          and by_name["wall_bracket"]["design_present"])
+    # The corpus ships real files (symlink handling itself is covered in tests/test_evals.py).
+    check("list_eval_briefs: wall_bracket found with its design", "wall_bracket" in by_name
+          and by_name["wall_bracket"]["design_present"] and not by_name["wall_bracket"]["is_symlink"])
+    check("list_eval_briefs: all 11 eval briefs listed", briefs["total"] == 11, str(briefs["total"]))
     check("list_eval_briefs: counts", briefs["total"] == len(list((ROOT / "evals/briefs").glob("*.yaml"))),
           f"{briefs['designs_present']}/{briefs['total']}")
 
