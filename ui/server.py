@@ -23,6 +23,8 @@ UI = Path(__file__).resolve().parent
 ROOT = UI.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+from library.printer_profiles import PROFILE
+
 STATIC = {
     "/": ("index.html", "text/html; charset=utf-8"),
     "/index.html": ("index.html", "text/html; charset=utf-8"),
@@ -230,6 +232,7 @@ def overview():
         "latest_run": run_summary(runs[0][1], runs[0][2]) if runs else None,
         "prints_logged": prints_logged(),
         "unverified": unverified_inputs(),
+        "printer": PROFILE,
     }
 
 
