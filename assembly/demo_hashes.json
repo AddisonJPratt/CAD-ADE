@@ -1,0 +1,13 @@
+{
+  "designs/holder_clip.py": "23605528d7ea4bd095dd016fca20ba8afb74f0de289d3899e4f07418816200f3",
+  "designs/cable_clip.py": "a728d4d6b1e7cf901b80131734d9db7ba87c1f811a80957af49657dd3a96e963",
+  "briefs/holder_clip.yaml": "b02362bd73101829271029e7a9630a03961b279923d860a8bd9d877833d4966c",
+  "library/standard_parts.json": "d35098804825d63340d98ed42897075f5c1981faa07691688fab8d25b66d218a",
+  "library/__init__.py": "640989fe9b39b50c6653b4f5f4e9c192608d98e7370d5a80770567aa7d956acc",
+  "library/features.py": "ee9725d5d25ab4aca56c28659e7aa1f0794c9af35af8a8475e508dcc33599a55",
+  "runs/holder_clip/report.json": "241ea6c0c5a73b5a51ebc59ce6062f77fca537e74cfaddea5c34621f2e9f4137",
+  "runs/holder_clip/holder_clip.stl": "c9b499ed8e9af79fe3a40717d3554535bcd81c749e2bf3a3b1d9fbf6d4477f21",
+  "assembly/create_hardware.py": "eb9e33e260952399a3125fa17047cab1e70081c0e933782b79c666068a8c28f8",
+  "assembly/assets/m3_socket_head.stl": "3db5e05ab3bcedd61958c414bc74741797d5b4677b646f439a6de68e55c9c3cf",
+  "runs/holder_clip/holder_clip.step": "fb3e318f4c75f8fb280a01cdc2de77c9802285cfef938c95c61ae83767082c55"
+}

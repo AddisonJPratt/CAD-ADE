@@ -1,8 +1,12 @@
 # Magic CAD — agent instructions (any coding agent: Codex, Claude Code, …)
 
-Magic CAD is an agent-driven CAD harness: a natural-language/YAML brief goes
-in, parametric build123d code is written, and a deterministic harness grades
-it. The LLM proposes; the harness disposes. Read `CLAUDE.md` too — it holds
+Magic CAD aims to be an agent-driven engineering studio for editable parts and
+complete products, including assemblies, hardware, electronics, motion,
+exploded views and build instructions. It should be approachable without CAD
+expertise and offer a modern, crisp workspace with the depth of professional CAD.
+Today its foundation is a deterministic CAD harness: a brief goes in, parametric
+build123d code is written, and the harness grades it. Agents propose; evidence
+establishes what is known. See `docs/PRODUCT_VISION_UX_SPEC.md`. Read `CLAUDE.md` too — it holds
 the house style, clearances, and the design-quality gates, and everything in
 it applies no matter which agent you are.
 
@@ -43,7 +47,7 @@ it applies no matter which agent you are.
 6. Units are mm; Z is print-up; designs are modelled in print orientation
    with the base on z=0; `PARAMS` at the top of every design file.
 
-## Current state (2026-11-04)
+## Current state (2026-11-05)
 
 - Eval corpus: 11 briefs, **10/11 passing** at 100% coverage
   (`evals/results/20261104-110955/`). The one failure is `planter_pot`:
@@ -54,12 +58,15 @@ it applies no matter which agent you are.
 - Studio view built; **enrichment not yet built** — brief is
   `BRIEF_STUDIO2.md` (bench grid, axis gizmo, scale bar, Grid toggle;
   `ui/` only).
-- **Next build: the First Proof** — brief is `BRIEF_FIRST_PROOF.md`
-  (two gated holder templates + the Ask→Make→Prove→Shelf proof app on
-  port 8766). This is the product's core loop; build it before anything
-  else new.
-- After the First Proof: package the app with **Tauri** (Python engine,
-  web interface, Rust shell — owner's approved plan). Not started.
+- **First Proof prototype built:** `proof/` offers a round clip and rectangular
+  cradle with an Ask→Make→Prove→Shelf flow. Both templates passed their full
+  gates and sweeps; their fit and strength have not been physically validated.
+- **Tauri development shell drafted:** `desktop/` depends on this checkout and its
+  Python environment. It has not been compiled or launched here; it is not an
+  installable package. See `desktop/README.md`.
+- Future capabilities include assembly modeling, fasteners and electronics,
+  exploded views, motion, engineering checks, BOMs and assembly instructions.
+  Treat the holder as a first proof, not the full product scope.
 - Nothing has been sliced or physically printed yet. "Printable" so far
   means geometry rules only; printer values in `CLAUDE.md` are
   placeholders awaiting the owner's real printer profile.

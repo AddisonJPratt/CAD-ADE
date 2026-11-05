@@ -1,0 +1,25 @@
+/* Assembly is an extension of Mission Control: a clean model space with evidence alongside. */
+.assembly-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.assembly-heading p, .assembly-copy { color: var(--ink-2); max-width: 65ch; }
+.assembly-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(15rem, 21rem); gap: 1.5rem; margin-top: 1.5rem; align-items: start; }
+.assembly-viewport { position: relative; min-width: 0; height: min(62vh, 640px); min-height: 24rem; background: #ece9e3; overflow: hidden; }
+.assembly-viewport canvas { width: 100%; height: 100%; display: block; touch-action: none; }
+.assembly-viewport canvas:focus-visible { outline-offset: -3px; }
+.assembly-viewport .assembly-hint { position: absolute; left: 1rem; bottom: 0.8rem; color: #46413a; font-size: var(--text-s); pointer-events: none; }
+.assembly-controls { display: grid; grid-template-columns: 1fr auto; gap: 0.5rem 1rem; padding: 1.2rem 0; }
+.assembly-controls label { font-weight: 600; }
+.assembly-controls input { width: 100%; accent-color: var(--signal); grid-column: 1 / -1; }
+.assembly-controls .ends { grid-column: 1 / -1; display: flex; justify-content: space-between; color: var(--ink-2); font-size: var(--text-s); }
+.assembly-sidebar section { border-top: 1px solid var(--rule); padding: 1rem 0; }
+.assembly-sidebar h2 { font-size: var(--text-l); margin-bottom: 0.75rem; }
+.assembly-list li { padding: .55rem 0; border-bottom: 1px solid var(--rule); }
+.assembly-list li:last-child { border-bottom: 0; }
+.assembly-list .meta { display: block; color: var(--ink-2); font-size: var(--text-s); margin-top: .15rem; }
+.assembly-step { display: grid; grid-template-columns: 1.5rem 1fr; gap: .5rem; }
+.assembly-step span:first-child { font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.assembly-warnings { border: 1px solid var(--rule-2); padding: 1rem; margin-top: 1rem; }
+.assembly-warnings li { padding-top: .4rem; }
+.assembly-status { margin: 1rem 0; color: var(--ink-2); }
+@media(max-width: 900px) { .assembly-layout { grid-template-columns: 1fr; } .assembly-viewport { height: 55vh; min-height: 18rem; } }
+@media(max-width: 600px) { .assembly-viewport { height: 43vh; min-height: 16rem; } }
+@media(max-width: 760px) { .nav { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

@@ -4,26 +4,29 @@ Nov 3, 2026 · @Addison
 
 ## North star
 
-**From a problem in your hand to a part that fits, with no CAD in between.** The user never sees a sketch, a feature tree or a parameter name. They show the app a problem, choose between outcomes, and get an object that works on the first print.
+**An agent-driven engineering studio that helps anyone go from an idea to a buildable product.** A person can describe what they want, provide references and constraints, and work with agents to design, understand, make, and assemble it—without first learning traditional CAD. The scope runs from a single household part to a multi-part mechanism or product with purchased hardware and electronics.
 
-The promise has three parts, and the product is judged on all three:
+The experience should provide the depth and spatial understanding people expect from Fusion 360 or SolidWorks, presented in a modern, crisp interface. It is an engineering workspace, not a literal copy of either product. The object or assembly is central; conversation, direct manipulation, clear controls, and an optional expert view work together.
 
-- **It fits.** Dimensions come from the real world (camera, reference object, calipers), not from the user typing numbers.
-- **It works.** Snap-fits snap, hinges swing, brackets hold. Confidence is earned from real prints, not geometry rules alone.
-- **It's yours.** Every part stays parametric and editable. Change the phone, the shelf or the screw size, and the part regenerates.
+The promise is judged by whether people can:
 
-The one-line pitch: *"Point at the problem. Print the fix."*
+- **Describe and explore:** express intent in ordinary language, photos, reference dimensions, sketches or existing files; review assumptions and alternatives.
+- **Design complete products:** create editable parametric parts and assemblies with appropriate materials, fasteners, bearings, motors, electronics, and interfaces.
+- **Understand the design:** inspect parts, constraints, movement and clearances; explode the assembly and play an understandable assembly sequence.
+- **Make and assemble:** obtain suitable manufacturing files, a bill of materials, hardware specifications and step-by-step instructions tied to the actual design.
+- **Trust the evidence:** distinguish an automated geometry check, a simulation or estimate, a design review, and a real-world test. State the assumptions and limits of each.
+- **Keep improving:** revise the design in plain language or directly in the workspace, retain version history, and learn from the outcome of builds and prints.
 
-What this is not: a prettier CAD program, a chat window bolted onto a 3D viewer, or a mesh generator. Competitors already sell chat-to-parametric models with sliders. The difference here is the closed loop with physical reality, and that loop is the whole product.
+The bike-pump holder is the first narrow proof of this direction, not the product's scope. A mechanism or engine assembly illustrates the long-term ambition; we do not claim the prototype can currently design or validate one. Engineering capability and confidence must grow with the tests and evidence behind them.
 
 ## Look and feel
 
-**It should feel like a calm, brilliant workshop partner, not engineering software.** Think the confidence of a camera app crossed with the warmth of a good maker's bench. The object is always the hero; chrome stays out of the way.
+**It should feel like a modern, crisp engineering studio with an approachable, capable workshop partner.** Draw on the spatial clarity and practical depth of Fusion 360 or SolidWorks, while using plain language and agent assistance to make the workspace approachable. The design is the focus; controls are discoverable and recede when not needed.
 
 ### Visual language
 
-- **The object owns the screen.** The 3D part fills 70 to 80% of the view at all times. Controls float over it, translucent, and fade while you rotate.
-- **Material, not wireframe.** Parts render as the filament they'll be printed in: matte PETG, slightly glossy PLA, visible layer lines on close zoom. The user should feel they're already holding it.
+- **The model leads.** Give the part or assembly a generous 3D workspace; make room for an assembly tree, evidence, instructions, and conversation when the task needs them. Controls stay legible and accessible.
+- **Materials communicate intent.** Show credible materials for printed parts, metal hardware, electronics and other components. Use transparent, wireframe, section, and exploded views when they help explain the design.
 - **Warm neutral canvas.** A soft off-white workbench in light mode, a deep graphite in dark mode. No blueprint blue, no engineering grids.
 - **One accent colour** reserved for "this is the thing that changed" and for the primary action. Everything else is quiet.
 - **Type:** one humanist sans, large and generous. Numbers appear only when they matter ("fits a 32 mm pipe"), never as a wall of dimensions.
@@ -59,7 +62,7 @@ The Prove step is the product's moat: its answers flow back into every future de
 
 ### 1. Capture: "Show me the problem"
 
-The app opens straight to the camera, like a camera app, not a dashboard. A single line of text floats at the bottom: *"Point at what this needs to fit, hold or attach to."*
+The user can start from a description, camera, image, dimensions, sketch, existing design, or reference file. The appropriate entry point depends on the project and device; a camera is one option, not a requirement.
 
 - **Camera + depth:** the user scans the pump. On phones with depth sensors, the app measures directly; otherwise it asks for a reference object in frame (a credit card, a coin, a printed calibration tag).
 - **Live measurement overlay:** key dimensions appear as soft labels on the object as they lock in. A ring around each one fills as confidence rises.
@@ -96,7 +99,7 @@ AR places the chosen part at true scale on the real wall, with the real pump in 
 
 One big button. The app already knows the printer, material and slicer profile.
 
-- **Sends directly** to a connected printer, or exports a ready-to-print file. Print-on-demand is offered for users without a printer.
+- **Exports** a suitable manufacturing file, or proposes a job for a connected printer after explicit user confirmation. Print-on-demand may be offered for users without a printer.
 - **Pre-flight in plain language:** "No supports needed. 47 minutes. 12 g of PETG."
 - **Live status** from the printer, with a camera snapshot when it finishes.
 
@@ -105,13 +108,13 @@ One big button. The app already knows the printer, material and slicer profile.
 When the print finishes, the app asks one question with three big answers: *Perfect · Too tight · Too loose* (or *Broke*).
 
 - **Optional photo:** snap it installed. This photo becomes the design's thumbnail and its proof.
-- **Every answer recalibrates** that user's printer profile and the shared model for that joint type.
+- **Eligible answers improve** that user's relevant printer, material and joint profile. Any shared learning requires an explicit user choice.
 - **"Too tight" never ends the flow.** It offers a corrected version immediately: *"Opened the clip 0.3 mm. Reprint?"*
 - The part saves to the user's **Shelf** with its proof photo, ready to remix.
 
 ## Capabilities
 
-**The product needs nine capabilities in four layers; the moat lives in the reality layer.** Everything above it can be copied; the print-outcome data cannot.
+**These capabilities are a starting foundation.** The assembly, engineering, and build-instruction capabilities below extend them to complete products.
 
 ### Perceive: understanding the real world
 
@@ -134,6 +137,19 @@ When the print finishes, the app asks one question with three big answers: *Perf
 8. **Printer and material profiles.** Each user's printer, nozzle and filament get a calibrated tolerance profile, built from a one-time test print and refined by every "did it fit?" answer.
 9. **Collective print memory.** Every confirmed outcome (fit, too tight, broke) is stored against the joint type, material and printer. Confidence badges are computed from this, and new designs start from what has already worked.
 
+### Assemblies, engineering, and building
+
+- **Assembly model:** named parts and subassemblies, instances, materials, joints and mates, coordinate systems, and editable dependencies. Changes propagate without losing design intent.
+- **Hardware and electronics:** searchable, sourced components and dimensions for screws, nuts, bearings, motors, boards and connectors; record substitutions, quantities, and provenance. Support mechanical and electronics interfaces and imports as capabilities mature.
+- **Exploded views and instructions:** define and edit an assembly order, fasteners and tools, illustrate each step from the actual assembly, and export a bill of materials and instructions. Validate accessibility and sequence where possible; identify steps requiring human review.
+- **Motion and verification:** visualize articulated movement from defined joints; check interference and clearances across motion when supported. Distinguish animation from physically validated simulation, and disclose assumptions and evidence for load or strength estimates.
+- **Manufacturing and interchange:** produce appropriate print, fabrication and CAD exports for individual parts and assemblies; support relevant manufacturing constraints and retain editability and version history.
+- **Agent collaboration:** agents propose designs and explain decisions; deterministic checks and review provide evidence. Users can inspect, reject or revise proposals and stay in control of physical actions.
+
+### Product acceptance
+
+Evaluate representative single-part, multi-part mechanical, and electronics-enclosure projects. For each, measure whether the brief is captured, all components and hardware are accounted for, interfaces and movement are checked to the extent supported, files and instructions correspond to the design, and a person can actually make and assemble it. Track failures and review effort, not just automated pass rates. Physical outcomes remain separate from simulated or geometry-only checks.
+
 ### Around the core
 
 - **Shelf:** a personal library of every part, with its proof photo, its brief and its full history of versions.
@@ -143,7 +159,7 @@ When the print finishes, the app asks one question with three big answers: *Perf
 
 ## Engine room: what already exists underneath
 
-**About half the engine is built; the missing half is perception and the reality loop.** Today's studio pages (Overview, Evals, Library, gates) become an internal mission-control view, not the customer UI.
+**Current foundation:** a deterministic part-checking harness, an early holder workflow, and a read-only studio exist. Full assemblies, agent-directed product design, motion, exploded views, generated instructions, electronics integration, physical validation, and an installable desktop app remain future work. Today's studio pages (Overview, Evals, Library, gates) are an internal mission-control view.
 
 | Capability | What exists today | What's missing |
 | --- | --- | --- |
@@ -157,7 +173,7 @@ When the print finishes, the app asks one question with three big answers: *Perf
 | Measure from camera | Nothing yet | Phone capture with reference object; object recognition |
 | Track progress | Eval runner: pass rate and coverage, reported separately | Headline metric switched to fit-first-print rate |
 
-The principle stays the same: **Claude proposes, the harness disposes.** The UI never shows a design that hasn't passed the gates, and never claims confidence it hasn't earned from prints.
+The principle stays the same: **agents propose; checks and evidence establish what is known.** Clearly label drafts and failed checks; only offer verified production exports when the required gates pass. Never claim physical confidence without the corresponding evidence.
 
 ## Build sequence
 
@@ -165,7 +181,7 @@ The principle stays the same: **Claude proposes, the harness disposes.** The UI 
 
 &#91;embedded content: build sequence · 4 phases, 3 gates\]
 
-Each phase starts only when the gate above it is met; the magic in phase 3 is worthless until phases 1 and 2 prove parts actually fit.
+Keep the first physical proof and its gate visible while developing the engineering foundation. Advance assembly, motion, instructions, hardware and electronics in testable increments; do not treat an untested capability as proven.
 
 ### The first proof: "make a holder for this"
 
@@ -177,6 +193,6 @@ Each phase starts only when the gate above it is met; the magic in phase 3 is wo
 
 **Success:** 3 of 5 fit on the first print, and every miss is fixed on the second.
 
-**Deferred until the gate is met:** AR, the variant carousel, morph animations, accounts and sharing.
+**Later work:** assembly modeling, hardware and electronics integration, exploded views, assembly instructions, motion checks, and a distributable desktop app. AR, the variant carousel, morph animations, accounts and sharing remain future possibilities; none substitutes for physical proof.
 
 The same joint library and printer calibration power the snap-fit car kits, so the first real users can be kit buyers.

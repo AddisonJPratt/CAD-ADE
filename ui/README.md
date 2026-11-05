@@ -1,5 +1,7 @@
 # Magic CAD studio UI
 
+These pages are the internal Mission Control view; the customer holder workflow lives in `proof/`.
+
 Read-only workbench over the harness's output. No new Python dependencies: a stdlib server
 plus plain HTML, CSS and JS, with Three.js vendored for the Studio view. It reads files
 live, never writes to the project, and works fully offline.

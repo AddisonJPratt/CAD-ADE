@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.py[cod]
+proof/makes/
+proof/events/
+proof/profile.json
+proof/outcomes.jsonl
+briefs/generated/
+desktop/target/
+desktop/gen/

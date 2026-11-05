@@ -528,6 +528,7 @@ const ROUTES = {
 };
 
 let currentLoad = 0;
+let assemblyModule = null;
 let studioModule = null;  // Three.js is 1.3 MB: Mission Control never pays for it
 
 function setSurface(surface) {
@@ -556,6 +557,7 @@ function leaveStudio() {
 function parseRoute() {
   const [, name = "studio", stem, run] = location.hash.match(/^#\/([^/]+)(?:\/([^/]+))?(?:\/([^/]+))?/) || [];
   if (name === "studio") return { studio: true, stem: stem ? decodeURIComponent(stem) : null };
+  if (name === "assembly") return { assembly: true };
   const route = Object.hasOwn(ROUTES, name) ? ROUTES[name] : null;
   if (!route) return { route: null, name };
   return { route, stem: route.stem ? decodeURIComponent(stem || DEFAULT_STEM) : null, run: run ? decodeURIComponent(run) : null };
@@ -592,8 +594,24 @@ async function load({ focus = false } = {}) {
     parsed = { route: null, name: null };
   }
   const { route, stem, run, name } = parsed;
+  assemblyModule?.then((module) => module.leave()).catch(() => {});
   if (parsed.studio) return showStudio(stem, ticket);
   leaveStudio();
+  if (parsed.assembly) {
+    setNav("assembly");
+    document.title = "Assembly · Magic CAD";
+    view.setAttribute("aria-busy", "true");
+    view.innerHTML = "<h1>Assembly</h1><p>Loading the model…</p>";
+    try {
+      assemblyModule ??= import("/assembly.js");
+      const module = await assemblyModule;
+      if (ticket === currentLoad) await module.enter(view, () => ticket === currentLoad);
+    } catch (error) {
+      if (ticket === currentLoad) connectionError(error);
+    }
+    if (ticket === currentLoad) view.removeAttribute("aria-busy");
+    return;
+  }
   if (!route) {
     setNav(null);
     view.removeAttribute("aria-busy");

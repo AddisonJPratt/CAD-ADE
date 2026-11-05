@@ -1,0 +1,16 @@
+name: holder_cradle
+function: Screw-mounted cradle supporting a rectangular object from below.
+hard_dimensions: {mount_holes: 2}
+measures:
+  mount_holes: {probe: hole_count, axis: Z, dia: 3.4}
+interfaces: [Rectangular object, Two M3 mounting screws]
+soft_preferences: [No supports, Front lip to retain the object]
+assumptions:
+  - Internal fit, screw access, retention, and load capacity are not measured by the harness and need physical testing.
+  - Printer and clearance values are placeholders.
+params:
+  obj_w: {value: 90.0, min: 60.0, max: 120.0, unit: mm, intent: Object width}
+  obj_d: {value: 35.0, min: 20.0, max: 50.0, unit: mm, intent: Object depth}
+  obj_h: {value: 120.0, min: 80.0, max: 150.0, unit: mm, intent: Object height}
+  clearance: {value: 0.25, min: 0.1, max: 0.7, unit: mm, intent: Per-side clearance}
+  wall: {value: 3.0, min: 2.4, max: 4.0, unit: mm, intent: Wall thickness}

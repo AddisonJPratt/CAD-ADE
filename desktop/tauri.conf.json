@@ -1,0 +1,9 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Magic CAD",
+  "version": "0.1.0",
+  "identifier": "studio.magiccad.desktop",
+  "build": { "frontendDist": "assets" },
+  "app": { "windows": [], "security": { "csp": "default-src 'none'" } },
+  "bundle": { "active": false }
+}

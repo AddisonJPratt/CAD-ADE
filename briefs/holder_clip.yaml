@@ -1,0 +1,16 @@
+name: holder_clip
+function: A screw-mounted wall clip for a round object.
+hard_dimensions: {clip_height: 32.0, mount_holes: 2}
+measures:
+  clip_height: {probe: bbox_z}
+  mount_holes: {probe: hole_count, axis: X, dia: 3.4}
+interfaces: [Round barrel, Two screw mounting holes]
+soft_preferences: [No supports, Rounded flexible arms]
+assumptions:
+  - Clip fit, retention, and screw access are not measured by the harness and need physical testing.
+  - Printer and clearance values are placeholders.
+params:
+  barrel_dia: {value: 38.0, min: 30.0, max: 50.0, unit: mm, intent: Object diameter}
+  clearance: {value: 0.25, min: 0.1, max: 0.7, unit: mm, intent: Per-side clearance}
+  clip_height: {value: 32.0, min: 28.0, max: 40.0, unit: mm, intent: Length along object}
+  wall: {value: 2.4, min: 2.0, max: 3.0, unit: mm, intent: Clip wall thickness}

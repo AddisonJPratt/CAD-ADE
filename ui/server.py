@@ -7,6 +7,7 @@ import base64
 import hashlib
 import json
 import re
+import sys
 from datetime import datetime
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -20,11 +21,15 @@ PORT = 8765
 
 UI = Path(__file__).resolve().parent
 ROOT = UI.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 STATIC = {
     "/": ("index.html", "text/html; charset=utf-8"),
     "/index.html": ("index.html", "text/html; charset=utf-8"),
     "/styles.css": ("styles.css", "text/css; charset=utf-8"),
     "/app.js": ("app.js", "text/javascript; charset=utf-8"),
+    "/assembly.css": ("assembly.css", "text/css; charset=utf-8"),
+    "/assembly.js": ("assembly.js", "text/javascript; charset=utf-8"),
     "/studio.css": ("studio.css", "text/css; charset=utf-8"),
     "/studio.js": ("studio.js", "text/javascript; charset=utf-8"),
     "/studio-core.js": ("studio-core.js", "text/javascript; charset=utf-8"),
@@ -384,6 +389,9 @@ class Handler(BaseHTTPRequestHandler):
         self.respond(status, json.dumps(data, ensure_ascii=False, default=str).encode(), "application/json; charset=utf-8")
 
     def api(self, path):
+        if path == "/api/assembly/demo":
+            from assembly.demo import get_demo
+            return HTTPStatus.OK, get_demo(ROOT)
         if path == "/api/overview":
             return HTTPStatus.OK, overview()
         if path == "/api/evals":
@@ -433,6 +441,12 @@ class Handler(BaseHTTPRequestHandler):
             if path.startswith("/api/"):
                 status, data = self.api(path)
                 return self.send_json(status, data)
+            if path == "/assembly/assets/m3_socket_head.stl":
+                asset_root = (ROOT / "assembly" / "assets").resolve()
+                asset = (asset_root / "m3_socket_head.stl").resolve()
+                if asset.parent != asset_root or not asset.is_file():
+                    return self.send_json(HTTPStatus.NOT_FOUND, {"status": "NOT_FOUND", "message": "Assembly hardware mesh not found."})
+                return self.respond(HTTPStatus.OK, asset.read_bytes(), "model/stl")
             if path.startswith("/runs/"):
                 return self.serve_run_file(path)
             if path in STATIC:

@@ -1,0 +1,497 @@
+{
+  "design": "holder_cradle.py",
+  "command": "magic.py run designs/holder_cradle.py --out runs/holder_cradle",
+  "brief": "/workspace/CAD-ADE/briefs/holder_cradle.yaml",
+  "pass": true,
+  "gates": [
+    {
+      "name": "1 Execute",
+      "status": "PASS",
+      "detail": "built in 2.53 s; no hard-coded literals"
+    },
+    {
+      "name": "2 Geometry",
+      "status": "PASS",
+      "detail": "1/1 solids, volume 53396 mm\u00b3, 1/1 dims in \u00b10.1"
+    },
+    {
+      "name": "3 Printability",
+      "status": "PASS",
+      "detail": "watertight, single component, fits bed; overhang brief 0.0 %, support risk 4.3 %"
+    },
+    {
+      "name": "4 Renders",
+      "status": "PASS",
+      "detail": "5 PNGs from reloaded STL"
+    },
+    {
+      "name": "Sweep",
+      "status": "PASS",
+      "detail": "17/17 pass; dead params: none"
+    },
+    {
+      "name": "5 Exports",
+      "status": "PASS",
+      "detail": "holder_cradle.stl, holder_cradle.step"
+    }
+  ],
+  "assumptions": [
+    "Internal fit, screw access, retention, and load capacity are not measured by the harness and need physical testing.",
+    "Printer and clearance values are placeholders."
+  ],
+  "params": {
+    "obj_w": 90.0,
+    "obj_d": 35.0,
+    "obj_h": 120.0,
+    "clearance": 0.25,
+    "wall": 3.0
+  },
+  "geometry": {
+    "pass": true,
+    "problems": [],
+    "dimensions": [
+      {
+        "name": "mount_holes",
+        "spec": 2,
+        "measured": 2.0,
+        "delta": 0.0,
+        "pass": true
+      }
+    ],
+    "solids": 1,
+    "expected_solids": 1,
+    "volume": 53395.77478338675,
+    "bbox": {
+      "holder_cradle": [
+        118.5,
+        60.0,
+        41.25
+      ]
+    }
+  },
+  "overlaps": [],
+  "printability": {
+    "holder_cradle": {
+      "pass": true,
+      "problems": [],
+      "metrics": {
+        "watertight": true,
+        "winding_consistent": true,
+        "components": 1,
+        "faces": 1084,
+        "mesh_volume": 53395.79736553598,
+        "extents": [
+          118.5,
+          60.0,
+          41.25
+        ],
+        "inertia": [
+          28808681.35759071,
+          70020213.0263918,
+          79316725.894993
+        ],
+        "fits_bed": true,
+        "allow_supports": false,
+        "overhang_brief_pct": 0.0,
+        "support_risk_pct": 4.319569123954881,
+        "flat_undersides_above_bed_mm2": 271.5,
+        "bed_contact_mm2": 6013.849121845327,
+        "min_feature": {
+          "mm": 2.8440000000000003,
+          "resolution_mm": 0.474,
+          "where": {
+            "axis": "Y",
+            "offset": 11.25
+          }
+        },
+        "min_feature_warning": false
+      }
+    }
+  },
+  "renders": [
+    "runs/holder_cradle/renders/iso.png",
+    "runs/holder_cradle/renders/front.png",
+    "runs/holder_cradle/renders/top.png",
+    "runs/holder_cradle/renders/side.png",
+    "runs/holder_cradle/renders/section.png"
+  ],
+  "sweep": {
+    "pass": true,
+    "total": 17,
+    "passed": 17,
+    "pass_share": 1.0,
+    "required_share": 1.0,
+    "dead_params": [],
+    "printable_passed": 17,
+    "max_support_risk_pct": 8.250857602599554,
+    "max_overhang_brief_pct": 0.0,
+    "rows": [
+      {
+        "label": "default",
+        "params": {},
+        "seconds": 8.43,
+        "pass": true,
+        "problems": [],
+        "volume": 53395.77478338675,
+        "bbox": {
+          "holder_cradle": [
+            118.5,
+            60.0,
+            41.25
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 4.319569123954881,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "obj_w=min",
+        "params": {
+          "obj_w": 60.0
+        },
+        "seconds": 9.3,
+        "pass": true,
+        "problems": [],
+        "volume": 40840.77478338675,
+        "bbox": {
+          "holder_cradle": [
+            88.5,
+            60.0,
+            41.25
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 4.129364811953771,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "obj_w=max",
+        "params": {
+          "obj_w": 120.0
+        },
+        "seconds": 9.35,
+        "pass": true,
+        "problems": [],
+        "volume": 65950.77478338675,
+        "bbox": {
+          "holder_cradle": [
+            148.5,
+            60.0,
+            41.25
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 4.421829505937826,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "obj_d=min",
+        "params": {
+          "obj_d": 20.0
+        },
+        "seconds": 7.61,
+        "pass": true,
+        "problems": [],
+        "volume": 39850.774783386754,
+        "bbox": {
+          "holder_cradle": [
+            118.5,
+            60.0,
+            26.25
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 4.319569123954881,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "obj_d=max",
+        "params": {
+          "obj_d": 50.0
+        },
+        "seconds": 6.45,
+        "pass": true,
+        "problems": [],
+        "volume": 66940.77478338679,
+        "bbox": {
+          "holder_cradle": [
+            118.5,
+            60.0,
+            56.25
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 4.319569123954881,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "obj_h=min",
+        "params": {
+          "obj_h": 80.0
+        },
+        "seconds": 7.77,
+        "pass": true,
+        "problems": [],
+        "volume": 43015.77478338675,
+        "bbox": {
+          "holder_cradle": [
+            118.5,
+            40.0,
+            41.25
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 6.233713819936109,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "obj_h=max",
+        "params": {
+          "obj_h": 150.0
+        },
+        "seconds": 10.69,
+        "pass": true,
+        "problems": [],
+        "volume": 61180.77478338677,
+        "bbox": {
+          "holder_cradle": [
+            118.5,
+            75.0,
+            41.25
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 3.510995697989393,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "clearance=min",
+        "params": {
+          "clearance": 0.1
+        },
+        "seconds": 8.18,
+        "pass": true,
+        "problems": [],
+        "volume": 53135.044783386766,
+        "bbox": {
+          "holder_cradle": [
+            118.2,
+            60.0,
+            41.1
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 4.318234997273435,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "clearance=max",
+        "params": {
+          "clearance": 0.7
+        },
+        "seconds": 4.37,
+        "pass": true,
+        "problems": [],
+        "volume": 54181.20478338677,
+        "bbox": {
+          "holder_cradle": [
+            119.4,
+            60.0,
+            41.7
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 4.323523757030606,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "wall=min",
+        "params": {
+          "wall": 2.4
+        },
+        "seconds": 5.95,
+        "pass": true,
+        "problems": [],
+        "volume": 41980.05982670943,
+        "bbox": {
+          "holder_cradle": [
+            117.3,
+            60.0,
+            40.05
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 3.526517744444696,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "wall=max",
+        "params": {
+          "wall": 4.0
+        },
+        "seconds": 6.81,
+        "pass": true,
+        "problems": [],
+        "volume": 73240.366377849,
+        "bbox": {
+          "holder_cradle": [
+            120.5,
+            60.0,
+            43.25
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 5.572789533897976,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "all=min",
+        "params": {
+          "obj_w": 60.0,
+          "obj_d": 20.0,
+          "obj_h": 80.0,
+          "clearance": 0.1,
+          "wall": 2.4
+        },
+        "seconds": 8.35,
+        "pass": true,
+        "problems": [],
+        "volume": 17945.571826709394,
+        "bbox": {
+          "holder_cradle": [
+            87.0,
+            40.0,
+            24.9
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 4.867384109183558,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "all=max",
+        "params": {
+          "obj_w": 120.0,
+          "obj_d": 50.0,
+          "obj_h": 150.0,
+          "clearance": 0.7,
+          "wall": 4.0
+        },
+        "seconds": 9.7,
+        "pass": true,
+        "problems": [],
+        "volume": 127602.40637784902,
+        "bbox": {
+          "holder_cradle": [
+            151.4,
+            75.0,
+            58.7
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 4.662752889950936,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo1",
+        "params": {
+          "obj_w": 120.0,
+          "obj_d": 50.0,
+          "obj_h": 80.0,
+          "clearance": 0.7,
+          "wall": 4.0
+        },
+        "seconds": 5.39,
+        "pass": true,
+        "problems": [],
+        "volume": 94170.40637784908,
+        "bbox": {
+          "holder_cradle": [
+            151.4,
+            40.0,
+            58.7
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 8.250857602599554,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo2",
+        "params": {
+          "obj_w": 84.296,
+          "obj_d": 43.514,
+          "obj_h": 101.232,
+          "clearance": 0.386,
+          "wall": 3.333
+        },
+        "seconds": 9.04,
+        "pass": true,
+        "problems": [],
+        "volume": 59887.69771949863,
+        "bbox": {
+          "holder_cradle": [
+            113.734,
+            50.616,
+            50.566
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 5.504838747168609,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo3",
+        "params": {
+          "obj_w": 60.0,
+          "obj_d": 20.0,
+          "obj_h": 150.0,
+          "clearance": 0.1,
+          "wall": 2.4
+        },
+        "seconds": 7.49,
+        "pass": true,
+        "problems": [],
+        "volume": 27185.57182670939,
+        "bbox": {
+          "holder_cradle": [
+            87.0,
+            75.0,
+            24.9
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 2.755500867701788,
+        "overhang_brief_pct": 0.0
+      },
+      {
+        "label": "combo4",
+        "params": {
+          "obj_w": 97.102,
+          "obj_d": 27.515,
+          "obj_h": 143.682,
+          "clearance": 0.69,
+          "wall": 3.696
+        },
+        "seconds": 6.18,
+        "pass": true,
+        "problems": [],
+        "volume": 70448.9871493245,
+        "bbox": {
+          "holder_cradle": [
+            127.874,
+            71.841,
+            35.597
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 4.442182871022674,
+        "overhang_brief_pct": 0.0
+      }
+    ]
+  },
+  "exports": [
+    "holder_cradle.stl",
+    "holder_cradle.step"
+  ]
+}

@@ -1,0 +1,457 @@
+{
+  "design": "holder_clip.py",
+  "command": "magic.py run designs/holder_clip.py --out runs/holder_clip",
+  "brief": "/workspace/CAD-ADE/briefs/holder_clip.yaml",
+  "pass": true,
+  "gates": [
+    {
+      "name": "1 Execute",
+      "status": "PASS",
+      "detail": "built in 2.62 s; no hard-coded literals"
+    },
+    {
+      "name": "2 Geometry",
+      "status": "PASS",
+      "detail": "1/1 solids, volume 9970 mm\u00b3, 2/2 dims in \u00b10.1"
+    },
+    {
+      "name": "3 Printability",
+      "status": "PASS",
+      "detail": "watertight, single component, fits bed; overhang brief 11.5 %, support risk 11.7 %"
+    },
+    {
+      "name": "4 Renders",
+      "status": "PASS",
+      "detail": "5 PNGs from reloaded STL"
+    },
+    {
+      "name": "Sweep",
+      "status": "PASS",
+      "detail": "15/15 pass; dead params: none"
+    },
+    {
+      "name": "5 Exports",
+      "status": "PASS",
+      "detail": "holder_clip.stl, holder_clip.step"
+    }
+  ],
+  "assumptions": [
+    "Clip fit, retention, and screw access are not measured by the harness and need physical testing.",
+    "Printer and clearance values are placeholders."
+  ],
+  "params": {
+    "barrel_dia": 38.0,
+    "clearance": 0.25,
+    "clip_height": 32.0,
+    "wall": 2.4
+  },
+  "geometry": {
+    "pass": true,
+    "problems": [],
+    "dimensions": [
+      {
+        "name": "clip_height",
+        "spec": 32.0,
+        "measured": 32.0000002,
+        "delta": 2.0000000233721948e-07,
+        "pass": true
+      },
+      {
+        "name": "mount_holes",
+        "spec": 2,
+        "measured": 2.0,
+        "delta": 0.0,
+        "pass": true
+      }
+    ],
+    "solids": 1,
+    "expected_solids": 1,
+    "volume": 9970.119267522186,
+    "bbox": {
+      "holder_clip": [
+        39.628432901905,
+        43.3,
+        32.0000002
+      ]
+    }
+  },
+  "overlaps": [],
+  "printability": {
+    "holder_clip": {
+      "pass": true,
+      "problems": [],
+      "metrics": {
+        "watertight": true,
+        "winding_consistent": true,
+        "components": 1,
+        "faces": 3400,
+        "mesh_volume": 9968.72547859238,
+        "extents": [
+          39.6281213760376,
+          43.2994384765625,
+          32.0
+        ],
+        "inertia": [
+          2835417.467334992,
+          2303733.5348932794,
+          3427583.947179327
+        ],
+        "fits_bed": true,
+        "allow_supports": false,
+        "overhang_brief_pct": 11.53550824719526,
+        "support_risk_pct": 11.659820486907458,
+        "flat_undersides_above_bed_mm2": 0.463686606657737,
+        "bed_contact_mm2": 319.90909413514174,
+        "min_feature": {
+          "mm": 2.4,
+          "resolution_mm": 0.4,
+          "where": {
+            "axis": "X",
+            "offset": -2.96
+          }
+        },
+        "min_feature_warning": false
+      }
+    }
+  },
+  "renders": [
+    "runs/holder_clip/renders/iso.png",
+    "runs/holder_clip/renders/front.png",
+    "runs/holder_clip/renders/top.png",
+    "runs/holder_clip/renders/side.png",
+    "runs/holder_clip/renders/section.png"
+  ],
+  "sweep": {
+    "pass": true,
+    "total": 15,
+    "passed": 15,
+    "pass_share": 1.0,
+    "required_share": 1.0,
+    "dead_params": [],
+    "printable_passed": 15,
+    "max_support_risk_pct": 14.692615859681112,
+    "max_overhang_brief_pct": 14.636376619975477,
+    "rows": [
+      {
+        "label": "default",
+        "params": {},
+        "seconds": 7.72,
+        "pass": true,
+        "problems": [],
+        "volume": 9970.119267522186,
+        "bbox": {
+          "holder_clip": [
+            39.628432901905,
+            43.3,
+            32.0000002
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 11.659820486907458,
+        "overhang_brief_pct": 11.53550824719526
+      },
+      {
+        "label": "barrel_dia=min",
+        "params": {
+          "barrel_dia": 30.0
+        },
+        "seconds": 7.87,
+        "pass": true,
+        "problems": [],
+        "volume": 7981.384672008735,
+        "bbox": {
+          "holder_clip": [
+            32.980721425904,
+            35.3,
+            32.0000002
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 13.80790695746327,
+        "overhang_brief_pct": 13.659198032678281
+      },
+      {
+        "label": "barrel_dia=max",
+        "params": {
+          "barrel_dia": 50.0
+        },
+        "seconds": 5.41,
+        "pass": true,
+        "problems": [],
+        "volume": 12958.01592946592,
+        "bbox": {
+          "holder_clip": [
+            49.598865669484,
+            55.3,
+            32.0000002
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 9.590493584316214,
+        "overhang_brief_pct": 9.24706339415998
+      },
+      {
+        "label": "clearance=min",
+        "params": {
+          "clearance": 0.1
+        },
+        "seconds": 8.08,
+        "pass": true,
+        "problems": [],
+        "volume": 9895.484750281725,
+        "bbox": {
+          "holder_clip": [
+            39.379158038651,
+            43.0,
+            32.0000002
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 11.725350178277433,
+        "overhang_brief_pct": 11.603728930938505
+      },
+      {
+        "label": "clearance=max",
+        "params": {
+          "clearance": 0.7
+        },
+        "seconds": 8.44,
+        "pass": true,
+        "problems": [],
+        "volume": 10194.18982762,
+        "bbox": {
+          "holder_clip": [
+            40.376252260922,
+            44.2,
+            32.0000002
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 11.470794731167603,
+        "overhang_brief_pct": 11.358666684921584
+      },
+      {
+        "label": "clip_height=min",
+        "params": {
+          "clip_height": 28.0
+        },
+        "seconds": 8.82,
+        "pass": true,
+        "problems": [],
+        "volume": 8690.381077923523,
+        "bbox": {
+          "holder_clip": [
+            39.628432901905,
+            43.3,
+            28.000000200000002
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 11.659820446573324,
+        "overhang_brief_pct": 11.535508555308407
+      },
+      {
+        "label": "clip_height=max",
+        "params": {
+          "clip_height": 40.0
+        },
+        "seconds": 11.38,
+        "pass": true,
+        "problems": [],
+        "volume": 12529.595646644317,
+        "bbox": {
+          "holder_clip": [
+            39.628432901905,
+            43.3,
+            40.0000002
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 11.659822090017066,
+        "overhang_brief_pct": 11.535506827226207
+      },
+      {
+        "label": "wall=min",
+        "params": {
+          "wall": 2.0
+        },
+        "seconds": 8.22,
+        "pass": true,
+        "problems": [],
+        "volume": 8190.647945357968,
+        "bbox": {
+          "holder_clip": [
+            38.355193388501,
+            42.5,
+            32.0000002
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 12.33112800439712,
+        "overhang_brief_pct": 12.280042261807305
+      },
+      {
+        "label": "wall=max",
+        "params": {
+          "wall": 3.0
+        },
+        "seconds": 10.65,
+        "pass": true,
+        "problems": [],
+        "volume": 12712.423373726539,
+        "bbox": {
+          "holder_clip": [
+            41.53753527747,
+            44.50000000000001,
+            32.0000002
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 10.929325614706439,
+        "overhang_brief_pct": 10.731495478383213
+      },
+      {
+        "label": "all=min",
+        "params": {
+          "barrel_dia": 30.0,
+          "clearance": 0.1,
+          "clip_height": 28.0,
+          "wall": 2.0
+        },
+        "seconds": 6.71,
+        "pass": true,
+        "problems": [],
+        "volume": 5628.725393488252,
+        "bbox": {
+          "holder_clip": [
+            31.458782505681,
+            34.2,
+            28.000000200000002
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 14.692615859681112,
+        "overhang_brief_pct": 14.636376619975477
+      },
+      {
+        "label": "all=max",
+        "params": {
+          "barrel_dia": 50.0,
+          "clearance": 0.7,
+          "clip_height": 40.0,
+          "wall": 3.0
+        },
+        "seconds": 9.07,
+        "pass": true,
+        "problems": [],
+        "volume": 20974.48356144424,
+        "bbox": {
+          "holder_clip": [
+            52.256747278468,
+            57.400000000000006,
+            40.0000002
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 8.854898965196536,
+        "overhang_brief_pct": 8.50039146077347
+      },
+      {
+        "label": "combo1",
+        "params": {
+          "barrel_dia": 50.0,
+          "clearance": 0.7,
+          "clip_height": 28.0,
+          "wall": 3.0
+        },
+        "seconds": 8.14,
+        "pass": true,
+        "problems": [],
+        "volume": 14593.86979540102,
+        "bbox": {
+          "holder_clip": [
+            52.256747278468,
+            57.400000000000006,
+            28.000000200000002
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 8.854897744694451,
+        "overhang_brief_pct": 8.500392859049134
+      },
+      {
+        "label": "combo2",
+        "params": {
+          "barrel_dia": 49.309,
+          "clearance": 0.392,
+          "clip_height": 39.019,
+          "wall": 2.83
+        },
+        "seconds": 9.06,
+        "pass": true,
+        "problems": [],
+        "volume": 18750.240247822516,
+        "bbox": {
+          "holder_clip": [
+            50.629657468249995,
+            55.753,
+            39.0190002
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 9.117370990779023,
+        "overhang_brief_pct": 8.901143355773199
+      },
+      {
+        "label": "combo3",
+        "params": {
+          "barrel_dia": 50.0,
+          "clearance": 0.7,
+          "clip_height": 28.0,
+          "wall": 2.0
+        },
+        "seconds": 10.32,
+        "pass": true,
+        "problems": [],
+        "volume": 9481.053535415082,
+        "bbox": {
+          "holder_clip": [
+            49.072805616825,
+            55.400000000000006,
+            28.000000200000002
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 10.026927330555106,
+        "overhang_brief_pct": 9.695887047542554
+      },
+      {
+        "label": "combo4",
+        "params": {
+          "barrel_dia": 35.637,
+          "clearance": 0.553,
+          "clip_height": 35.42,
+          "wall": 2.251
+        },
+        "seconds": 9.12,
+        "pass": true,
+        "problems": [],
+        "volume": 9870.92725693857,
+        "bbox": {
+          "holder_clip": [
+            37.694307754472,
+            41.245000000000005,
+            35.420000200000004
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 12.277137581125048,
+        "overhang_brief_pct": 12.2920924344342
+      }
+    ]
+  },
+  "exports": [
+    "holder_clip.stl",
+    "holder_clip.step"
+  ]
+}
