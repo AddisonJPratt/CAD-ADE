@@ -196,3 +196,7 @@ Keep the first physical proof and its gate visible while developing the engineer
 **Later work:** assembly modeling, hardware and electronics integration, exploded views, assembly instructions, motion checks, and a distributable desktop app. AR, the variant carousel, morph animations, accounts and sharing remain future possibilities; none substitutes for physical proof.
 
 The same joint library and printer calibration power the snap-fit car kits, so the first real users can be kit buyers.
+
+## Build spec: agent-driven engineering studio
+
+The decisions that turn this vision into buildable milestones (repo fix → M0 walking skeleton → M1 calibration → M2 ESP32 enclosure → M3 mechanism) live in the spec issue [AddisonJPratt/CAD-ADE#1](https://github.com/AddisonJPratt/CAD-ADE/issues/1). Tickets are its sub-issues. Where the spec and this document disagree, the spec wins.
