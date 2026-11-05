@@ -164,7 +164,6 @@ def test_passing_project(api, tmp):
     code, report = cli_report(project / "designs" / "good_two_parts.py")
     check("API verdict matches `magic.py run`", code == 0 and report["pass"] == verdict["pass"]
           and statuses(report["gates"]) == statuses(gates), f"cli exit {code}")
-    check("`magic.py project` agrees", cli("project", str(project)) == 0)
 
     # Artifacts: STL, STEP, renders and report, byte-identical to the files in outputs/.
     artifacts = verdict["designs"][0]["artifacts"]
@@ -176,6 +175,7 @@ def test_passing_project(api, tmp):
         status, ctype, data = api.request("GET", f"/runs/{run['id']}/artifacts/{rel}")
         same = same and status == 200 and data == (project / "outputs" / rel).read_bytes()
     check("every artifact downloads byte-identical", same, f"{len(artifacts)} files")
+    check("`magic.py project` agrees", cli("project", str(project)) == 0)
     _, ctype, _ = api.request("GET", f"/runs/{run['id']}/artifacts/good_two_parts/a.stl")
     check("STL served as model/stl", ctype == "model/stl", ctype)
     status, _, _ = api.request("GET", f"/runs/{run['id']}/artifacts/../designs/good_two_parts.py")
