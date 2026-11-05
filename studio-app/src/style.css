@@ -3,3 +3,5 @@
 .mark{display:inline-block;width:9px;height:9px;margin-right:9px;border:1.5px solid currentColor;vertical-align:1px}.mark.pass,.mark.pending{border-radius:50%}.mark.pass,.mark.fail{background:currentColor}
 
 .views{position:absolute;bottom:56px;left:32px;display:flex;gap:6px}.views button{background:#f7f5f1;min-width:52px;text-align:center}.views button[aria-pressed=true]{background:#1d1b18;color:white}.touch-hint{display:none}@media(max-width:760px){.views{left:16px}.desktop-hint{display:none}.touch-hint{display:inline}}
+
+.loading{position:absolute;top:24px;left:32px;z-index:1;background:#f7f5f1;padding:8px 12px;border:1px solid #d2cec7}
