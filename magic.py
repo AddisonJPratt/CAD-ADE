@@ -7,6 +7,10 @@
   python magic.py evals [--quick] [--out dir] [--timeout S]
   python magic.py project <folder> [--samples N] [--timeout S]   every design in a project folder
   python magic.py serve [--port 8766]                             the local engine API
+  python magic.py new <folder> --from <design stem or .py>        a project folder, version 1
+  python magic.py versions <folder>                               its version timeline
+  python magic.py save <folder> -m "message"                      save the current files as a version
+  python magic.py rollback <folder> <version number or id>        restore a version, re-run the gates
 
 The CLI and the engine API call the same functions (harness.pipeline.run, engine.projects).
 """
@@ -20,7 +24,7 @@ def main():
     if sys.argv[1:2] == ["evals"]:   # takes no design, so it has its own arguments
         from evals.run_evals import main as run_evals
         return run_evals(sys.argv[2:])
-    if sys.argv[1:2] in (["project"], ["serve"]):
+    if sys.argv[1:2] in (["project"], ["serve"], ["new"], ["versions"], ["save"], ["rollback"]):
         return engine_command(sys.argv[1], sys.argv[2:])
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -51,18 +55,45 @@ def main():
     return code
 
 
+def print_versions(rows):
+    for v in rows:
+        verdict = "not run" if v["verdict"] is None else ("PASS" if v["verdict"]["pass"] else "FAIL")
+        print(f"{'*' if v['current'] else ' '} v{v['number']:<3} {v['timestamp']}  {verdict:8} {v['message']}")
+    return 0
+
+
 def engine_command(command, argv):
     parser = argparse.ArgumentParser(prog=f"magic.py {command}")
     if command == "serve":
         from engine.api import PORT, serve
         parser.add_argument("--port", type=int, default=PORT)
         return serve(parser.parse_args(argv).port)
+    from engine import versions
     from engine.projects import ProjectError, run_project
     parser.add_argument("folder")
-    parser.add_argument("--samples", type=int)
-    parser.add_argument("--timeout", type=int, default=180)
+    if command == "new":
+        parser.add_argument("--from", dest="source", required=True)
+    if command == "save":
+        parser.add_argument("-m", "--message", required=True)
+    if command == "rollback":
+        parser.add_argument("version")
+    if command in ("project", "rollback"):
+        parser.add_argument("--samples", type=int)
+        parser.add_argument("--timeout", type=int, default=180)
     args = parser.parse_args(argv)
     try:
+        if command == "new":
+            folder = versions.create_project(args.folder, args.source)
+            print(f"created {folder}")
+            return print_versions(versions.list_versions(folder))
+        if command == "versions":
+            return print_versions(versions.list_versions(args.folder))
+        if command == "save":
+            return print_versions([versions.save_version(versions.require_versioned(args.folder),
+                                                         args.message)])
+        if command == "rollback":
+            new, target = versions.restore_version(args.folder, args.version)
+            print(f"restored version {target['number']} as version {new['number']}; re-running the gates")
         code, verdict = run_project(args.folder, samples=args.samples, timeout=args.timeout)
     except (ProjectError, ValueError) as err:
         print(f"error: {err}", file=sys.stderr)

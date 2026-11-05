@@ -6,6 +6,7 @@ A project folder holds:
     <project>/briefs/<part>.yaml     optional brief card per design, matched by stem
     <project>/outputs/<part>/        written here: report.json/.md, STL, STEP, renders
     <project>/outputs/verdict.json   written here: the project verdict
+    <project>/.git, .magic/          versions (see engine/versions.py); a plain folder works too
 
 Each design goes through harness.pipeline.run, exactly as `magic.py run designs/<part>.py`
 would run it, so a project verdict is the CLI verdict for each of its designs.
@@ -75,6 +76,8 @@ def run_project(project, on_event=None, samples=None, timeout=180):
     verdict["pass"] = all(d["pass"] for d in verdict["designs"])
     verdict["finished"] = now()
     verdict["seconds"] = round(time.time() - began, 1)
+    from .versions import record_verdict  # here, not at the top: versions imports this module
+    verdict["version"] = record_verdict(project, verdict)
     (project / OUTPUTS / "verdict.json").write_text(json.dumps(verdict, indent=2))
     emit({"type": "run_finished", "pass": verdict["pass"]})
     return (0 if verdict["pass"] else 1), verdict

@@ -27,6 +27,8 @@ it applies no matter which agent you are.
   Three.js is vendored in `ui/vendor/` — no CDN at runtime.
 - `engine/` — the engine API (`magic.py serve`): a project folder in, verdict, live gate
   events and artifacts out. `magic.py project` and `magic.py run` call the same functions.
+  `engine/versions.py`: project folders with versions (git inside, never shown as git),
+  save and rollback; rollback re-runs the gates.
 - `mcp/magic_cad_server.py` — the project's own MCP server (7 typed tools).
 - `docs/PRODUCT_VISION_UX_SPEC.md` — the product/UX north star. The customer
   surface stays seamless and simple; the engineering lives underneath.

@@ -33,6 +33,13 @@ Results land in `runs/wall_bracket/`: `report.md`, `report.json`, `bracket.stl`,
   follow gate start/finish events live on `/runs/<id>/events` (Server-Sent Events), and fetch
   the STL, STEP, renders and report from `/runs/<id>/artifacts/`. See `engine/api.py`;
   `tests/test_engine_api.py` (about 3 min) tests it against fixture projects.
+- `new <folder> --from wall_bracket` makes a project folder holding a copy of a design and its
+  brief card as version 1; `save <folder> -m "..."` saves the current files as a version,
+  `versions <folder>` lists the timeline with each version's verdict, and
+  `rollback <folder> <n>` restores version n as a new version and re-runs the gates. The
+  engine API has the same operations under `/projects`. Versions live in a repository inside
+  the project folder; `outputs/` is rebuilt by the gates, not versioned.
+  `tests/test_engine_projects.py` (under 1 min) tests them through the API.
 - `--brief` defaults to `briefs/<design stem>.yaml` if present. Without a brief, hard
   dimensions are not checked, and the report says so.
 - `--samples N` caps sweep runs. N must cover default + min and max of every param, so

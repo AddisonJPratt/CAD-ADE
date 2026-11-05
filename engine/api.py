@@ -11,6 +11,15 @@
                                          then an "end" event. Honours Last-Event-ID.
     GET  /runs/<id>/artifacts/<path>     a file from the project's outputs folder (STL, STEP, PNG, report)
 
+    POST /projects                       {"folder", "from_design"}: a new project as version 1 (201)
+    GET  /projects/versions?project=...  the version timeline, newest first, with each version's verdict
+    POST /projects/versions              {"project", "message"}: save the current files as a version (201)
+    POST /projects/rollback              {"project", "version", "wait"?}: restore a version's files as a
+                                         new version, then re-run the gates (202, or 200 with "wait")
+
+Version requests on a project that has a run queued or in progress are refused (409), so a
+run never sees its files change underneath it.
+
 Bound to 127.0.0.1 and checks the Host header (refuses DNS rebinding). POST needs
 Content-Type: application/json, which a web page cannot send cross-origin without a
 preflight this server never answers. Runs execute one at a time, in order: the gates share
@@ -26,9 +35,11 @@ from datetime import datetime, timezone
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import unquote, urlsplit
+from urllib.parse import parse_qs, unquote, urlsplit
 
 from .projects import ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, run_project
+from .versions import (Conflict, create_project, list_versions, require_versioned,
+                       restore_version, save_version)
 
 HOST = "127.0.0.1"
 PORT = 8766  # the plain-JS UI server keeps 8765
@@ -64,6 +75,10 @@ class Run:
                                                "artifacts": f"/runs/{self.id}/artifacts/"}}
 
 
+class Busy(Conflict):
+    """The project has a run queued or in progress."""
+
+
 class Engine:
     """The run registry and its single worker thread."""
 
@@ -75,12 +90,32 @@ class Engine:
     def submit(self, project, samples=None, timeout=180):
         project = Path(project).expanduser().resolve()
         designs_of(project)  # refuse a non-project before it is queued
-        run = Run(project, samples, timeout)
         with self.lock:
-            self.runs[run.id] = run
+            return self.queue(project, samples, timeout)
+
+    def queue(self, project, samples, timeout):  # caller holds self.lock
+        run = Run(project, samples, timeout)
+        self.runs[run.id] = run
         run.emit({"type": "queued", "project": str(project)})
         self.pending.put(run)
         return run
+
+    def change(self, project, action):
+        """Run a version change while no run of this project is queued or running."""
+        project = require_versioned(project)
+        with self.lock:
+            if any(r.project == project and r.status not in TERMINAL for r in self.runs.values()):
+                raise Busy(f"{project} has a run in progress; try again when it finishes")
+            return action(project)
+
+    def save(self, project, message):
+        return self.change(project, lambda p: save_version(p, message))
+
+    def rollback(self, project, version, samples=None, timeout=180):
+        def act(p):
+            new, target = restore_version(p, version)
+            return new, target, self.queue(p, samples, timeout)
+        return self.change(project, act)
 
     def work(self):
         while True:
@@ -134,6 +169,10 @@ class Handler(BaseHTTPRequestHandler):
             return self.reply(HTTPStatus.OK, {"engine": "magic-cad", "api": API_VERSION})
         if path == "/runs":
             return self.reply(HTTPStatus.OK, {"runs": [r.summary() for r in self.engine.all()]})
+        if path == "/projects/versions":
+            project = parse_qs(urlsplit(self.path).query).get("project", [""])[0]
+            return self.guarded(lambda: (HTTPStatus.OK, {"project": project,
+                                                         "versions": list_versions(project)}))
         match = RUN_PATH.match(path)
         run = self.engine.get(match.group(1)) if match else None
         if not run:
@@ -144,27 +183,66 @@ class Handler(BaseHTTPRequestHandler):
             return self.artifact(run, unquote(match.group(3)))
         return self.reply(HTTPStatus.OK, run.summary())
 
+    def guarded(self, act):
+        """Reply with act()'s (status, body); a refused request becomes 400, 409 or 404."""
+        try:
+            status, body = act()
+        except Conflict as err:
+            return self.reply(HTTPStatus.CONFLICT, {"error": str(err)})
+        except ProjectError as err:
+            return self.reply(HTTPStatus.BAD_REQUEST, {"error": str(err)})
+        except (KeyError, TypeError, ValueError, AttributeError) as err:
+            return self.reply(HTTPStatus.BAD_REQUEST, {"error": f"bad request: {err!r}"})
+        return self.reply(status, body)
+
     def do_POST(self):
         if not self.host_ok():
             return
-        if urlsplit(self.path).path != "/runs":
+        path = urlsplit(self.path).path
+        routes = {"/runs": self.post_run, "/projects": self.post_project,
+                  "/projects/versions": self.post_version, "/projects/rollback": self.post_rollback}
+        if path not in routes:
             return self.reply(HTTPStatus.NOT_FOUND, {"error": "no such endpoint"})
         if self.headers.get("Content-Type", "").split(";")[0].strip() != "application/json":
             return self.reply(HTTPStatus.UNSUPPORTED_MEDIA_TYPE, {"error": "send application/json"})
         try:
             body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
-            samples, timeout = body.get("samples"), int(body.get("timeout", 180))
-            if samples is not None:
-                samples = int(samples)
-            run = self.engine.submit(body["project"], samples, timeout)
-        except (KeyError, TypeError, ValueError, AttributeError) as err:
-            message = str(err) if isinstance(err, ProjectError) else f"bad request: {err!r}"
-            return self.reply(HTTPStatus.BAD_REQUEST, {"error": message})
-        if body.get("wait"):
-            with run.changed:
-                run.changed.wait_for(lambda: run.status in TERMINAL)
-            return self.reply(HTTPStatus.OK, run.summary())
-        return self.reply(HTTPStatus.ACCEPTED, run.summary())
+            if not isinstance(body, dict):
+                raise ValueError("send a JSON object")
+        except ValueError as err:
+            return self.reply(HTTPStatus.BAD_REQUEST, {"error": f"bad request: {err}"})
+        return self.guarded(lambda: routes[path](body))
+
+    @staticmethod
+    def run_options(body):
+        samples = body.get("samples")
+        return (int(samples) if samples is not None else None), int(body.get("timeout", 180))
+
+    @staticmethod
+    def finished(run, wait):
+        if not wait:
+            return HTTPStatus.ACCEPTED
+        with run.changed:
+            run.changed.wait_for(lambda: run.status in TERMINAL)
+        return HTTPStatus.OK
+
+    def post_run(self, body):
+        run = self.engine.submit(body["project"], *self.run_options(body))
+        return self.finished(run, body.get("wait")), run.summary()
+
+    def post_project(self, body):
+        folder = create_project(body["folder"], body["from_design"])
+        return HTTPStatus.CREATED, {"project": str(folder), "versions": list_versions(folder)}
+
+    def post_version(self, body):
+        return HTTPStatus.CREATED, {"version": self.engine.save(body["project"], body["message"])}
+
+    def post_rollback(self, body):
+        new, target, run = self.engine.rollback(body["project"], body["version"], *self.run_options(body))
+        status = self.finished(run, body.get("wait"))
+        if status == HTTPStatus.OK:  # the re-run has finished: report the verdict it earned
+            new = next(v for v in list_versions(run.project) if v["id"] == new["id"])
+        return status, {"version": new, "restored": target, "run": run.summary()}
 
     def stream(self, run):
         """SSE: replay from Last-Event-ID, then follow live until the run ends."""
