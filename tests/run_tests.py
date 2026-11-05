@@ -146,9 +146,24 @@ def test_briefs():
         check(f"brief schema: {path.name}", brief["name"] and brief["params"])
 
 
+def test_studio_fixtures():
+    """The Studio test meshes are still the committed runs: each part's size matches its report's bbox,
+    and the parts' volumes add up to the report's volume. Rerun ui/tests/make_fixtures.py if this fails."""
+    import json
+    fixtures = ROOT / "ui" / "tests" / "fixtures" / "models"
+    for folder in sorted(p for p in fixtures.iterdir() if p.is_dir()):
+        report = json.loads((ROOT / "runs" / folder.name / "report.json").read_text())["geometry"]
+        meshes = {stl.stem: trimesh.load_mesh(stl) for stl in sorted(folder.glob("*.stl"))}
+        sizes_ok = set(meshes) == set(report["bbox"]) and all(
+            max(abs(a - b) for a, b in zip(mesh.extents, report["bbox"][name])) <= 0.05 for name, mesh in meshes.items())
+        volume = sum(mesh.volume for mesh in meshes.values())
+        check(f"studio fixture matches its run: {folder.name}",
+              sizes_ok and abs(volume - report["volume"]) <= 0.01 * report["volume"], f"volume {volume:.0f} vs {report['volume']:.0f}")
+
+
 if __name__ == "__main__":
     for test in (test_database, test_counterbored_hole, test_heatset_boss, test_snap_cantilever,
-                 test_metrics, test_briefs, test_harness):
+                 test_metrics, test_briefs, test_studio_fixtures, test_harness):
         print(f"--- {test.__name__}")
         test()
     print(f"\n{sum(results)}/{len(results)} passed")

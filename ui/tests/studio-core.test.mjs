@@ -16,14 +16,25 @@ function stlPositions(path) {
   return out;
 }
 
+// Committed fixtures (ui/tests/make_fixtures.py) make a fresh clone testable; a run's own STLs, when a
+// local `magic.py run` has written them, replace that model's fixture so new geometry is framed too.
+const FIXTURES = "ui/tests/fixtures/models";
+
+function stlsIn(dir) {
+  return existsSync(dir) ? readdirSync(dir).filter((name) => name.endsWith(".stl")).map((name) => `${dir}/${name}`) : [];
+}
+
 function realModels() {
-  const models = [];
+  const byFolder = new Map();
+  for (const folder of readdirSync(FIXTURES)) byFolder.set(folder, stlsIn(`${FIXTURES}/${folder}`));
   for (const folder of readdirSync("runs")) {
-    if (folder.startsWith("_") || !existsSync(`runs/${folder}/report.json`)) continue;
-    const stls = readdirSync(`runs/${folder}`).filter((name) => name.endsWith(".stl"));
-    if (stls.length) models.push({ folder, parts: stls.map((name) => stlPositions(`runs/${folder}/${name}`)) });
+    const report = `runs/${folder}/report.json`;
+    // Only a passing run's geometry replaces a fixture; a failed local check may have left broken meshes.
+    if (folder.startsWith("_") || !existsSync(report) || JSON.parse(readFileSync(report, "utf8")).pass !== true) continue;
+    const stls = stlsIn(`runs/${folder}`);
+    if (stls.length) byFolder.set(folder, stls);
   }
-  return models;
+  return [...byFolder].filter(([, paths]) => paths.length).map(([folder, paths]) => ({ folder, parts: paths.map(stlPositions) }));
 }
 
 test("verdict words come from the run's own gates", () => {

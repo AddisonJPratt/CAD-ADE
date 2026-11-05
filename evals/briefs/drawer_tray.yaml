@@ -1,0 +1,29 @@
+name: drawer_tray
+function: >
+  Desk drawer organizer tray with three compartments: one long bay for pens and rulers, and two
+  smaller bays beside it. Dividers are real walls, lower than the rim so a hand can sweep across,
+  with a finger dip in the long divider. Floors curve up into the walls so small parts scoop out.
+  Outer dimensions are params so it can be sized to a drawer.
+hard_dimensions: {outer_x: 240, outer_y: 120, height: 45}
+measures:
+  outer_x: {probe: bbox_x}
+  outer_y: {probe: bbox_y}
+  height: {probe: bbox_z}
+interfaces:
+  - "Drawer: drops in with its own clearance. Size outer_x and outer_y about 1 mm under the measured drawer; no fit is modelled"
+soft_preferences: [No supports, Thin walls to save filament, Scooped floor radius]
+assumptions:
+  - "Outer size is a guess for a typical desk drawer; 245 mm is the bed-limited maximum on the 250 mm placeholder bed."
+  - "Compartment sizes and divider height are not hard dimensions: no probe reads an internal wall. They are checked by eye in the section render only."
+  - "A 240 mm long, thin-walled, flat part in PLA can warp at the corners on a real bed; unverified, no slicer or printer has seen it."
+params:
+  outer_x: {value: 240.0, min: 120.0, max: 245.0, unit: mm, intent: Outside length}
+  outer_y: {value: 120.0, min: 80.0, max: 200.0, unit: mm, intent: Outside width}
+  height: {value: 45.0, min: 25.0, max: 70.0, unit: mm, intent: Overall height}
+  wall: {value: 1.8, min: 1.2, max: 3.0, unit: mm, intent: Outer wall; three to five perimeters at 0.4 nozzle}
+  floor: {value: 1.6, min: 1.2, max: 2.4, unit: mm, intent: Floor thickness}
+  divider_t: {value: 1.6, min: 1.2, max: 3.0, unit: mm, intent: Divider thickness; carries no load}
+  divider_ratio: {value: 0.75, min: 0.5, max: 1.0, unit: ratio, intent: Divider height as a share of the bay depth}
+  split_x: {value: 0.6, min: 0.4, max: 0.75, unit: ratio, intent: Long bay's share of the inside length}
+  split_y: {value: 0.5, min: 0.3, max: 0.65, unit: ratio, intent: First small bay's share of the inside width}
+  scoop_r: {value: 6.0, min: 4.0, max: 8.0, unit: mm, intent: Floor-to-wall radius; a fingertip fits into the corner}

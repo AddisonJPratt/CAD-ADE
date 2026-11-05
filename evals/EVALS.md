@@ -7,7 +7,7 @@ parts, electronics, machines and mechanisms, toys and organic shapes.
 | Brief | Paragraph summary | Parts | Status |
 |---|---|---|---|
 | `briefs/phone_stand.yaml` | Phone stand, 15° tilt, 9 mm case, cable slot | 2 (with gauge) | `designs/phone_stand.py`: PASS (batch ten, unreviewed) |
-| `briefs/wall_bracket.yaml` | The demo; symlink to `../../briefs/wall_bracket.yaml` | 1 | `designs/wall_bracket.py` |
+| `briefs/wall_bracket.yaml` | The demo; real copy of `briefs/wall_bracket.yaml`, kept identical by `tests/test_evals.py` | 1 | `designs/wall_bracket.py` |
 | `briefs/cable_clip.yaml` | Screw-down snap clip for one round cable | 1 | `designs/cable_clip.py`: PASS (batch ten, unreviewed) |
 | `briefs/box_with_lid.yaml` | Box and separate lid with a sliding fit | 2 | `designs/box_with_lid.py`: PASS (batch ten, unreviewed) |
 | `briefs/planter_pot.yaml` | Tapered pot with drain hole and foot ring | 1 | `designs/planter_pot.py`: FAIL (batch ten, unreviewed) |

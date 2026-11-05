@@ -1,0 +1,31 @@
+name: pipe_clamp
+function: >
+  Wall clamp for a 32 mm pipe running parallel to the wall. A flat plate takes two M4
+  wall screws. A rigid saddle cradles the pipe, and a thin compliant strap springs open around it,
+  then one M3 cross bolt across two ears draws the strap closed. One XY profile extruded along the
+  pipe, so the strap flexes in the layer plane and layer lines run around the strap, not across it.
+hard_dimensions: {hole_spacing: 70, strap_width: 18, mount_holes: 2, clamp_bolts: 1}
+measures:
+  hole_spacing: {probe: hole_spacing, axis: Y, dia: 4.5}
+  strap_width: {probe: bbox_z}
+  mount_holes: {probe: hole_count, axis: Y, dia: 4.5}
+  clamp_bolts: {probe: hole_count, axis: X, dia: 3.4}
+interfaces:
+  - "Pipe: 32 mm round pipe with 0.25 mm per-side clearance before the bolt closes the strap"
+  - "Wall: flat face y=0, 2x M4 plain clearance holes, teardrop for no supports; heads seat on the plate's room face (use a washer)"
+  - "Clamp: 1x M3 cross bolt through both ears with plain round clearance holes (no teardrop, expect slight sag), head and nut on the outer ear faces (bolt and nut not modelled)"
+soft_preferences: [No supports, Screw heads reachable past the strap, Root fillet where the saddle meets the plate]
+assumptions:
+  - "PIPE BORE IS NOT A HARD DIMENSION. A hole_count probe has a fixed diameter and pipe_dia is a param, so it would fail the sweep. Bore diameter is checked out-of-band on the reloaded STEP at defaults."
+  - "Strap strain is a hand estimate, no FEA: about 1.2 % root strain to pass a 32 mm pipe through a 27 mm mouth with a 2 mm strap, using 1.5 t d / L^2 with d 2.4 mm per side and L about 25 mm of free arc. Load on the wall screws is not rated. Unverified on a real print."
+  - "PLA creeps under sustained clamp load and softens on warm pipes; use PETG or better on hot lines. Not suitable for pressure service, and the part does not seal anything."
+  - "The M3 bolt spans the open mouth (about 27 mm), so it needs a bolt of about 40 mm. It is not in standard_parts.json."
+  - "Wall anchors are the installer's choice."
+  - "Holes are plain, not counterbored. Horizontal counterbores read 21.6 % on the overhang gate against this part's small bed contact. Heads therefore stand proud of the plate and the ears."
+params:
+  pipe_dia: {value: 32.0, min: 20.0, max: 40.0, unit: mm, intent: Pipe outside diameter}
+  strap_width: {value: 18.0, min: 14.0, max: 30.0, unit: mm, intent: Clamp width along the pipe; print height}
+  strap_t: {value: 2.0, min: 1.6, max: 2.8, unit: mm, intent: Compliant strap thickness}
+  base_t: {value: 7.0, min: 6.0, max: 10.0, unit: mm, intent: Plate thickness; also the saddle floor under the pipe}
+  hole_spacing: {value: 70.0, min: 60.0, max: 90.0, unit: mm, intent: Wall screw spacing; minimum clears the largest strap}
+  mouth_ratio: {value: 0.85, min: 0.75, max: 0.9, unit: ratio, intent: Mouth gap as a share of pipe diameter; retention against strap strain}

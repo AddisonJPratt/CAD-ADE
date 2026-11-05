@@ -190,10 +190,27 @@ def test_discover_and_run_all():
         check("results folders never collide", first != second and first.is_dir() and second.is_dir())
 
 
+def test_real_corpus_survives_a_fresh_clone():
+    """The shipped corpus: every brief a real file (symlinks were lost once in packaging) with a design,
+    and a brief kept in both places is the same brief, so the eval copy can't drift from the project one."""
+    expected = {"box_with_lid", "cable_clip", "cable_spool", "doorstop", "drawer_tray", "gear_pair",
+                "phone_stand", "pipe_clamp", "planter_pot", "project_enclosure", "wall_bracket"}
+    entries = {e["name"]: e for e in discover()}
+    # A floor, not an exact set: finished projects join the corpus as regression evals.
+    check("corpus: the 11 founding eval briefs present", expected <= set(entries), f"missing {sorted(expected - set(entries))}")
+    check("corpus: every brief is a readable real file, not a symlink",
+          all(e["brief_readable"] and not e["brief_is_symlink"] for e in entries.values()))
+    check("corpus: every brief has its design", all(e["design_present"] for e in entries.values()))
+    project_briefs = ROOT / "briefs"
+    drifted = [n for n, e in entries.items() if (project_briefs / f"{n}.yaml").is_file()
+               and (project_briefs / f"{n}.yaml").read_bytes() != Path(e["brief"]).read_bytes()]
+    check("corpus: eval briefs match their project briefs", not drifted, f"drifted {drifted}")
+
+
 if __name__ == "__main__":
     for test in (test_gate_list_matches_harness, test_pass, test_fail, test_malformed,
                  test_signals_must_agree, test_not_run_gates, test_summary, test_reports,
-                 test_discover_and_run_all):
+                 test_discover_and_run_all, test_real_corpus_survives_a_fresh_clone):
         print(f"--- {test.__name__}")
         test()
     print(f"\n{sum(results)}/{len(results)} passed")

@@ -1,0 +1,37 @@
+name: project_enclosure
+function: >
+  Electronics project enclosure about 100 x 60 x 35 mm: an open base with four corner bosses for
+  M3 heat-set inserts, and a separate lid that sits flush in a rebate and is held by four M3
+  counterbored screws. Connector opening on one end wall, vent slots in the lid. Both parts print
+  flat without supports. The two parts must not interfere when assembled.
+hard_dimensions: {outer_x: 100, outer_y: 60, outer_z: 35, lid_thickness: 5, insert_holes: 4, lid_holes: 4}
+measures:
+  outer_x: {probe: bbox_x, part: base}
+  outer_y: {probe: bbox_y, part: base}
+  outer_z: {probe: bbox_z, part: base}
+  lid_thickness: {probe: bbox_z, part: lid}
+  insert_holes: {probe: hole_count, axis: Z, dia: 4.0, part: base}
+  lid_holes: {probe: hole_count, axis: Z, dia: 3.4, part: lid}
+interfaces:
+  - "Lid to base: flush in a rebate, 0.25 mm per-side sliding clearance (CLAUDE.md starting value)"
+  - "Screws: 4x M3, heat-set inserts in the bosses (library heatset_boss, standard_parts data)"
+  - "Connector opening on the -X end wall, for a USB-C-sized plug"
+soft_preferences: [No supports, Lid outer corners follow the base, Flat bed faces]
+assumptions:
+  - "Size is the brief's approximate figure; every outer dimension is an editable param."
+  - "Heat-set insert values come from standard_parts.json, which README flags as from memory; check against the vendor's sheet."
+  - "No board is specified, so there are no PCB standoffs, and the connector opening's position is a guess."
+  - "The hole probes confirm the holes exist at the right diameter. Hole alignment between lid and base is not probed; it is checked out-of-band on the reloaded STLs."
+  - "Parts are laid out apart on the bed, so the harness checks overlap in the print layout."
+expected_solids: 2
+params:
+  outer_x: {value: 100.0, min: 80.0, max: 140.0, unit: mm, intent: Outside length}
+  outer_y: {value: 60.0, min: 50.0, max: 90.0, unit: mm, intent: Outside width}
+  outer_z: {value: 35.0, min: 25.0, max: 50.0, unit: mm, intent: Assembled height; lid sits flush}
+  lid_thickness: {value: 5.0, min: 4.4, max: 6.0, unit: mm, intent: Lid thickness; leaves at least 1.2 mm under the M3 head}
+  wall: {value: 2.4, min: 1.6, max: 3.2, unit: mm, intent: Side wall; half is cut away for the rebate}
+  floor: {value: 2.0, min: 1.6, max: 3.2, unit: mm, intent: Base floor thickness}
+  port_w: {value: 12.0, min: 9.0, max: 16.0, unit: mm, intent: Connector opening width}
+  port_h: {value: 6.0, min: 4.0, max: 8.0, unit: mm, intent: Connector opening height}
+  vent_count: {value: 5, min: 3, max: 9, unit: count, intent: Lid vent slots}
+  vent_w: {value: 2.0, min: 1.6, max: 3.0, unit: mm, intent: Vent slot width; small enough to keep fingers out}

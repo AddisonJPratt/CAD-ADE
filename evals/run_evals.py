@@ -33,7 +33,7 @@ QUICK_NOT_RUN = {"Sweep", "5 Exports"}   # the only gates a quick run may leave 
 
 
 def discover(briefs_dir=BRIEFS_DIR, designs_dir=DESIGNS_DIR):
-    """One entry per brief, sorted. glob lists symlinks, so wall_bracket.yaml is included."""
+    """One entry per brief, sorted. glob also lists symlinked briefs; the shipped corpus uses real files."""
     entries = []
     for brief in sorted(Path(briefs_dir).glob("*.yaml")):
         design = Path(designs_dir) / f"{brief.stem}.py"

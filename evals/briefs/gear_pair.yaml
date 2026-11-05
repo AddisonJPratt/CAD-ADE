@@ -1,0 +1,30 @@
+name: gear_pair
+function: >
+  Two external spur gears that mesh, printed flat and laid out at their running centre distance so
+  the print layout doubles as a mesh check. Module and tooth counts are params. Each gear has an
+  axle hole, a raised hub and a thin web inside a stiff rim.
+hard_dimensions: {thickness: 8, axle_holes: 2}
+measures:
+  thickness: {probe: bbox_z}
+  axle_holes: {probe: hole_count, axis: Z, dia: 4.5}
+interfaces:
+  - "Axles: M4 clearance bore (4.5 mm, standard_parts screws.M4) on both gears, for an M4 screw as axle"
+  - "Mesh: 0.35 mm normal flank clearance by default (CLAUDE.md print-in-place value), from thinned teeth at the standard centre distance"
+soft_preferences: [No supports, Print meshed or apart; layout is meshed]
+assumptions:
+  - "TOOTH FORM IS NOT GATED. No probe reads an involute, pitch, or module. Flanks are faceted involutes from the standard formulas (addendum 1 m, dedendum 1.25 m), with radial flanks below the base circle and straight root chords, no root fillets."
+  - "CENTRE DISTANCE IS NOT A HARD DIMENSION. It follows module and tooth counts, and a hard dimension can only be constant or follow a same-named param. Its only harness evidence is the overlap gate on the meshed print layout, at default params only. Sweep samples are not checked for overlap."
+  - "Mesh clearance and centre distance are checked out-of-band on reloaded files across one tooth pitch, at defaults and at the tightest corner. The results are in batch_ten_progress.md."
+  - "Printed in one pose, the two bodies are about one clearance apart at the flanks; whether they stay separate at this gap is unverified on a real printer."
+  - "No load rating. PLA gears at light duty only; backlash and wear are untested."
+expected_solids: 2
+params:
+  module: {value: 1.5, min: 1.0, max: 3.0, unit: mm, intent: Tooth size; pitch diameter is module x teeth}
+  teeth_a: {value: 20, min: 18, max: 36, unit: count, intent: Pinion teeth; 18 is the floor to stay clear of undercut interference at 20 deg}
+  teeth_b: {value: 36, min: 18, max: 60, unit: count, intent: Wheel teeth}
+  pressure_angle: {value: 20.0, min: 20.0, max: 25.0, unit: deg, intent: Pressure angle}
+  thickness: {value: 8.0, min: 5.0, max: 15.0, unit: mm, intent: Gear thickness along the axle}
+  web: {value: 3.0, min: 2.0, max: 4.0, unit: mm, intent: Web thickness inside the rim}
+  hub_wall: {value: 3.0, min: 2.0, max: 5.0, unit: mm, intent: Hub wall around the axle bore}
+  flank_clearance: {value: 0.35, min: 0.25, max: 0.5, unit: mm, intent: Normal gap per flank at the running centre distance}
+  flank_steps: {value: 6, min: 4, max: 10, unit: count, intent: Straight facets per involute flank}
