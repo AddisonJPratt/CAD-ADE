@@ -10,7 +10,7 @@ parts, electronics, machines and mechanisms, toys and organic shapes.
 | `briefs/wall_bracket.yaml` | The demo; symlink to `../../briefs/wall_bracket.yaml` | 1 | `designs/wall_bracket.py` |
 | `briefs/cable_clip.yaml` | Screw-down snap clip for one round cable | 1 | `designs/cable_clip.py`: PASS (batch ten, unreviewed) |
 | `briefs/box_with_lid.yaml` | Box and separate lid with a sliding fit | 2 | `designs/box_with_lid.py`: PASS (batch ten, unreviewed) |
-| `briefs/planter_pot.yaml` | Tapered pot with drain hole and foot ring | 1 | `designs/planter_pot.py`: FAIL (batch ten, unreviewed) |
+| `briefs/planter_pot.yaml` | Stepped-taper pot, drain hole, drain grooves under a flat foot | 1 | `designs/planter_pot.py`: PASS (issue #3, reviewed 14/20) |
 | `briefs/project_enclosure.yaml` | Electronics enclosure, 4 M3 heat-set bosses, flush screw-down lid | 2 | `designs/project_enclosure.py`: PASS (batch ten, unreviewed) |
 | `briefs/gear_pair.yaml` | Two meshing spur gears, module and tooth counts as params | 2 | `designs/gear_pair.py`: PASS (batch ten, unreviewed) |
 | `briefs/pipe_clamp.yaml` | Wall clamp for 32 mm pipe, compliant strap, cross bolt | 1 | `designs/pipe_clamp.py`: PASS (batch ten, unreviewed) |

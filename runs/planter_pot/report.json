@@ -1,23 +1,23 @@
 {
   "design": "planter_pot.py",
-  "command": "magic.py run designs/planter_pot.py --brief evals/briefs/planter_pot.yaml --out runs/planter_pot",
+  "command": "magic.py run designs/planter_pot.py --brief evals/briefs/planter_pot.yaml",
   "brief": "evals/briefs/planter_pot.yaml",
-  "pass": false,
+  "pass": true,
   "gates": [
     {
       "name": "1 Execute",
       "status": "PASS",
-      "detail": "built in 5.23 s; no hard-coded literals"
+      "detail": "built in 2.67 s; no hard-coded literals"
     },
     {
       "name": "2 Geometry",
       "status": "PASS",
-      "detail": "1/1 solids, volume 77314 mm\u00b3, 3/3 dims in \u00b10.1"
+      "detail": "1/1 solids, volume 98538 mm\u00b3, 3/3 dims in \u00b10.1"
     },
     {
       "name": "3 Printability",
-      "status": "FAIL",
-      "detail": "pot: overhang_brief_pct 83.6 > 15.0"
+      "status": "PASS",
+      "detail": "watertight, single component, fits bed; overhang brief 12.8 %, support risk 9.8 %"
     },
     {
       "name": "4 Renders",
@@ -26,13 +26,13 @@
     },
     {
       "name": "Sweep",
-      "status": "SKIPPED",
-      "detail": "-"
+      "status": "PASS",
+      "detail": "15/15 pass; dead params: none"
     },
     {
       "name": "5 Exports",
-      "status": "SKIPPED",
-      "detail": "-"
+      "status": "PASS",
+      "detail": "pot.stl, pot.step"
     }
   ],
   "assumptions": [
@@ -42,7 +42,7 @@
   "params": {
     "rim_dia": 100.0,
     "height": 90.0,
-    "taper_deg": 8.0,
+    "taper_deg": 1.5,
     "wall": 2.4
   },
   "geometry": {
@@ -52,8 +52,8 @@
       {
         "name": "rim_dia",
         "spec": 100.0,
-        "measured": 100.0,
-        "delta": 0.0,
+        "measured": 100.0000001,
+        "delta": 9.999999406318238e-08,
         "pass": true
       },
       {
@@ -73,11 +73,11 @@
     ],
     "solids": 1,
     "expected_solids": 1,
-    "volume": 77313.94248575496,
+    "volume": 98537.67235769397,
     "bbox": {
       "pot": [
-        100.0,
-        100.0,
+        100.0000001,
+        100.0000002,
         90.0000001
       ]
     }
@@ -85,38 +85,36 @@
   "overlaps": [],
   "printability": {
     "pot": {
-      "pass": false,
-      "problems": [
-        "overhang_brief_pct 83.6 > 15.0"
-      ],
+      "pass": true,
+      "problems": [],
       "metrics": {
         "watertight": true,
         "winding_consistent": true,
         "components": 1,
-        "faces": 12450,
-        "mesh_volume": 77241.07682184789,
+        "faces": 28028,
+        "mesh_volume": 98502.75209795067,
         "extents": [
           100.0,
           99.96891784667969,
           90.0
         ],
         "inertia": [
-          125658958.20662105,
-          125424238.03875357,
-          129970579.20312165
+          174075677.45360208,
+          174076237.8061404,
+          180350378.39039102
         ],
         "fits_bed": true,
         "allow_supports": false,
-        "overhang_brief_pct": 83.625768704286,
-        "support_risk_pct": 12.998222270727956,
-        "flat_undersides_above_bed_mm2": 3606.4703255873715,
-        "bed_contact_mm2": 936.7031978631853,
+        "overhang_brief_pct": 12.790866952249553,
+        "support_risk_pct": 9.833730449832847,
+        "flat_undersides_above_bed_mm2": 642.5361397424626,
+        "bed_contact_mm2": 6293.965620526778,
         "min_feature": {
           "mm": 2.4,
           "resolution_mm": 0.4,
           "where": {
             "axis": "X",
-            "offset": -31.25
+            "offset": -18.75
           }
         },
         "min_feature_warning": false
@@ -129,5 +127,338 @@
     "runs/planter_pot/renders/top.png",
     "runs/planter_pot/renders/side.png",
     "runs/planter_pot/renders/section.png"
+  ],
+  "sweep": {
+    "pass": true,
+    "total": 15,
+    "passed": 15,
+    "pass_share": 1.0,
+    "required_share": 1.0,
+    "dead_params": [],
+    "printable_passed": 15,
+    "max_support_risk_pct": 14.448808934859773,
+    "max_overhang_brief_pct": 13.625065506987244,
+    "rows": [
+      {
+        "label": "default",
+        "params": {},
+        "seconds": 7.36,
+        "pass": true,
+        "problems": [],
+        "volume": 98537.67235769397,
+        "bbox": {
+          "pot": [
+            100.0000001,
+            100.0000002,
+            90.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 9.833730449832847,
+        "overhang_brief_pct": 12.790866952249553
+      },
+      {
+        "label": "rim_dia=min",
+        "params": {
+          "rim_dia": 70.0
+        },
+        "seconds": 7.99,
+        "pass": true,
+        "problems": [],
+        "volume": 59739.4369232337,
+        "bbox": {
+          "pot": [
+            70.0,
+            70.0,
+            90.00000000000139
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 13.46294510747367,
+        "overhang_brief_pct": 13.625065506987244
+      },
+      {
+        "label": "rim_dia=max",
+        "params": {
+          "rim_dia": 160.0
+        },
+        "seconds": 7.01,
+        "pass": true,
+        "problems": [],
+        "volume": 201979.9841591568,
+        "bbox": {
+          "pot": [
+            160.0,
+            160.0,
+            90.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 6.574890742794557,
+        "overhang_brief_pct": 8.151789262953306
+      },
+      {
+        "label": "height=min",
+        "params": {
+          "height": 60.0
+        },
+        "seconds": 7.73,
+        "pass": true,
+        "problems": [],
+        "volume": 78627.68301063387,
+        "bbox": {
+          "pot": [
+            100.0000001,
+            100.0000002,
+            60.000000100001095
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 10.1413966094104,
+        "overhang_brief_pct": 8.706583161739298
+      },
+      {
+        "label": "height=max",
+        "params": {
+          "height": 150.0
+        },
+        "seconds": 7.88,
+        "pass": true,
+        "problems": [],
+        "volume": 140902.3432150098,
+        "bbox": {
+          "pot": [
+            100.0000001,
+            100.0000002,
+            150.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 9.77868620245703,
+        "overhang_brief_pct": 13.517454507839105
+      },
+      {
+        "label": "taper_deg=min",
+        "params": {
+          "taper_deg": 0.5
+        },
+        "seconds": 7.92,
+        "pass": true,
+        "problems": [],
+        "volume": 101961.7401534224,
+        "bbox": {
+          "pot": [
+            100.0000001,
+            100.0000002,
+            90.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 10.459403419240337,
+        "overhang_brief_pct": 4.445378813806243
+      },
+      {
+        "label": "taper_deg=max",
+        "params": {
+          "taper_deg": 1.5
+        },
+        "seconds": 7.78,
+        "pass": true,
+        "problems": [],
+        "volume": 98537.67235769397,
+        "bbox": {
+          "pot": [
+            100.0000001,
+            100.0000002,
+            90.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 9.833730449832847,
+        "overhang_brief_pct": 12.790866952249553
+      },
+      {
+        "label": "wall=min",
+        "params": {
+          "wall": 1.6
+        },
+        "seconds": 7.79,
+        "pass": true,
+        "problems": [],
+        "volume": 73198.1061796642,
+        "bbox": {
+          "pot": [
+            100.0000001,
+            100.0000002,
+            90.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 9.833730449832847,
+        "overhang_brief_pct": 12.790866952249553
+      },
+      {
+        "label": "wall=max",
+        "params": {
+          "wall": 3.2
+        },
+        "seconds": 7.37,
+        "pass": true,
+        "problems": [],
+        "volume": 123207.4592920087,
+        "bbox": {
+          "pot": [
+            100.0,
+            100.0,
+            90.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 9.833730449832847,
+        "overhang_brief_pct": 12.790866952249553
+      },
+      {
+        "label": "all=min",
+        "params": {
+          "rim_dia": 70.0,
+          "height": 60.0,
+          "taper_deg": 0.5,
+          "wall": 1.6
+        },
+        "seconds": 7.72,
+        "pass": true,
+        "problems": [],
+        "volume": 35050.73417000731,
+        "bbox": {
+          "pot": [
+            70.0000001,
+            70.0000002,
+            60.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 14.448808934859773,
+        "overhang_brief_pct": 4.272342769614542
+      },
+      {
+        "label": "all=max",
+        "params": {
+          "rim_dia": 160.0,
+          "height": 150.0,
+          "taper_deg": 1.5,
+          "wall": 3.2
+        },
+        "seconds": 4.79,
+        "pass": true,
+        "problems": [],
+        "volume": 334598.8802170448,
+        "bbox": {
+          "pot": [
+            160.0,
+            160.0,
+            150.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 6.331849523419314,
+        "overhang_brief_pct": 13.237615981067052
+      },
+      {
+        "label": "combo1",
+        "params": {
+          "rim_dia": 160.0,
+          "height": 150.0,
+          "taper_deg": 0.5,
+          "wall": 3.2
+        },
+        "seconds": 4.56,
+        "pass": true,
+        "problems": [],
+        "volume": 345867.4957522989,
+        "bbox": {
+          "pot": [
+            160.0000000000033,
+            160.0,
+            150.0
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 6.742611898678185,
+        "overhang_brief_pct": 4.608307050445754
+      },
+      {
+        "label": "combo2",
+        "params": {
+          "rim_dia": 156.892,
+          "height": 103.733,
+          "taper_deg": 1.418,
+          "wall": 2.928
+        },
+        "seconds": 4.91,
+        "pass": true,
+        "problems": [],
+        "volume": 244219.58429591797,
+        "bbox": {
+          "pot": [
+            156.892,
+            156.8920001,
+            103.733
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 6.655726974270802,
+        "overhang_brief_pct": 9.019033885466623
+      },
+      {
+        "label": "combo3",
+        "params": {
+          "rim_dia": 160.0,
+          "height": 150.0,
+          "taper_deg": 0.5,
+          "wall": 1.6
+        },
+        "seconds": 4.84,
+        "pass": true,
+        "problems": [],
+        "volume": 204391.63807825203,
+        "bbox": {
+          "pot": [
+            160.0000000000033,
+            160.0,
+            150.0000001
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 6.742611898678185,
+        "overhang_brief_pct": 4.608307050445754
+      },
+      {
+        "label": "combo4",
+        "params": {
+          "rim_dia": 95.365,
+          "height": 128.022,
+          "taper_deg": 1.118,
+          "wall": 2.001
+        },
+        "seconds": 4.73,
+        "pass": true,
+        "problems": [],
+        "volume": 101586.63880730487,
+        "bbox": {
+          "pot": [
+            95.3650001,
+            95.365,
+            128.022
+          ]
+        },
+        "printable": true,
+        "support_risk_pct": 10.21022492067146,
+        "overhang_brief_pct": 13.527057540941849
+      }
+    ]
+  },
+  "exports": [
+    "pot.stl",
+    "pot.step"
   ]
 }
