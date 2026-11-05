@@ -80,6 +80,8 @@ def create_project(folder, from_design):
     design, brief = resolve_design(from_design)
     (folder / "designs").mkdir(parents=True, exist_ok=True)
     shutil.copy2(design, folder / "designs" / design.name)
+    shutil.copytree(ROOT / "library", folder / "library",
+                    ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
     if brief:
         (folder / "briefs").mkdir(exist_ok=True)
         shutil.copy2(brief, folder / "briefs" / f"{design.stem}.yaml")
