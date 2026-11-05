@@ -80,3 +80,17 @@ by a reviewer who did not write the design (per the vision doc's reviewer agent)
   fails critique is NOT done — same as SnapWorks: gate pass ≠ design verdict.
 - The brief wins: pinned aesthetics/materials/dimensions override these tells,
   exactly as Impeccable's craft floor defers to a pinned brief.
+
+## Agent skills
+
+### Issue tracker
+
+GitHub issues on AddisonJPratt/CAD-ADE via `gh`; the spec is a parent issue, tickets are sub-issues with native blocking links. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default vocabulary; `ready-for-agent` = AFK loop may take it, `ready-for-human` = needs Addison's review/demo. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` + `docs/adr/` at the repo root, created lazily. See `docs/agents/domain.md`.
