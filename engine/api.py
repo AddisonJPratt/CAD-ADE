@@ -28,6 +28,8 @@ the CPU and the renderer, and a verdict must never depend on what else was runni
 import json
 import queue
 import re
+import shutil
+import tempfile
 import threading
 import traceback
 import uuid
@@ -55,6 +57,7 @@ class Run:
         self.status, self.verdict, self.error = "queued", None, None
         self.created = datetime.now(timezone.utc).isoformat(timespec="seconds")
         self.events = []
+        self.artifact_project = None
         self.changed = threading.Condition()
 
     def emit(self, event):
@@ -84,6 +87,7 @@ class Engine:
 
     def __init__(self):
         self.runs, self.pending = {}, queue.Queue()
+        self.artifacts = tempfile.TemporaryDirectory(prefix="magic-cad-runs-")
         self.lock = threading.Lock()
         threading.Thread(target=self.work, name="engine-runs", daemon=True).start()
 
@@ -123,6 +127,16 @@ class Engine:
             run.set_status("running")
             try:
                 _, run.verdict = run_project(run.project, run.emit, run.samples, run.timeout)
+                snapshot = Path(self.artifacts.name) / run.id
+                for relative in ["verdict.json", *(path for design in run.verdict["designs"]
+                                                   for path in design["artifacts"])]:
+                    source = artifact_path(run.project, relative)
+                    if source is None:
+                        raise ProjectError(f"missing run artifact: {relative}")
+                    target = snapshot / "outputs" / relative
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copyfile(source, target)
+                run.artifact_project = snapshot
                 run.set_status("done")
             except Exception as err:  # the run fails; the engine keeps serving
                 run.error = f"{type(err).__name__}: {err}"
@@ -275,7 +289,7 @@ class Handler(BaseHTTPRequestHandler):
             return  # the client went away; the run carries on
 
     def artifact(self, run, relative):
-        target = artifact_path(run.project, relative)
+        target = artifact_path(run.artifact_project, relative) if run.artifact_project else None
         if not target:
             return self.reply(HTTPStatus.NOT_FOUND, {"error": "no such artifact"})
         data = target.read_bytes()
