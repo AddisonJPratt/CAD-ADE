@@ -25,6 +25,8 @@ class ProjectLibraryTest(unittest.TestCase):
                                                cwd=ROOT, text=True).strip()
             self.assertEqual(Path(imported).resolve(), (project / "library" / "__init__.py").resolve())
             library.write_text(original + "\n")
+            copied = create_project(Path(tmp) / "copy", str(project / "designs" / "wall_bracket.py"))
+            self.assertEqual((copied / "library" / "standard_parts.json").read_text(), original + "\n")
             save_version(project, "Changed library")
             restore_version(project, 1)
             self.assertEqual(library.read_text(), original)
