@@ -11,6 +11,8 @@ test('opens a project and inspects an older version', async ({ page }) => {
   const currentBytes = await (await currentModel).body();
   await expect(page.getByRole('heading', { name: 'Version 2' })).toBeVisible();
   await expect(page.getByText('All checks passed', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Computed checks' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Needs a physical test' })).toBeVisible();
   await expect(page.getByLabel('3D model').locator('canvas')).toBeVisible();
   await page.getByRole('button', { name: /Version 1/ }).click();
   await expect(page.getByRole('button', { name: 'Rebuild model' })).toBeVisible();
@@ -53,7 +55,7 @@ test('modes preserve the project and selected version, and Mission Control shows
   await expect(page.getByRole('heading', { name: 'Brief card' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'briefs/café.yaml' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Gate report' })).toBeVisible();
-  await expect(page.getByText('2 Geometry', { exact: true })).toBeVisible();
+  await expect(page.locator('.expert').getByText('2 Geometry', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Design code' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'good_two_parts.py', exact: true }).last()).toBeVisible();
   await expect(page.getByText('24.0', { exact: false }).first()).toBeVisible();
