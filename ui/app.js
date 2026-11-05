@@ -83,7 +83,6 @@ function notChecked(prints, unverified) {
     ["Design critique", status("NO DATA"), "No reviewer verdict is wired into this studio. A gate pass is not a design verdict."],
     ["Slicer check", status("NO DATA"), "No slicer result is wired in. The printability gate is geometry only."],
     ["Printed parts", `<span class="num">${num(prints)}</span>`, `Logged in <span class="path">prints/</span>.${prints ? "" : " Nothing has been proven on a printer."}`],
-    ["Printer profile", ...flag(u.printer_placeholder, "PLACEHOLDER", "CLAUDE.md marks it as not measured, and the bed-fit check uses those values.", "CLAUDE.md no longer marks it as a placeholder.")],
     ["Clearances", ...flag(u.clearances_uncalibrated, "UNCALIBRATED", "CLAUDE.md marks them as not yet calibrated on a real print.", "CLAUDE.md no longer marks them as uncalibrated.")],
   ]);
 }
@@ -198,6 +197,14 @@ function renderOverview(data) {
     ])}
     ${table("Gates of the latest run", [{ title: "Gate" }, { title: "Status" }], gates, { narrow: true })}` : `<p class="note">${status("NO_RUN")} No <span class="path">runs/*/report.json</span> on disk.</p>`}
 
+    <h2>Printer profile</h2>
+    ${titleBlock([
+      ["Printer", esc(data.printer.name)],
+      ["Build volume", `${data.printer.build_volume_mm.map(num).join(" × ")} mm`],
+      ["Nozzle", `${num(data.printer.nozzle_mm)} mm`],
+      ["Materials", Object.keys(data.printer.materials).map(esc).join(", ")],
+    ])}
+    <p class="note">Material fit clearances are starting values and have not been calibrated on a real print. Choose the material for a project in Studio.</p>
     <h2>Not covered by the gates</h2>
     ${notChecked(data.prints_logged, data.unverified)}`;
 }

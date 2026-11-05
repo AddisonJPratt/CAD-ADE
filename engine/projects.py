@@ -68,6 +68,8 @@ def run_project(project, on_event=None, samples=None, timeout=180):
     emit = on_event or (lambda event: None)
     project = Path(project).resolve()
     designs = designs_of(project)
+    from .printers import project_printer
+    printer = project_printer(project)
     verdict = {"project": str(project), "started": now(), "pass": False, "designs": []}
     emit({"type": "run_started", "project": str(project), "designs": [d.name for d in designs]})
     began = time.time()
@@ -76,7 +78,7 @@ def run_project(project, on_event=None, samples=None, timeout=180):
         out = project / OUTPUTS / design.stem
         command = f"engine run {design.relative_to(project).as_posix()}"
         _, report = run_design(design, out=out, samples=samples, timeout=timeout,
-                               command=command, on_event=on_event)
+                               command=command, on_event=on_event, printer=printer)
         entry = {"design": design.name, "pass": report["pass"], "gates": report["gates"],
                  "report": f"{design.stem}/report.json", "claims": report["claims"],
                  "artifacts": artifacts_of(project, design.stem)}

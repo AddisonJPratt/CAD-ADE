@@ -9,7 +9,7 @@ from .execute import run_worker
 from .geometry import check_geometry, pairwise_overlaps
 from .evidence import claims_for_report
 from .lint import lint_design
-from .printability import check_stl
+from .printability import check_stl, DEFAULT_BUILD_VOLUME
 from .render import render_all
 from .report import write_reports
 from .sweep import run_sweep
@@ -25,6 +25,20 @@ def find_brief(design, brief_path):
         return Path(brief_path)
     candidate = Path(design).resolve().parent.parent / "briefs" / f"{Path(design).stem}.yaml"
     return candidate if candidate.exists() else None
+
+
+def printer_for_design(design):
+    """Resolve a project printer for direct CLI runs as well as engine runs."""
+    path = Path(design).resolve()
+    project = path.parent.parent
+    if path.parent.name == "designs":
+        from engine.printers import project_printer
+        return project_printer(project)
+    return None
+
+
+def material_fits(printer):
+    return printer["profile"]["materials"][printer["material"]]["fit_clearance_mm_per_side"] if printer else None
 
 
 def clear_outputs(out):
@@ -109,7 +123,7 @@ def finish(report, out, stem="report", events=QUIET):
 
 
 def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=180, command="run",
-        skip_sweep=False, on_event=None):
+        skip_sweep=False, on_event=None, printer=None):
     """Full pipeline. exports=False is `check`: identical gates, no STL/STEP kept.
 
     skip_sweep is opt-in, for fast feedback, and refused with exports so a design that never
@@ -119,6 +133,7 @@ def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=1
     if skip_sweep and exports:
         raise ValueError("--no-sweep is only allowed with check: exports require the sweep")
     design = Path(design)
+    printer = printer if printer is not None else printer_for_design(design)
     ev = Events(on_event, design.name)
     out = Path(out) if out else Path("runs") / (design.stem + ("" if exports else "-check"))
     clear_outputs(out)
@@ -132,6 +147,8 @@ def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=1
             add_gate(report, "1 Execute", False, f"brief invalid: {err}", ev)
             return finish(report, out, events=ev), report
     report = new_report(design, brief_path, brief, command)
+    if printer is not None:
+        report["printer"] = printer
     if brief is None:
         report["assumptions"] = ["No brief: hard dimensions were not checked."]
 
@@ -143,7 +160,8 @@ def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=1
         if lint:
             add_gate(report, "1 Execute", False, f"hard-coded dimensions: {'; '.join(lint[:8])}", ev)
             return finish(report, out, events=ev), report
-        result = run_worker(design, tmp, None, timeout)
+        fits = material_fits(printer)
+        result = run_worker(design, tmp, None, timeout, fits)
         if not result["ok"]:
             report["traceback"] = result["traceback"]
             add_gate(report, "1 Execute", False, result["traceback"].strip().splitlines()[-1], ev)
@@ -167,7 +185,8 @@ def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=1
         # Gate 3: STL reloaded from disk.
         ev.start("3 Printability")
         allow = bool(brief and brief["allow_supports"])
-        printed = {name: check_stl(path, allow) for name, path in stls.items()}
+        volume = printer["profile"]["build_volume_mm"] if printer else DEFAULT_BUILD_VOLUME
+        printed = {name: check_stl(path, allow, build_volume=volume) for name, path in stls.items()}
         report["printability"] = printed
         problems = [f"{n}: {x}" for n, r in printed.items() for x in r["problems"]]
         for part in result["parts"]:
@@ -198,7 +217,7 @@ def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=1
         # Sweep: costliest, so it runs after the cheap gates.
         ev.start("Sweep")
         sweep = run_sweep(design, {k: tuple(v) for k, v in result["declared"].items()},
-                          brief, samples, timeout)
+                          brief, samples, timeout, build_volume=volume, fits=fits)
         report["sweep"] = sweep
         if not add_gate(report, "Sweep", sweep["pass"],
                         f"{sweep['passed']}/{sweep['total']} pass; dead params: {sweep['dead_params'] or 'none'}", ev):
@@ -225,6 +244,9 @@ def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=1
 def sweep_only(design, brief_path=None, out=None, samples=None, timeout=180):
     """`magic.py sweep`: build at defaults for the declarations, then sweep."""
     design = Path(design)
+    printer = printer_for_design(design)
+    fits = material_fits(printer)
+    volume = printer["profile"]["build_volume_mm"] if printer else DEFAULT_BUILD_VOLUME
     out = Path(out) if out else Path("runs") / f"{design.stem}-sweep"
     out.mkdir(parents=True, exist_ok=True)
     for stale in out.glob("sweep.*"):
@@ -232,8 +254,10 @@ def sweep_only(design, brief_path=None, out=None, samples=None, timeout=180):
     brief_path = find_brief(design, brief_path)
     brief = load_brief(brief_path) if brief_path else None
     report = new_report(design, brief_path, brief, "sweep")
+    if printer is not None:
+        report["printer"] = printer
     with tempfile.TemporaryDirectory(prefix="magic_run_") as tmp:
-        result = run_worker(design, Path(tmp), None, timeout)
+        result = run_worker(design, Path(tmp), None, timeout, fits)
     if not result["ok"]:
         report["traceback"] = result["traceback"]
         add_gate(report, "1 Execute", False, result["traceback"].strip().splitlines()[-1])
@@ -241,7 +265,7 @@ def sweep_only(design, brief_path=None, out=None, samples=None, timeout=180):
     add_gate(report, "1 Execute", True, f"built in {result['seconds']} s")
     report["params"] = result["params"]
     sweep = run_sweep(design, {k: tuple(v) for k, v in result["declared"].items()},
-                      brief, samples, timeout)
+                      brief, samples, timeout, build_volume=volume, fits=fits)
     report["sweep"] = sweep
     add_gate(report, "Sweep", sweep["pass"],
              f"{sweep['passed']}/{sweep['total']} pass; dead params: {sweep['dead_params'] or 'none'}")

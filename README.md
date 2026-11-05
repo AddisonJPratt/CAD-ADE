@@ -50,6 +50,11 @@ Results land in `runs/wall_bracket/`: `report.md`, `report.json`, `bracket.stl`,
   `outputs/_assembly/parts_list.csv` and `.json`, and `GET /projects/parts-list?project=<folder>`
   (`&format=csv` to download) builds it from the assembly file as it is now; Mission Control
   shows it. `tests/test_parts_list_api.py` (about 1 min) tests it.
+- Projects default to the Elegoo Centauri Carbon 2 with PLA. The Studio material selector
+  changes the setting used by future runs; save a version to retain that selection in the
+  timeline. The engine exposes `GET /projects/printer?project=<folder>` and
+  `POST /projects/printer` with `project` and `material` (`PLA` or `PETG`). Both
+  materials use uncalibrated starting fit clearances until print evidence is available.
 - `--brief` defaults to `briefs/<design stem>.yaml` if present. Without a brief, hard
   dimensions are not checked, and the report says so.
 - `--samples N` caps sweep runs. N must cover default + min and max of every param, so

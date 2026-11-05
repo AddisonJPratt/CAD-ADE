@@ -5,6 +5,10 @@ test('opens a project and inspects an older version', async ({ page }) => {
   await page.getByLabel('Project folder').fill(process.env.MAGIC_TEST_PROJECT!);
   await page.getByRole('button', { name: 'Open project' }).click();
   await expect(page.getByRole('heading', { name: 'Version 3' })).toBeVisible();
+  await expect(page.getByLabel('Material')).toHaveValue('PLA');
+  await page.getByLabel('Material').selectOption('PETG');
+  await expect(page.getByText('Material set to PETG for future checks.')).toBeVisible();
+  await page.getByLabel('Material').selectOption('PLA');
   await expect(page.getByText('Checks failed', { exact: true })).toBeVisible();
   const currentModel = page.waitForResponse(r => r.url().includes('version-artifacts') && r.url().includes('path=') && r.ok());
   await page.getByRole('button', { name: /Version 2/ }).click();
