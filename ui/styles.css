@@ -90,6 +90,14 @@ code, .num, .path { font-family: var(--mono); font-size: 0.95em; font-variant-nu
 .button:active:not(:disabled) { background: var(--rule); }
 .button:disabled { color: var(--ink-2); border-style: dashed; cursor: not-allowed; }
 
+#view .catalogue-notes, #catalogue-project-form .note { max-width: 50ch; text-wrap: pretty; }
+#catalogue-project::placeholder { color: var(--ink-2); opacity: 1; }
+#catalogue-project-form label { display: block; margin-bottom: 0.375rem; }
+#catalogue-project { width: min(100%, 30rem); min-height: 2.75rem; padding: 0.5rem 0.625rem;
+  background: var(--rail); color: var(--ink); border: 1px solid var(--rule-2); font: inherit; }
+#catalogue-project-form .button { min-height: 2.75rem; margin: 0.5rem 0; }
+#catalogue-error:not(:empty) { color: var(--signal); margin-top: 0.5rem; }
+
 /* Work area */
 main { min-width: 0; padding: 1.5rem 2rem 4rem; }
 main > * { max-width: 70rem; }

@@ -295,13 +295,22 @@ def brief_payload(stem):
     }
 
 
-def library_payload():
+def library_payload(project=None):
     path = ROOT / "library" / "standard_parts.json"
     data = read_json(path)
     if not isinstance(data, dict):
         return HTTPStatus.NOT_FOUND, {"status": "NO_LIBRARY", "message": "library/standard_parts.json is missing or unreadable."}
-    components = read_json(ROOT / "library" / "components.json")
-    return HTTPStatus.OK, {**data, "_components": components if isinstance(components, list) else [], "_source": source_of(path)}
+    if project:
+        from engine.catalogue import list_components
+        from engine.projects import ProjectError
+        try:
+            components = list_components(project)
+        except (ProjectError, ValueError, OSError) as error:
+            return HTTPStatus.BAD_REQUEST, {"status": "BAD_PROJECT", "message": str(error)}
+    else:
+        components = read_json(ROOT / "library" / "components.json")
+    return HTTPStatus.OK, {**data, "_components": components if isinstance(components, list) else [],
+                           "_project": project or "", "_source": source_of(path)}
 
 
 def model_run(runs):
@@ -401,7 +410,8 @@ class Handler(BaseHTTPRequestHandler):
                 return HTTPStatus.NOT_FOUND, {"status": "NO_EVALS", "message": "No readable evals/results/*/eval_report.json."}
             return HTTPStatus.OK, data
         if path == "/api/library":
-            return library_payload()
+            project = parse_qs(urlsplit(self.path).query).get("project", [None])[0]
+            return library_payload(project)
         if path == "/api/studio":
             return HTTPStatus.OK, studio_list()
         match = re.fullmatch(r"/api/(design|brief|studio)/([^/]+)", path)
