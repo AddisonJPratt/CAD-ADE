@@ -21,7 +21,7 @@ spec = importlib.util.spec_from_file_location("magic_cad_server", SERVER_FILE)
 srv = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(srv)
 
-BRACKET_STL = "runs/wall_bracket/bracket.stl"
+BRACKET_STL = "ui/tests/fixtures/models/wall_bracket/bracket.stl"   # committed; runs/ STLs aren't
 BRACKET_STEP = "runs/wall_bracket/bracket.step"
 BRACKET_VOLUME = 78220.0
 
