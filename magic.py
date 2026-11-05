@@ -5,6 +5,10 @@
   python magic.py sweep <design.py> [--brief brief.yaml] [--out dir] [--samples N]
   python magic.py check <design.py> [--brief brief.yaml] [--out dir] [--samples N] [--no-sweep]
   python magic.py evals [--quick] [--out dir] [--timeout S]
+  python magic.py project <folder> [--samples N] [--timeout S]   every design in a project folder
+  python magic.py serve [--port 8766]                             the local engine API
+
+The CLI and the engine API call the same functions (harness.pipeline.run, engine.projects).
 """
 import argparse
 import sys
@@ -16,6 +20,8 @@ def main():
     if sys.argv[1:2] == ["evals"]:   # takes no design, so it has its own arguments
         from evals.run_evals import main as run_evals
         return run_evals(sys.argv[2:])
+    if sys.argv[1:2] in (["project"], ["serve"]):
+        return engine_command(sys.argv[1], sys.argv[2:])
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("command", choices=["run", "sweep", "check"])
@@ -42,6 +48,30 @@ def main():
     for gate in report["gates"]:
         print(f"{gate['status']:8} {gate['name']:15} {gate['detail']}")
     print("OVERALL", "PASS" if report["pass"] else "FAIL")
+    return code
+
+
+def engine_command(command, argv):
+    parser = argparse.ArgumentParser(prog=f"magic.py {command}")
+    if command == "serve":
+        from engine.api import PORT, serve
+        parser.add_argument("--port", type=int, default=PORT)
+        return serve(parser.parse_args(argv).port)
+    from engine.projects import ProjectError, run_project
+    parser.add_argument("folder")
+    parser.add_argument("--samples", type=int)
+    parser.add_argument("--timeout", type=int, default=180)
+    args = parser.parse_args(argv)
+    try:
+        code, verdict = run_project(args.folder, samples=args.samples, timeout=args.timeout)
+    except (ProjectError, ValueError) as err:
+        print(f"error: {err}", file=sys.stderr)
+        return 2
+    for design in verdict["designs"]:
+        print(f"{'PASS' if design['pass'] else 'FAIL':8} {design['design']}")
+        for gate in design["gates"]:
+            print(f"  {gate['status']:8} {gate['name']:15} {gate['detail']}")
+    print("OVERALL", "PASS" if verdict["pass"] else "FAIL")
     return code
 
 

@@ -44,12 +44,46 @@ def new_report(design, brief_path, brief, command):
             "assumptions": (brief or {}).get("assumptions", [])}
 
 
-def add_gate(report, name, passed, detail):
-    report["gates"].append({"name": name, "status": "PASS" if passed else "FAIL", "detail": detail})
-    return passed
+class Events:
+    """Gate start/finish notifications for a live listener (the engine API). Never affects a verdict.
+
+    on_event receives dicts: {"type": "gate_started", "gate"} and
+    {"type": "gate_finished", "gate", "status", "detail"}; every gate in the final report,
+    SKIPPED and NOT RUN included, is reported finished exactly once.
+    """
+
+    def __init__(self, on_event=None, design=None):
+        self.on_event, self.design, self.finished = on_event, design, set()
+
+    def emit(self, event):
+        if self.on_event:
+            self.on_event({"design": self.design, **event})
+
+    def start(self, name):
+        self.emit({"type": "gate_started", "gate": name})
+
+    def done(self, gate):
+        if gate["name"] not in self.finished:
+            self.finished.add(gate["name"])
+            self.emit({"type": "gate_finished", "gate": gate["name"], "status": gate["status"],
+                       "detail": gate["detail"]})
 
 
-def finish(report, out, stem="report"):
+QUIET = Events()
+
+
+def add_gate(report, name, passed, detail, events=QUIET):
+    return add_status(report, name, "PASS" if passed else "FAIL", detail, events) == "PASS"
+
+
+def add_status(report, name, status, detail, events=QUIET):
+    gate = {"name": name, "status": status, "detail": detail}
+    report["gates"].append(gate)
+    events.done(gate)
+    return status
+
+
+def finish(report, out, stem="report", events=QUIET):
     done = {g["name"] for g in report["gates"]}
     names = GATE_NAMES if stem == "report" else ["1 Execute", "Sweep"]
     for name in names:
@@ -58,19 +92,23 @@ def finish(report, out, stem="report"):
     report["gates"].sort(key=lambda g: names.index(g["name"]) if g["name"] in names else len(names))
     report["pass"] = all(g["status"] in ("PASS", "NOT RUN") for g in report["gates"])
     write_reports(report, out, stem)
+    for gate in report["gates"]:
+        events.done(gate)
     return 0 if report["pass"] else 1
 
 
 def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=180, command="run",
-        skip_sweep=False):
+        skip_sweep=False, on_event=None):
     """Full pipeline. exports=False is `check`: identical gates, no STL/STEP kept.
 
     skip_sweep is opt-in, for fast feedback, and refused with exports so a design that never
     swept can't leave files that look approved. The report says the sweep did not run.
+    on_event, if given, is called as each gate starts and finishes (see Events).
     """
     if skip_sweep and exports:
         raise ValueError("--no-sweep is only allowed with check: exports require the sweep")
     design = Path(design)
+    ev = Events(on_event, design.name)
     out = Path(out) if out else Path("runs") / (design.stem + ("" if exports else "-check"))
     clear_outputs(out)
     brief_path = find_brief(design, brief_path)
@@ -80,8 +118,8 @@ def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=1
             brief = load_brief(brief_path)
         except (BriefError, OSError) as err:
             report = new_report(design, brief_path, None, command)
-            add_gate(report, "1 Execute", False, f"brief invalid: {err}")
-            return finish(report, out), report
+            add_gate(report, "1 Execute", False, f"brief invalid: {err}", ev)
+            return finish(report, out, events=ev), report
     report = new_report(design, brief_path, brief, command)
     if brief is None:
         report["assumptions"] = ["No brief: hard dimensions were not checked."]
@@ -89,19 +127,21 @@ def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=1
     with tempfile.TemporaryDirectory(prefix="magic_run_") as tmp:
         tmp = Path(tmp)
         # Gate 1: contract lint (cheapest), then execute in a subprocess.
+        ev.start("1 Execute")
         lint = lint_design(design)
         if lint:
-            add_gate(report, "1 Execute", False, f"hard-coded dimensions: {'; '.join(lint[:8])}")
-            return finish(report, out), report
+            add_gate(report, "1 Execute", False, f"hard-coded dimensions: {'; '.join(lint[:8])}", ev)
+            return finish(report, out, events=ev), report
         result = run_worker(design, tmp, None, timeout)
         if not result["ok"]:
             report["traceback"] = result["traceback"]
-            add_gate(report, "1 Execute", False, result["traceback"].strip().splitlines()[-1])
-            return finish(report, out), report
-        add_gate(report, "1 Execute", True, f"built in {result['seconds']} s; no hard-coded literals")
+            add_gate(report, "1 Execute", False, result["traceback"].strip().splitlines()[-1], ev)
+            return finish(report, out, events=ev), report
+        add_gate(report, "1 Execute", True, f"built in {result['seconds']} s; no hard-coded literals", ev)
         report["params"] = result["params"]
 
         # Gate 2: B-rep facts from the reloaded STEP, overlap from the reloaded STLs.
+        ev.start("2 Geometry")
         geo = check_geometry(result, brief)
         stls = {p["name"]: p["stl"] for p in result["parts"]}
         overlaps = pairwise_overlaps(stls)
@@ -110,10 +150,11 @@ def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=1
                                       for r in overlaps if not r["pass"]]
         detail = f"{geo['solids']}/{geo['expected_solids']} solids, volume {geo['volume']:.0f} mm³, " \
                  f"{sum(r['pass'] for r in geo['dimensions'])}/{len(geo['dimensions'])} dims in ±0.1"
-        if not add_gate(report, "2 Geometry", not problems, "; ".join(problems) or detail):
-            return finish(report, out), report
+        if not add_gate(report, "2 Geometry", not problems, "; ".join(problems) or detail, ev):
+            return finish(report, out, events=ev), report
 
         # Gate 3: STL reloaded from disk.
+        ev.start("3 Printability")
         allow = bool(brief and brief["allow_supports"])
         printed = {name: check_stl(path, allow) for name, path in stls.items()}
         report["printability"] = printed
@@ -126,37 +167,37 @@ def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=1
         worst_brief = max(r["metrics"]["overhang_brief_pct"] for r in printed.values())
         printable = add_gate(report, "3 Printability", not problems, "; ".join(problems) or
                              f"watertight, single component, fits bed; overhang brief {worst_brief:.1f} %, "
-                             f"support risk {worst:.1f} %")
+                             f"support risk {worst:.1f} %", ev)
 
         # Gate 4: renders, also on a printability failure, since they help diagnose it.
+        ev.start("4 Renders")
         title = design.stem
         renders = render_all(stls, out / "renders", title, result.get("section"))
         report["renders"] = renders
         add_gate(report, "4 Renders", all(Path(f).stat().st_size > 0 for f in renders),
-                 f"{len(renders)} PNGs from reloaded STL")
+                 f"{len(renders)} PNGs from reloaded STL", ev)
         if not printable:
-            return finish(report, out), report
+            return finish(report, out, events=ev), report
 
         if skip_sweep:
-            report["gates"].append({"name": "Sweep", "status": "NOT RUN",
-                                    "detail": "--no-sweep: parametric behaviour not verified"})
-            report["gates"].append({"name": "5 Exports", "status": "NOT RUN",
-                                    "detail": "check mode: no exports kept"})
-            return finish(report, out), report
+            add_status(report, "Sweep", "NOT RUN", "--no-sweep: parametric behaviour not verified", ev)
+            add_status(report, "5 Exports", "NOT RUN", "check mode: no exports kept", ev)
+            return finish(report, out, events=ev), report
 
         # Sweep: costliest, so it runs after the cheap gates.
+        ev.start("Sweep")
         sweep = run_sweep(design, {k: tuple(v) for k, v in result["declared"].items()},
                           brief, samples, timeout)
         report["sweep"] = sweep
         if not add_gate(report, "Sweep", sweep["pass"],
-                        f"{sweep['passed']}/{sweep['total']} pass; dead params: {sweep['dead_params'] or 'none'}"):
-            return finish(report, out), report
+                        f"{sweep['passed']}/{sweep['total']} pass; dead params: {sweep['dead_params'] or 'none'}", ev):
+            return finish(report, out, events=ev), report
 
         # Gate 5: exports, only for a design that passed everything else.
         if not exports:
-            report["gates"].append({"name": "5 Exports", "status": "NOT RUN",
-                                    "detail": "check mode: no exports kept"})
-            return finish(report, out), report
+            add_status(report, "5 Exports", "NOT RUN", "check mode: no exports kept", ev)
+            return finish(report, out, events=ev), report
+        ev.start("5 Exports")
         ok = True
         files = []
         for part in result["parts"]:
@@ -165,9 +206,9 @@ def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=1
                 shutil.copy2(part[key], target)
                 ok = ok and sha(part[key]) == sha(target) and target.stat().st_size > 0
                 files.append(target.name)
-        add_gate(report, "5 Exports", ok, ", ".join(files))
+        add_gate(report, "5 Exports", ok, ", ".join(files), ev)
         report["exports"] = files
-    return finish(report, out), report
+    return finish(report, out, events=ev), report
 
 
 def sweep_only(design, brief_path=None, out=None, samples=None, timeout=180):

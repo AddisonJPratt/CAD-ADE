@@ -26,6 +26,13 @@ Results land in `runs/wall_bracket/`: `report.md`, `report.json`, `bracket.stl`,
 - `sweep` does the sweep alone; it writes `sweep.md`/`sweep.json` to `runs/<design>-sweep/`.
 - `evals` runs every eval brief that has a design; see `evals/EVALS.md`. The `magic-cad` MCP
   server wraps these commands; see `mcp/README.md`.
+- `project <folder>` runs every design in a project folder (`designs/*.py`, optional
+  `briefs/<stem>.yaml`) through the same gates as `run`, writing `outputs/<stem>/` and
+  `outputs/verdict.json` inside the folder.
+- `serve` starts the local engine API on `127.0.0.1:8766`: POST a project folder to `/runs`,
+  follow gate start/finish events live on `/runs/<id>/events` (Server-Sent Events), and fetch
+  the STL, STEP, renders and report from `/runs/<id>/artifacts/`. See `engine/api.py`;
+  `tests/test_engine_api.py` (about 3 min) tests it against fixture projects.
 - `--brief` defaults to `briefs/<design stem>.yaml` if present. Without a brief, hard
   dimensions are not checked, and the report says so.
 - `--samples N` caps sweep runs. N must cover default + min and max of every param, so
