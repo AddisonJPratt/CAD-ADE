@@ -42,7 +42,7 @@ def test_database():
     check("db NEMA17 / gridfinity", db["motor_mounts"]["NEMA17"]["hole_spacing"] == 31
           and db["grids"]["gridfinity"]["pitch"] == 42)
     check("db 2020 slot", db["extrusions"]["2020"]["slot_width"] == 6)
-    check("db sizes", set(db["screws"]) == {"M3", "M4", "M5"} and set(db["heatset_inserts"]) == {"M3", "M4"})
+    check("db sizes", set(db["screws"]) == {"M2.5", "M3", "M4", "M5"} and set(db["heatset_inserts"]) == {"M2.5", "M3", "M4"})
 
 
 def test_counterbored_hole():

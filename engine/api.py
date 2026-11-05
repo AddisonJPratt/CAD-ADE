@@ -39,6 +39,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
 
+from .catalogue import add_component, list_components
 from .projects import ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, run_project
 from .versions import (Conflict, create_project, list_versions, require_versioned,
                        restore_version, save_version, find_version, rebuild_version_artifacts, git)
@@ -181,6 +182,9 @@ class Handler(BaseHTTPRequestHandler):
         path = urlsplit(self.path).path
         if path == "/health":
             return self.reply(HTTPStatus.OK, {"engine": "magic-cad", "api": API_VERSION})
+        if path == "/catalogue":
+            project = parse_qs(urlsplit(self.path).query).get("project", [""])[0]
+            return self.guarded(lambda: (HTTPStatus.OK, {"components": list_components(project)}))
         if path == "/runs":
             return self.reply(HTTPStatus.OK, {"runs": [r.summary() for r in self.engine.all()]})
         if path == "/projects/versions":
@@ -257,7 +261,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self.host_ok():
             return
         path = urlsplit(self.path).path
-        routes = {"/runs": self.post_run, "/projects": self.post_project,
+        routes = {"/catalogue": self.post_catalogue, "/runs": self.post_run, "/projects": self.post_project,
                   "/projects/versions": self.post_version, "/projects/rollback": self.post_rollback,
                   "/projects/version-artifacts": self.post_version_artifacts}
         if path not in routes:
@@ -288,6 +292,10 @@ class Handler(BaseHTTPRequestHandler):
     def post_version_artifacts(self, body):
         version = rebuild_version_artifacts(body["project"], body["version"])
         return HTTPStatus.OK, {"version": version}
+
+    def post_catalogue(self, body):
+        with self.engine.lock:
+            return HTTPStatus.CREATED, {"component": add_component(body["project"], body["component"])}
 
     def post_run(self, body):
         run = self.engine.submit(body["project"], *self.run_options(body))
