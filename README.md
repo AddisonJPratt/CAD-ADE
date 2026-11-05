@@ -40,6 +40,11 @@ Results land in `runs/wall_bracket/`: `report.md`, `report.json`, `bracket.stl`,
   engine API has the same operations under `/projects`. Versions live in a repository inside
   the project folder; `outputs/` is rebuilt by the gates, not versioned.
   `tests/test_engine_projects.py` (under 1 min) tests them through the API.
+- Projects default to the Elegoo Centauri Carbon 2 with PLA. The Studio material selector
+  changes the setting used by future runs; save a version to retain that selection in the
+  timeline. The engine exposes `GET /projects/printer?project=<folder>` and
+  `POST /projects/printer` with `project` and `material` (`PLA` or `PETG`). Both
+  materials use uncalibrated starting fit clearances until print evidence is available.
 - `--brief` defaults to `briefs/<design stem>.yaml` if present. Without a brief, hard
   dimensions are not checked, and the report says so.
 - `--samples N` caps sweep runs. N must cover default + min and max of every param, so

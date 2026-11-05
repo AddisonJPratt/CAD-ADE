@@ -43,7 +43,7 @@ def to_markdown(report):
         feature = m.get("min_feature", {})
         out += ["", f"## Printability: {part} (reloaded STL)", "",
                 f"- Watertight: {m['watertight']}; components: {m['components']}; faces: {m['faces']}",
-                f"- Extents: {' x '.join(fmt(e, 2) for e in m['extents'])} mm; fits 250x250 bed: {m['fits_bed']}",
+                f"- Extents: {' x '.join(fmt(e, 2) for e in m['extents'])} mm; fits build volume: {m['fits_bed']}",
                 f"- Brief overhang metric (downward faces >45° from straight down): {m['overhang_brief_pct']:.2f} %",
                 f"- Support-risk metric (within 45° of straight down, off the bed): {m['support_risk_pct']:.2f} %",
                 f"- Flat undersides above bed: {m['flat_undersides_above_bed_mm2']:.2f} mm²; bed contact: {m['bed_contact_mm2']:.0f} mm²",

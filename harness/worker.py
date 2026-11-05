@@ -17,11 +17,14 @@ STL_TOLERANCE = 0.01      # mm linear deflection
 STL_ANGULAR = 0.1         # rad
 
 
-def load_design(path):
+def load_design(path, fits=None):
     sys.path.insert(0, str(ROOT))
     project = Path(path).resolve().parent.parent
     if (project / "library" / "__init__.py").is_file():
         sys.path.insert(0, str(project))
+    if fits is not None:
+        from library import standard_parts
+        standard_parts()["fits"].update(fits)
     spec = importlib.util.spec_from_file_location("magic_design", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -72,9 +75,9 @@ def internal_cylinders(shape):
     return found
 
 
-def build_and_measure(design_path, out_dir, overrides):
+def build_and_measure(design_path, out_dir, overrides, fits=None):
     from build123d import export_step, export_stl, import_step
-    module = load_design(design_path)
+    module = load_design(design_path, fits)
     declared = {k: list(v) for k, v in module.PARAMS.items()}
     params = {k: v[0] for k, v in module.PARAMS.items()}
     unknown = set(overrides) - set(params)
@@ -104,9 +107,10 @@ def build_and_measure(design_path, out_dir, overrides):
 def main():
     design, out_dir = sys.argv[1], Path(sys.argv[2])
     overrides = json.loads(sys.argv[3]) if len(sys.argv) > 3 else {}
+    fits = json.loads(sys.argv[4]) if len(sys.argv) > 4 else None
     out_dir.mkdir(parents=True, exist_ok=True)
     try:
-        result = build_and_measure(design, out_dir, overrides)
+        result = build_and_measure(design, out_dir, overrides, fits)
     except BaseException:
         result = {"ok": False, "traceback": traceback.format_exc()}
     (out_dir / "result.json").write_text(json.dumps(result, indent=1))
