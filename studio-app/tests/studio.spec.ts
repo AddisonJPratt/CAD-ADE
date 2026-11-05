@@ -57,6 +57,10 @@ test('modes preserve the project and selected version, and Mission Control shows
   await expect(page.getByRole('heading', { name: 'Gate report' })).toBeVisible();
   await expect(page.locator('.expert').getByText('2 Geometry', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Design code' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Espressif ESP32-DevKitC V4' })).toBeVisible();
+  await expect(page.getByText('length: 48.26 mm — datasheet-verified')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Measured test part' })).toBeVisible();
+  await expect(page.getByText('width: 17.2 mm — user-measured')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'good_two_parts.py', exact: true }).last()).toBeVisible();
   await expect(page.getByText('24.0', { exact: false }).first()).toBeVisible();
   await page.getByRole('button', { name: 'Make', exact: true }).click();
@@ -64,4 +68,15 @@ test('modes preserve the project and selected version, and Mission Control shows
   await page.getByRole('button', { name: 'Studio', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Version 2' })).toBeVisible();
   await expect(page.getByLabel('Project folder')).toHaveValue(process.env.MAGIC_TEST_PROJECT!);
+});
+
+test('catalogue remains available when version details fail', async ({ page }) => {
+  await page.route('**/api/projects/version-details?*', route => route.fulfill({status: 500, contentType: 'application/json', body: '{"error":"Unavailable"}'}));
+  await page.goto('/');
+  await page.getByLabel('Project folder').fill(process.env.MAGIC_TEST_PROJECT!);
+  await page.getByRole('button', { name: 'Open project' }).click();
+  await page.getByRole('button', { name: 'Mission Control' }).click();
+  await expect(page.getByRole('alert')).toContainText('Unavailable');
+  await expect(page.getByRole('heading', { name: 'Measured test part' })).toBeVisible();
+  await expect(page.getByText(/catalogue\.json · Modified/)).toBeVisible();
 });
