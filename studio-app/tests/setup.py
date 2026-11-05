@@ -1,5 +1,6 @@
 """Create two real, independently checked versions for the browser test."""
 import os
+import json
 import shutil
 import subprocess
 import sys
@@ -23,4 +24,5 @@ save_version(project, 'Invalid height')
 assert not run_project(project, samples=5)[1]['pass']
 oldest = list_versions(project)[-1]["id"]
 shutil.rmtree(project / '.magic' / 'artifacts' / oldest)
+(project / 'catalogue.json').write_text(json.dumps([{'id': 'measured-test', 'name': 'Measured test part', 'source': 'user measurements', 'dimensions': {'width': {'value': 17.2, 'unit': 'mm', 'provenance': 'user-measured'}}}]))
 print(project)

@@ -39,7 +39,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
 
-from .catalogue import add_component, list_components
+from .catalogue import BUILTIN, add_component, list_components, project_path
 from .projects import ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, run_project
 from .versions import (Conflict, create_project, list_versions, require_versioned,
                        restore_version, save_version, find_version, rebuild_version_artifacts, git)
@@ -184,7 +184,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.reply(HTTPStatus.OK, {"engine": "magic-cad", "api": API_VERSION})
         if path == "/catalogue":
             project = parse_qs(urlsplit(self.path).query).get("project", [""])[0]
-            return self.guarded(lambda: (HTTPStatus.OK, {"components": list_components(project)}))
+            return self.guarded(lambda: self.catalogue(project))
         if path == "/runs":
             return self.reply(HTTPStatus.OK, {"runs": [r.summary() for r in self.engine.all()]})
         if path == "/projects/versions":
@@ -206,6 +206,16 @@ class Handler(BaseHTTPRequestHandler):
         if match.group(3):
             return self.artifact(run, unquote(match.group(3)))
         return self.reply(HTTPStatus.OK, run.summary())
+
+    def catalogue(self, project):
+        components = list_components(project)
+        builtin_count = len(json.loads(BUILTIN.read_text()))
+        custom = project_path(project)
+        def source(path):
+            return {"path": str(path), "modified": path.stat().st_mtime} if path.is_file() else None
+        shared_source, custom_source = source(BUILTIN), source(custom)
+        return HTTPStatus.OK, {"components": [{**item, "_catalogue_file": shared_source if i < builtin_count else custom_source}
+                                               for i, item in enumerate(components)]}
 
     def version_details(self, query):
         project = require_versioned(query.get("project", [""])[0])
