@@ -28,6 +28,14 @@ class CatalogueAPI(unittest.TestCase):
                         return response.status, json.load(response)
                 except HTTPError as error:
                     return error.code, json.load(error)
+            component = {'id': 'my-board', 'name': 'My board', 'dimensions': {'length': 31.2, 'width': 20.0, 'height': 4.0}}
+            unrelated = Path(folder) / 'catalogue.json'
+            unrelated.write_text('[]')
+            self.assertEqual(request('POST', '/catalogue', {'project': folder, 'component': component})[0], 400)
+            self.assertEqual(unrelated.read_text(), '[]')
+            unrelated.unlink()
+            (Path(folder) / 'designs').mkdir()
+            (Path(folder) / 'designs' / 'fixture.py').write_text('# fixture')
             path = '/catalogue?project=' + quote(folder)
             status, catalogue = request('GET', path)
             self.assertEqual(status, 200)
@@ -48,6 +56,9 @@ class CatalogueAPI(unittest.TestCase):
             status, saved = request('POST', '/catalogue', {'project': folder, 'component': component})
             self.assertEqual(status, 201)
             self.assertEqual(saved['component']['dimensions']['length']['provenance'], 'user-measured')
+            self.assertEqual(saved['component']['keepouts'][0]['dimensions'], ['width', 'length', 'height'])
+            self.assertIn('length along y', saved['component']['coordinate_system'])
+            self.assertTrue(saved['component']['keepouts'][0]['placement'])
             status, catalogue = request('GET', path)
             self.assertIn('my-board', [c['id'] for c in catalogue['components']])
             self.assertEqual(request('POST', '/catalogue', {'project': folder, 'component': component})[0], 409)

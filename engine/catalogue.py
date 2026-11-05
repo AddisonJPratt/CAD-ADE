@@ -6,7 +6,7 @@ import tempfile
 import re
 from pathlib import Path
 
-from .projects import ProjectError
+from .projects import ProjectError, designs_of
 from .versions import Conflict
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -19,6 +19,7 @@ def project_path(project):
     path = Path(project).expanduser().resolve()
     if not path.is_dir():
         raise ProjectError('project must be an existing directory')
+    designs_of(path)
     catalogue = path / 'catalogue.json'
     if catalogue.is_symlink():
         raise ProjectError('project catalogue must not be a symlink')
@@ -53,8 +54,10 @@ def add_component(project, item):
     component = {'id': identifier, 'name': name.strip(), 'source': 'user measurements',
                  'dimensions': {k: {'value': v, 'unit': 'mm', 'provenance': 'user-measured'}
                                 for k, v in dims.items()},
+                 'coordinate_system': 'Origin at centre of outline, z=0 at component bottom; length along y and width along x.',
                  'keepouts': [{'purpose': 'component', 'shape': 'box',
-                               'dimensions': ['length', 'width', 'height']}],
+                               'dimensions': ['width', 'length', 'height'],
+                               'placement': 'centred over outline, from z=0'}],
                  'mounting_points': [], 'notes': 'Envelope from user measurements; verify connector access separately.'}
     path = project_path(project)
     current = json.loads(path.read_text()) if path.exists() else []
