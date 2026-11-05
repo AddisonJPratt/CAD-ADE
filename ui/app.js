@@ -514,7 +514,15 @@ function renderLibrary(data) {
     <h1 tabindex="-1">Standard parts</h1>
     ${titleBlock([["Source", esc(data._source.path)], ["Modified", when(data._source.modified)], ["Categories", String(categories.length)]])}
     ${data._notes ? `<p class="note">${esc(data._notes)}</p>` : ""}
-    ${categories.map(([name, parts]) => libraryCategory(name, parts)).join("")}`;
+    ${categories.map(([name, parts]) => libraryCategory(name, parts)).join("")}
+    <h2>Purchased components</h2>
+    ${(data._components || []).map((component) => `
+      <h3>${esc(component.name)}</h3>
+      <p>${esc(component.notes || "")}</p>
+      <p>Source: <a href="${esc(component.source)}">Manufacturer drawing</a></p>
+      ${table(`${component.name} dimensions`, [{ title: "Dimension" }, { title: "mm", cls: "n" }, { title: "Evidence" }],
+        Object.entries(component.dimensions).map(([name, dimension]) => [esc(label(name)), num(dimension.value), esc(dimension.provenance)]))}
+    `).join("") || "<p>No purchased components are available.</p>"}`;
 }
 
 // ---- Router -----------------------------------------------------------------------

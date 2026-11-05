@@ -300,7 +300,8 @@ def library_payload():
     data = read_json(path)
     if not isinstance(data, dict):
         return HTTPStatus.NOT_FOUND, {"status": "NO_LIBRARY", "message": "library/standard_parts.json is missing or unreadable."}
-    return HTTPStatus.OK, {**data, "_source": source_of(path)}
+    components = read_json(ROOT / "library" / "components.json")
+    return HTTPStatus.OK, {**data, "_components": components if isinstance(components, list) else [], "_source": source_of(path)}
 
 
 def model_run(runs):
