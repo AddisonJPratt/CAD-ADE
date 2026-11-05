@@ -41,3 +41,25 @@ test('opens a project and inspects an older version', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({path: '/tmp/magic-studio-mobile.png', fullPage:true});
 });
+
+test('modes preserve the project and selected version, and Mission Control shows saved sources', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel('Project folder').fill(process.env.MAGIC_TEST_PROJECT!);
+  await page.getByRole('button', { name: 'Open project' }).click();
+  await page.getByRole('button', { name: /Version 2/ }).click();
+  await page.getByRole('button', { name: 'Mission Control' }).click();
+  await expect(page.getByRole('heading', { name: 'Mission Control' })).toBeVisible();
+  await expect(page.locator('.version-context')).toContainText('Version 2');
+  await expect(page.getByRole('heading', { name: 'Brief card' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'briefs/café.yaml' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Gate report' })).toBeVisible();
+  await expect(page.getByText('2 Geometry', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Design code' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'good_two_parts.py', exact: true }).last()).toBeVisible();
+  await expect(page.getByText('24.0', { exact: false }).first()).toBeVisible();
+  await page.getByRole('button', { name: 'Make', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Make' })).toBeVisible();
+  await page.getByRole('button', { name: 'Studio', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Version 2' })).toBeVisible();
+  await expect(page.getByLabel('Project folder')).toHaveValue(process.env.MAGIC_TEST_PROJECT!);
+});

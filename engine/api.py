@@ -41,7 +41,7 @@ from urllib.parse import parse_qs, unquote, urlsplit
 
 from .projects import ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, run_project
 from .versions import (Conflict, create_project, list_versions, require_versioned,
-                       restore_version, save_version, find_version, rebuild_version_artifacts)
+                       restore_version, save_version, find_version, rebuild_version_artifacts, git)
 
 HOST = "127.0.0.1"
 PORT = 8766  # the plain-JS UI server keeps 8765
@@ -187,6 +187,9 @@ class Handler(BaseHTTPRequestHandler):
             project = parse_qs(urlsplit(self.path).query).get("project", [""])[0]
             return self.guarded(lambda: (HTTPStatus.OK, {"project": project,
                                                          "versions": list_versions(project)}))
+        if path == "/projects/version-details":
+            query = parse_qs(urlsplit(self.path).query)
+            return self.guarded(lambda: self.version_details(query))
         if path == "/projects/version-artifacts":
             query = parse_qs(urlsplit(self.path).query)
             return self.guarded(lambda: self.version_artifact(query))
@@ -199,6 +202,19 @@ class Handler(BaseHTTPRequestHandler):
         if match.group(3):
             return self.artifact(run, unquote(match.group(3)))
         return self.reply(HTTPStatus.OK, run.summary())
+
+    def version_details(self, query):
+        project = require_versioned(query.get("project", [""])[0])
+        version = find_version(project, query.get("version", [""])[0])
+        version_id = version["id"]
+        paths = git(project, "ls-tree", "-r", "-z", "--name-only", version_id).split("\0")
+        def files(prefix, suffixes):
+            return [{"name": path, "content": git(project, "show", f"{version_id}:{path}")}
+                    for path in paths if path.startswith(prefix) and path.endswith(suffixes)]
+        report_path = project / ".magic" / "verdicts" / f"{version_id}.json"
+        report = json.loads(report_path.read_text()) if report_path.is_file() else None
+        return HTTPStatus.OK, {"briefs": files("briefs/", (".yaml", ".yml")),
+                               "designs": files("designs/", (".py",)), "report": report}
 
     def version_artifact(self, query):
         project = require_versioned(query.get("project", [""])[0])

@@ -14,6 +14,8 @@ create_project(project, ROOT / 'tests/fixtures/good_two_parts.py')
 assert run_project(project, samples=5)[1]['pass']
 design = project / 'designs/good_two_parts.py'
 design.write_text(design.read_text().replace('"size": (20.0,', '"size": (24.0,'))
+(project / 'briefs').mkdir(exist_ok=True)
+(project / 'briefs' / 'café.yaml').write_text('note: saved Unicode filename\n')
 save_version(project, 'Changed height')
 assert run_project(project, samples=5)[1]['pass']
 design.write_text(design.read_text().replace('size, size, size,', 'size, size, 37.5,'))
