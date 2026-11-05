@@ -49,12 +49,11 @@ it applies no matter which agent you are.
 
 ## Current state (2026-11-05)
 
-- Eval corpus: 11 briefs, **10/11 passing** at 100% coverage
-  (`evals/results/20261104-110955/`). The one failure is `planter_pot`:
-  its brief's literal overhang metric counts a printable tapered wall at
-  83.6% vs a 15% limit. The gate and brief were deliberately left
-  unchanged — the owner decides (allow supports in that brief, revisit
-  the metric, or accept the fail). Do not resolve this unilaterally.
+- Eval corpus: 11 briefs, **11/11 passing** at 100% coverage once the
+  ticket #2 brief symlinks are in (issue #3). `planter_pot` was redesigned
+  with the overhang gate unchanged: no smooth taper can pass that gate,
+  so the owner retuned the brief to a ~1.5 deg stepped taper on a flat
+  ~95 mm foot with drain grooves. The hard dimensions are unchanged.
 - Studio view built; **enrichment not yet built** — brief is
   `BRIEF_STUDIO2.md` (bench grid, axis gizmo, scale bar, Grid toggle;
   `ui/` only).

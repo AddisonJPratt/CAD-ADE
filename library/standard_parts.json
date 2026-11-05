@@ -7,7 +7,24 @@
   "brief_constants": {
     "_source": "Values an eval brief pins without declaring them as params, so the design can't take them from PARAMS.",
     "phone_stand": {"tilt_deg": 15.0, "cable_slot_width": 12.0},
-    "planter_pot": {"drain_dia": 10.0, "foot_dia": 70.0}
+    "planter_pot": {"drain_dia": 10.0}
+  },
+  "design_constants": {
+    "_source": "A design's own choices that its brief does not pin. The lint keeps literals out of design files, so they live here, each with its intent.",
+    "planter_pot": {
+      "_intent": {
+        "steps": "outward steps in the wall; 2 keeps each step over 1 mm so it reads as a ring, not a layer seam",
+        "step_overhang_deg": "step face overhang from vertical; 1 deg inside the 45 deg gate so every step lands in the printable bucket",
+        "band_ratio": "each band is this share of the one below (golden ratio), so the steps gather toward the rim",
+        "max_run_share": "total step run as a share of the rim radius; past this the steps exceed the 15% overhang budget on small, tall pots",
+        "saucer_clearance": "groove depth: lifts the drain outlet above standing saucer water (~3 mm)",
+        "groove_bridge": "groove width: the bridge printed over each groove; short enough to bridge cleanly",
+        "drain_grooves": "radial grooves from the drain to the foot edge, evenly spaced",
+        "foot_chamfer": "bottom outer edge chamfer, one nozzle width, against first-layer flare on the saucer edge"
+      },
+      "steps": 2, "step_overhang_deg": 44.0, "band_ratio": 0.618, "max_run_share": 0.05,
+      "saucer_clearance": 3.2, "groove_bridge": 5.0, "drain_grooves": 3, "foot_chamfer": 0.4
+    }
   },
   "screws": {
     "M3": {"clearance": 3.4, "tap": 2.5, "head_dia": 5.5, "head_height": 3.0, "counterbore_dia": 6.5, "counterbore_depth": 3.2},
