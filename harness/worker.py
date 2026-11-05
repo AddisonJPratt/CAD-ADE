@@ -19,6 +19,9 @@ STL_ANGULAR = 0.1         # rad
 
 def load_design(path):
     sys.path.insert(0, str(ROOT))
+    project = Path(path).resolve().parent.parent
+    if (project / "library" / "__init__.py").is_file():
+        sys.path.insert(0, str(project))
     spec = importlib.util.spec_from_file_location("magic_design", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
