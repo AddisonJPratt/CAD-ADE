@@ -10,6 +10,8 @@ import json
 import os
 import shutil
 import subprocess
+import tarfile
+import tempfile
 from pathlib import Path
 
 from .projects import OUTPUTS, ProjectError, designs_of
@@ -186,3 +188,36 @@ def record_verdict(project, verdict):
             shutil.copyfile(source, destination)
     (folder / f"{version_id}.json").write_text(json.dumps(verdict, indent=2))
     return version_id
+
+
+def rebuild_version_artifacts(project, ref):
+    """Rebuild a historical version in isolation without changing the project timeline."""
+    project = require_versioned(project)
+    version = find_version(project, ref)
+    with tempfile.TemporaryDirectory(prefix="magic-version-") as tmp:
+        folder = Path(tmp) / "project"
+        folder.mkdir()
+        archive = Path(tmp) / "source.tar"
+        with archive.open("wb") as stream:
+            result = subprocess.run([*GIT, "archive", "--format=tar", version["id"]],
+                                    cwd=project, stdout=stream, stderr=subprocess.PIPE)
+        if result.returncode:
+            raise VersionError("could not extract the saved version")
+        with tarfile.open(archive) as source:
+            source.extractall(folder, filter="data")
+        from .projects import run_project
+        _, verdict = run_project(folder)
+        stored = Path(project) / STATE / "verdicts" / f"{version['id']}.json"
+        if stored.exists():
+            old = json.loads(stored.read_text())
+            def evidence(data):
+                return [(d["design"], d["pass"], [(g["name"], g["status"]) for g in d["gates"]])
+                        for d in data["designs"]]
+            if evidence(old) != evidence(verdict):
+                raise VersionError("the rebuilt version's checks differ from its saved verdict; no model was saved")
+        snapshot = project / STATE / "artifacts" / version["id"] / OUTPUTS
+        if snapshot.exists():
+            shutil.rmtree(snapshot)
+        snapshot.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(folder / OUTPUTS, snapshot)
+        return version

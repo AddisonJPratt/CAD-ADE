@@ -41,7 +41,7 @@ from urllib.parse import parse_qs, unquote, urlsplit
 
 from .projects import ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, run_project
 from .versions import (Conflict, create_project, list_versions, require_versioned,
-                       restore_version, save_version, find_version)
+                       restore_version, save_version, find_version, rebuild_version_artifacts)
 
 HOST = "127.0.0.1"
 PORT = 8766  # the plain-JS UI server keeps 8765
@@ -242,7 +242,8 @@ class Handler(BaseHTTPRequestHandler):
             return
         path = urlsplit(self.path).path
         routes = {"/runs": self.post_run, "/projects": self.post_project,
-                  "/projects/versions": self.post_version, "/projects/rollback": self.post_rollback}
+                  "/projects/versions": self.post_version, "/projects/rollback": self.post_rollback,
+                  "/projects/version-artifacts": self.post_version_artifacts}
         if path not in routes:
             return self.reply(HTTPStatus.NOT_FOUND, {"error": "no such endpoint"})
         if self.headers.get("Content-Type", "").split(";")[0].strip() != "application/json":
@@ -267,6 +268,10 @@ class Handler(BaseHTTPRequestHandler):
         with run.changed:
             run.changed.wait_for(lambda: run.status in TERMINAL)
         return HTTPStatus.OK
+
+    def post_version_artifacts(self, body):
+        version = rebuild_version_artifacts(body["project"], body["version"])
+        return HTTPStatus.OK, {"version": version}
 
     def post_run(self, body):
         run = self.engine.submit(body["project"], *self.run_options(body))
