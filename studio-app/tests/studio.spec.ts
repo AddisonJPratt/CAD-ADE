@@ -25,6 +25,18 @@ test('opens a project and inspects an older version', async ({ page }) => {
   await expect(page.getByText('All checks passed', { exact: true })).toBeVisible();
   await expect(page.getByLabel('3D model').locator('canvas')).toBeVisible();
   await page.waitForTimeout(3000);
+  const canvas = page.getByLabel('3D model').locator('canvas');
+  const before = await canvas.screenshot();
+  await page.getByText('Move camera', { exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await page.getByRole('button', { name: 'Zoom in' }).focus();
+  await page.keyboard.press('Enter');
+  await expect.poll(async () => (await canvas.screenshot()).equals(before)).toBe(false);
+  const afterZoom = await canvas.screenshot();
+  await page.getByRole('button', { name: 'Orbit left' }).focus();
+  await page.keyboard.press('Enter');
+  await expect.poll(async () => (await canvas.screenshot()).equals(afterZoom)).toBe(false);
+  await page.getByText('Move camera', { exact: true }).click();
   await page.screenshot({path: '/tmp/magic-studio-desktop.png'});
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({path: '/tmp/magic-studio-mobile.png', fullPage:true});
