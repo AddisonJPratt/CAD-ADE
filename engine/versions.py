@@ -174,5 +174,15 @@ def record_verdict(project, verdict):
     version_id = head(project)
     folder = project / STATE / "verdicts"
     folder.mkdir(parents=True, exist_ok=True)
+    snapshot = Path(project) / STATE / "artifacts" / version_id / OUTPUTS
+    if snapshot.exists():
+        shutil.rmtree(snapshot)
+    snapshot.mkdir(parents=True)
+    for design in verdict["designs"]:
+        for relative in design["artifacts"]:
+            source = Path(project) / OUTPUTS / relative
+            destination = snapshot / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, destination)
     (folder / f"{version_id}.json").write_text(json.dumps(verdict, indent=2))
     return version_id

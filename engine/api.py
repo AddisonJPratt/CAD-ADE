@@ -41,7 +41,7 @@ from urllib.parse import parse_qs, unquote, urlsplit
 
 from .projects import ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, run_project
 from .versions import (Conflict, create_project, list_versions, require_versioned,
-                       restore_version, save_version)
+                       restore_version, save_version, find_version)
 
 HOST = "127.0.0.1"
 PORT = 8766  # the plain-JS UI server keeps 8765
@@ -187,6 +187,9 @@ class Handler(BaseHTTPRequestHandler):
             project = parse_qs(urlsplit(self.path).query).get("project", [""])[0]
             return self.guarded(lambda: (HTTPStatus.OK, {"project": project,
                                                          "versions": list_versions(project)}))
+        if path == "/projects/version-artifacts":
+            query = parse_qs(urlsplit(self.path).query)
+            return self.guarded(lambda: self.version_artifact(query))
         match = RUN_PATH.match(path)
         run = self.engine.get(match.group(1)) if match else None
         if not run:
@@ -197,17 +200,42 @@ class Handler(BaseHTTPRequestHandler):
             return self.artifact(run, unquote(match.group(3)))
         return self.reply(HTTPStatus.OK, run.summary())
 
+    def version_artifact(self, query):
+        project = require_versioned(query.get("project", [""])[0])
+        version = find_version(project, query.get("version", [""])[0])
+        snapshot = project / ".magic" / "artifacts" / version["id"]
+        relative = query.get("path", [""])[0]
+        if not relative:
+            outputs = snapshot / "outputs"
+            files = sorted(p.relative_to(outputs).as_posix() for p in outputs.rglob("*.stl")) if outputs.exists() else []
+            return HTTPStatus.OK, {"models": files}
+        target = artifact_path(snapshot, relative)
+        if target is None:
+            return HTTPStatus.NOT_FOUND, {"error": "no such artifact"}
+        data = target.read_bytes()
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", ARTIFACT_TYPES[target.suffix])
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(data)
+        return None
+
     def guarded(self, act):
         """Reply with act()'s (status, body); a refused request becomes 400, 409 or 404."""
         try:
-            status, body = act()
+            result = act()
+            if result is None:
+                return
+            status, body = result
         except Conflict as err:
             return self.reply(HTTPStatus.CONFLICT, {"error": str(err)})
         except ProjectError as err:
             return self.reply(HTTPStatus.BAD_REQUEST, {"error": str(err)})
         except (KeyError, TypeError, ValueError, AttributeError) as err:
             return self.reply(HTTPStatus.BAD_REQUEST, {"error": f"bad request: {err!r}"})
-        return self.reply(status, body)
+        if status is not None:
+            return self.reply(status, body)
 
     def do_POST(self):
         if not self.host_ok():
