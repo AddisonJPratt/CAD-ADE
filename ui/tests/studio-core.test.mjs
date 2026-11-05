@@ -28,7 +28,9 @@ function realModels() {
   const byFolder = new Map();
   for (const folder of readdirSync(FIXTURES)) byFolder.set(folder, stlsIn(`${FIXTURES}/${folder}`));
   for (const folder of readdirSync("runs")) {
-    if (folder.startsWith("_") || !existsSync(`runs/${folder}/report.json`)) continue;
+    const report = `runs/${folder}/report.json`;
+    // Only a passing run's geometry replaces a fixture; a failed local check may have left broken meshes.
+    if (folder.startsWith("_") || !existsSync(report) || JSON.parse(readFileSync(report, "utf8")).pass !== true) continue;
     const stls = stlsIn(`runs/${folder}`);
     if (stls.length) byFolder.set(folder, stls);
   }

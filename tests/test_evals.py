@@ -196,7 +196,8 @@ def test_real_corpus_survives_a_fresh_clone():
     expected = {"box_with_lid", "cable_clip", "cable_spool", "doorstop", "drawer_tray", "gear_pair",
                 "phone_stand", "pipe_clamp", "planter_pot", "project_enclosure", "wall_bracket"}
     entries = {e["name"]: e for e in discover()}
-    check("corpus: all 11 eval briefs present", set(entries) == expected, f"missing {sorted(expected - set(entries))}")
+    # A floor, not an exact set: finished projects join the corpus as regression evals.
+    check("corpus: the 11 founding eval briefs present", expected <= set(entries), f"missing {sorted(expected - set(entries))}")
     check("corpus: every brief is a readable real file, not a symlink",
           all(e["brief_readable"] and not e["brief_is_symlink"] for e in entries.values()))
     check("corpus: every brief has its design", all(e["design_present"] for e in entries.values()))

@@ -279,7 +279,9 @@ def search_parts(query, parts):
                 matches.append({"category": category, "name": None, "entry": entries})
             continue
         for name, entry in entries.items():
-            # Part categories hold records; fits and brief_constants hold plain values (and a _source note).
+            if name.startswith("_"):    # a category's own note (e.g. fits._source), not a part
+                continue
+            # Part categories hold records; fits and brief_constants hold plain values.
             if isinstance(entry, dict):
                 value_hit = any(hit(k) or hit(v) for k, v in entry.items())
             else:

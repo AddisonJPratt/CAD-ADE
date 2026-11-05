@@ -32,14 +32,19 @@ def passing_runs():
 
 def main():
     from build123d import export_stl, import_step
-    if OUT.exists():
-        shutil.rmtree(OUT)
+    # Build beside the old set and swap at the end, so a failure leaves the committed fixtures intact.
+    staging = OUT.with_name(OUT.name + ".new")
+    if staging.exists():
+        shutil.rmtree(staging)
     for name, steps in passing_runs():
-        (OUT / name).mkdir(parents=True)
+        (staging / name).mkdir(parents=True)
         for step in steps:
-            export_stl(import_step(str(step)), str(OUT / name / f"{step.stem}.stl"),
+            export_stl(import_step(str(step)), str(staging / name / f"{step.stem}.stl"),
                        tolerance=STL_TOLERANCE, angular_tolerance=STL_ANGULAR)
         print(f"{name}: {', '.join(s.stem for s in steps)}")
+    if OUT.exists():
+        shutil.rmtree(OUT)
+    staging.rename(OUT)
 
 
 if __name__ == "__main__":

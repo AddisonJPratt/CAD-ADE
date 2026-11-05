@@ -49,7 +49,7 @@ def test_listing():
     # The corpus ships real files (symlink handling itself is covered in tests/test_evals.py).
     check("list_eval_briefs: wall_bracket found with its design", "wall_bracket" in by_name
           and by_name["wall_bracket"]["design_present"] and not by_name["wall_bracket"]["is_symlink"])
-    check("list_eval_briefs: all 11 eval briefs listed", briefs["total"] == 11, str(briefs["total"]))
+    check("list_eval_briefs: at least the 11 founding briefs listed", briefs["total"] >= 11, str(briefs["total"]))
     check("list_eval_briefs: counts", briefs["total"] == len(list((ROOT / "evals/briefs").glob("*.yaml"))),
           f"{briefs['designs_present']}/{briefs['total']}")
 
@@ -128,6 +128,9 @@ def test_library():
     check("library_lookup: category key returns entries", srv.library_lookup("bearings")["count"] == 1)
     check("library_lookup: no match is empty", srv.library_lookup("zzzz") == {"query": "zzzz", "count": 0, "matches": []})
     check("library_lookup: blank query refused", code_of(srv.library_lookup("  ")) == "empty_query")
+    fits = srv.library_lookup("fits")["matches"]
+    check("library_lookup: plain-value category returns its values, not its notes",
+          {m["name"] for m in fits} == {"sliding", "press", "print_in_place"}, str([m["name"] for m in fits]))
 
 
 def test_eval_status():
