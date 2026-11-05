@@ -6,11 +6,22 @@ shell. Built on the `mcp` 2.x SDK already in `.venv` (`mcp.server.mcpserver.MCPS
 
 ## Register
 
-Registration is done by you, outside any build session:
+Registration is done by you, outside any build session. Run it from the project root after
+creating `.venv` (see `MAC_SETUP.md`); `$PWD` expands there, so the absolute paths are right
+wherever the repo is cloned (on macOS, e.g. `~/Documents/Repositories/CAD-ADE`):
 
 ```bash
-claude mcp add magic-cad --scope user -- /home/hatch/workspace/magic-cad/.venv/bin/python /home/hatch/workspace/magic-cad/mcp/magic_cad_server.py
+claude mcp add magic-cad --scope user -- "$PWD/.venv/bin/python" "$PWD/mcp/magic_cad_server.py"
 ```
+
+The build123d server the project guide also relies on comes from the same venv:
+
+```bash
+claude mcp add build123d --scope user -- "$PWD/.venv/bin/build123d-mcp"
+```
+
+Check with `claude mcp list`: both should show `✓ Connected`. If you move the repo, remove and
+re-add them (`claude mcp remove magic-cad --scope user`).
 
 `run_check` takes minutes. If your client cuts it off, raise its tool timeout; for Claude Code
 that is the `MCP_TOOL_TIMEOUT` environment variable, in milliseconds.

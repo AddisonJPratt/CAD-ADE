@@ -1,0 +1,29 @@
+name: doorstop
+function: >
+  Wedge doorstop with sawtooth grip ribs on the underside and a cord hole at the heel. Printed on
+  its side: the wedge profile lies in the layer plane and extrudes up by the width, so the ribs and
+  the thin tip are sharp prisms with no supports, and door load runs along layer lines instead of
+  peeling layers apart. Teeth lean so they bite when the door pushes the wedge back.
+hard_dimensions: {length: 120, wedge_height: 32, width: 45}
+measures:
+  length: {probe: bbox_x}
+  wedge_height: {probe: bbox_y}
+  width: {probe: bbox_z}
+interfaces:
+  - "Door: slides over the sloped top face, thin tip first; door clearance above the floor sets where it wedges"
+  - "Floor: sawtooth rib tips on y=0; on smooth floors, grip depends on rib edges, not on rubber"
+  - "Cord: one through-hole at the heel, for hanging or a pull loop"
+soft_preferences: [No supports, Thin tip that slides under a door, No flat elephant-foot lip on the ribs]
+assumptions:
+  - "PRINT ORIENTATION: on its side, with one side face on the bed. Printed flat on the ribs, every rib valley would be a downward face and the slope would need a long bed contact; this avoids both."
+  - "Rib form is not a hard dimension; no probe reads a tooth. Rib depth and pitch are params and checked by render only."
+  - "Rigid PLA ribs grip poorly on tile or polished wood; this is an estimate, not a tested holding force. TPU would grip better but is not this project's material."
+  - "Height and length are guesses for a typical interior door gap. wedge_height sets the door gap it can stop."
+params:
+  length: {value: 120.0, min: 90.0, max: 160.0, unit: mm, intent: Tip to heel along the floor}
+  wedge_height: {value: 32.0, min: 25.0, max: 50.0, unit: mm, intent: Heel height above the rib tips}
+  width: {value: 45.0, min: 30.0, max: 60.0, unit: mm, intent: Width across the door path; print height}
+  tip_t: {value: 2.4, min: 1.6, max: 3.2, unit: mm, intent: Thickness of the tip; six layers-wide at 0.4 nozzle, thin enough to slide under a door}
+  rib_depth: {value: 1.6, min: 0.8, max: 2.4, unit: mm, intent: Tooth height from valley to tip}
+  rib_pitch: {value: 6.0, min: 4.0, max: 9.0, unit: mm, intent: Tooth spacing along the floor}
+  cord_dia: {value: 6.0, min: 4.0, max: 8.0, unit: mm, intent: Cord hole diameter at the heel}

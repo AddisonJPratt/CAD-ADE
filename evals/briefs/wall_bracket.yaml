@@ -1,0 +1,48 @@
+name: wall_bracket
+function: >
+  L-shaped wall bracket that carries one edge of a shelf. It screws to the wall with
+  2x M4 and to the underside of the shelf with 2x M4, using counterbored socket-head
+  screws, and prints without supports.
+hard_dimensions:          # mm
+  width: 60
+  shelf_depth: 80
+  wall_height: 80
+  wall_hole_spacing: 40
+  shelf_hole_spacing: 40
+  wall_holes: 2           # count of M4 clearance holes (axis X)
+  shelf_holes: 2          # count of M4 clearance holes (axis Z)
+measures:                 # how the harness measures each hard dimension on the reloaded STEP
+  width: {probe: bbox_y}
+  shelf_depth: {probe: bbox_x}
+  wall_height: {probe: bbox_z}
+  wall_hole_spacing: {probe: hole_spacing, axis: X, dia: 4.5}
+  shelf_hole_spacing: {probe: hole_spacing, axis: Z, dia: 4.5}
+  wall_holes: {probe: hole_count, axis: X, dia: 4.5}
+  shelf_holes: {probe: hole_count, axis: Z, dia: 4.5}
+interfaces:
+  - "Wall: flat face x=0, 2x M4 clearance holes, counterbored from the room side"
+  - "Shelf: flat face z=0, 2x M4 clearance holes, counterbored from below the shelf"
+soft_preferences:
+  - Printable without supports on a 0.4 mm nozzle in PLA
+  - Gusset on the centreline, so it never blocks a screwdriver
+assumptions:
+  - "Only width (60) and the 2x M4 + 2x M4 holes were specified. Everything else is my choice."
+  - "Shelf depth 80 and wall height 80 are chosen; a typical small bookshelf bracket."
+  - "Hole spacing 40 in both legs; holes centred on the free part of each leg."
+  - "Load: 5 kg per bracket at the shelf's front edge (the vision doc's example). Hand estimate only, no FEA: under 2 MPa in the plate beyond the gusset. Load-test before trusting it over anything fragile."
+  - "Thickness 8 mm, set by the M4 counterbore (4.2 deep) plus a 3.8 mm floor, not by load."
+  - "Printed shelf-face-down. Layers cross the wall leg, its weaker direction; the gusset and low stress are what make that acceptable. Unverified on a real print."
+  - "Wall anchors are the installer's choice; M4 screws into a real wall usually need plugs."
+params:
+  width: {value: 60.0, min: 56.0, max: 100.0, unit: mm, intent: Bracket width along the wall}
+  shelf_depth: {value: 80.0, min: 60.0, max: 120.0, unit: mm, intent: Shelf leg length from the wall face}
+  wall_height: {value: 80.0, min: 60.0, max: 120.0, unit: mm, intent: Wall leg length from the shelf face}
+  thickness: {value: 8.0, min: 7.0, max: 10.0, unit: mm, intent: Plate thickness; keeps a floor under the screw heads}
+  wall_hole_spacing: {value: 40.0, min: 24.0, max: 42.0, unit: mm, intent: Centre distance of wall screws}
+  shelf_hole_spacing: {value: 40.0, min: 24.0, max: 42.0, unit: mm, intent: Centre distance of shelf screws}
+  inner_radius: {value: 4.0, min: 3.0, max: 6.0, unit: mm, intent: Inside corner fillet to relieve bending stress}
+  outer_radius: {value: 1.0, min: 0.5, max: 3.0, unit: mm, intent: Outside corner fillet}
+  corner_radius: {value: 4.0, min: 2.0, max: 8.0, unit: mm, intent: Plan radius at the free plate corners}
+  gusset_thickness: {value: 5.0, min: 4.0, max: 8.0, unit: mm, intent: Central rib thickness}
+  gusset_reach: {value: 0.7, min: 0.5, max: 0.85, unit: ratio, intent: Rib length as a share of the free leg}
+  gusset_edge_radius: {value: 1.0, min: 0.5, max: 1.5, unit: mm, intent: Fillet on the rib ramp edges}
