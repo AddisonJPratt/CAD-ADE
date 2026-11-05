@@ -300,6 +300,10 @@ def library_payload(project=None):
     data = read_json(path)
     if not isinstance(data, dict):
         return HTTPStatus.NOT_FOUND, {"status": "NO_LIBRARY", "message": "library/standard_parts.json is missing or unreadable."}
+    builtin_path = ROOT / "library" / "components.json"
+    builtin = read_json(builtin_path)
+    if not isinstance(builtin, list):
+        return HTTPStatus.NOT_FOUND, {"status": "NO_CATALOGUE", "message": "Shared component catalogue is missing or unreadable."}
     if project:
         from engine.catalogue import list_components
         from engine.projects import ProjectError
@@ -308,13 +312,18 @@ def library_payload(project=None):
         except (ProjectError, ValueError, OSError) as error:
             return HTTPStatus.BAD_REQUEST, {"status": "BAD_PROJECT", "message": str(error)}
     else:
-        components = read_json(ROOT / "library" / "components.json")
+        components = builtin
     sources = ["library/components.json"]
     if project:
         project_catalogue = Path(project).expanduser().resolve() / "catalogue.json"
         if project_catalogue.is_file():
             sources.append(str(project_catalogue))
-    return HTTPStatus.OK, {**data, "_components": components if isinstance(components, list) else [],
+    shared_file = {"path": "library/components.json", "modified": iso_mtime(builtin_path)}
+    project_file = ({"path": str(project_catalogue), "modified": iso_mtime(project_catalogue)}
+                    if project and project_catalogue.is_file() else None)
+    components = [{**component, "_catalogue_file": shared_file if index < len(builtin) else project_file}
+                  for index, component in enumerate(components)]
+    return HTTPStatus.OK, {**data, "_components": components,
                            "_project": project or "", "_catalogue_sources": sources, "_source": source_of(path)}
 
 

@@ -528,6 +528,7 @@ function renderLibrary(data, announce = false) {
     ${(data._components || []).map((component) => `
       <h3>${esc(component.name)}</h3>
       <p class="catalogue-notes">${esc(component.notes || "")}</p>
+      <p>Catalogue file: <span class="path">${esc(component._catalogue_file?.path || "Unknown")}</span> · Modified ${when(component._catalogue_file?.modified)}</p>
       <p>Source: ${/^https:\/\//.test(component.source || "") ? `<a href="${esc(component.source)}">Manufacturer drawing</a>` : esc(component.source || "Not provided")}</p>
       ${table(`${component.name} dimensions`, [{ title: "Dimension" }, { title: "mm", cls: "n" }, { title: "Evidence" }],
         Object.entries(component.dimensions).map(([name, dimension]) => [esc(label(name)), num(dimension.value), esc(dimension.provenance)]))}
