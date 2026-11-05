@@ -16,6 +16,29 @@ with patch.dict(sys.modules, {"harness.pipeline": pipeline}):
 
 
 class ArtifactHistoryTest(unittest.TestCase):
+    def test_external_symlink_is_not_snapshotted(self):
+        with tempfile.TemporaryDirectory() as folder:
+            project = Path(folder) / "project"
+            (project / "designs").mkdir(parents=True)
+            (project / "designs" / "part.py").touch()
+            outside = Path(folder) / "secret.json"
+            outside.write_text("secret")
+            engine = api.Engine()
+
+            def run_project(path, *args):
+                output = path / "outputs"
+                output.mkdir()
+                (output / "verdict.json").write_text("{}")
+                (output / "leak.json").symlink_to(outside)
+                return 0, {"pass": True, "designs": [{"artifacts": ["leak.json"]}]}
+
+            with patch.object(api, "run_project", side_effect=run_project):
+                run = engine.submit(project)
+                api.Handler.finished(run, True)
+            self.assertEqual(run.status, "error")
+            self.assertIsNone(run.artifact_project)
+            engine.artifacts.cleanup()
+
     def test_earlier_run_keeps_its_artifact(self):
         with tempfile.TemporaryDirectory() as folder:
             project = Path(folder)
