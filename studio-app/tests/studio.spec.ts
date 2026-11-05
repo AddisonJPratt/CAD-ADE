@@ -11,6 +11,8 @@ test('opens a project and inspects an older version', async ({ page }) => {
   const currentBytes = await (await currentModel).body();
   await expect(page.getByRole('heading', { name: 'Version 2' })).toBeVisible();
   await expect(page.getByText('All checks passed', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Computed checks' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Needs a physical test' })).toBeVisible();
   await expect(page.getByLabel('3D model').locator('canvas')).toBeVisible();
   await page.getByRole('button', { name: /Version 1/ }).click();
   await expect(page.getByRole('button', { name: 'Rebuild model' })).toBeVisible();

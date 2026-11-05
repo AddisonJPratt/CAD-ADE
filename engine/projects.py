@@ -70,7 +70,8 @@ def run_project(project, on_event=None, samples=None, timeout=180):
         _, report = run_design(design, out=out, samples=samples, timeout=timeout,
                                command=command, on_event=on_event)
         entry = {"design": design.name, "pass": report["pass"], "gates": report["gates"],
-                 "report": f"{design.stem}/report.json", "artifacts": artifacts_of(project, design.stem)}
+                 "report": f"{design.stem}/report.json", "claims": report["claims"],
+                 "artifacts": artifacts_of(project, design.stem)}
         verdict["designs"].append(entry)
         emit({"type": "design_finished", "design": design.name, "pass": report["pass"]})
     verdict["pass"] = all(d["pass"] for d in verdict["designs"])

@@ -136,6 +136,17 @@ def test_harness():
     expect_harness("--no-sweep is opt-in and says so|--no-sweep: parametric behaviour not verified",
                    "only_default", 0, "--no-sweep")
     with tempfile.TemporaryDirectory() as tmp:
+        code = magic("check", "tests/fixtures/only_default.py", "--no-sweep", "--out", tmp)
+        import json
+        report = json.loads((Path(tmp) / "report.json").read_text())
+        check("unswept check is labelled draft", code == 0 and report["verification"] == "draft"
+              and "(draft)" in (Path(tmp) / "report.md").read_text())
+    with tempfile.TemporaryDirectory() as tmp:
+        other = Path(tmp) / "my-model.3mf"
+        other.write_bytes(b"user data")
+        code = magic("run", "tests/fixtures/hardcoded.py", "--out", tmp)
+        check("failed run preserves unrelated 3MF files", code == 1 and other.read_bytes() == b"user data")
+    with tempfile.TemporaryDirectory() as tmp:
         code = magic("run", "tests/fixtures/only_default.py", "--no-sweep", "--out", tmp)
         check("run --no-sweep is refused, no unswept exports", code == 2 and not list(Path(tmp).iterdir()), f"exit {code}")
 

@@ -7,6 +7,7 @@ from pathlib import Path
 from .brief import BriefError, load_brief
 from .execute import run_worker
 from .geometry import check_geometry, pairwise_overlaps
+from .evidence import claims_for_report
 from .lint import lint_design
 from .printability import check_stl
 from .render import render_all
@@ -91,6 +92,16 @@ def finish(report, out, stem="report", events=QUIET):
             report["gates"].append({"name": name, "status": "SKIPPED", "detail": "-"})
     report["gates"].sort(key=lambda g: names.index(g["name"]) if g["name"] in names else len(names))
     report["pass"] = all(g["status"] in ("PASS", "NOT RUN") for g in report["gates"])
+    report["verification"] = ("failed" if not report["pass"] else
+                              "draft" if any(g["status"] in ("NOT RUN", "SKIPPED")
+                                             for g in report["gates"]) else "passed")
+    report["claims"] = claims_for_report(report)
+    # Production files must not survive a failed gate, including export verification.
+    if stem == "report" and not report["pass"]:
+        for pattern in ("*.stl", "*.step"):
+            for artifact in out.glob(pattern):
+                artifact.unlink()
+        report.pop("exports", None)
     write_reports(report, out, stem)
     for gate in report["gates"]:
         events.done(gate)

@@ -9,3 +9,5 @@
 .views{max-width:min(710px,calc(100% - 64px));flex-wrap:wrap}.views button{min-width:0;padding:7px 9px}.views button:disabled{opacity:.45;cursor:default}@media(max-width:760px){.views{max-width:calc(100% - 32px);bottom:48px}.views button{padding:8px}}
 
 .camera-more{position:relative}.camera-more summary{cursor:pointer;list-style:none;background:#f7f5f1;border:1px solid #77716a;border-radius:4px;padding:7px 9px}.camera-more summary:focus-visible{outline:2px solid #1d1b18;outline-offset:3px}.camera-actions{position:absolute;bottom:calc(100% + 8px);left:0;display:grid;grid-template-columns:repeat(2,max-content);gap:4px;background:#f7f5f1;padding:8px;border:1px solid #77716a;border-radius:4px;z-index:2}
+
+.evidence section{margin-top:24px}.evidence h2{margin-bottom:8px}.evidence ul{list-style:none;padding:0;margin:0}.evidence li{border-top:1px solid #d2cec7;padding:8px 0;font-size:.875rem;line-height:1.4}.evidence small{display:block;margin-top:3px}

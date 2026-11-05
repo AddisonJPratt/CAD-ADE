@@ -165,7 +165,7 @@ def verdict_of(project, version_id):
         return None
     verdict = json.loads(path.read_text())
     return {"pass": verdict["pass"], "finished": verdict.get("finished"),
-            "designs": [{"design": d["design"], "pass": d["pass"]} for d in verdict["designs"]]}
+            "designs": [{"design": d["design"], "pass": d["pass"], "claims": d.get("claims", [])} for d in verdict["designs"]]}
 
 
 def record_verdict(project, verdict):

@@ -44,6 +44,16 @@ def test_create_from_wall_bracket(api, tmp):
     check("the copied project passes every gate on its own", status == 200 and done["verdict"]["pass"],
           f"{done['verdict']['seconds']} s")
     check("version 1 now carries that verdict", versions(api, folder)[0]["verdict"]["pass"] is True)
+    claims = versions(api, folder)[0]["verdict"]["designs"][0]["claims"]
+    check("saved verdict identifies computed checks and untested physical fit",
+          any(c["tier"] == "computed" for c in claims) and
+          any(c["tier"] == "needs physical test" for c in claims) and
+          not any(c["tier"] == "physically tested" for c in claims))
+    check("individual measured dimensions and sweep samples carry evidence",
+          any(c["claim"].startswith("Dimension:") and c["tier"] == "computed" for c in claims)
+          and any(c["claim"].startswith("Sweep sample:") and c["tier"] == "computed" for c in claims))
+    _, _, raw = api.request("GET", f"/runs/{done['id']}/artifacts/wall_bracket/report.json")
+    check("report carries the same claim evidence", json.loads(raw)["claims"] == claims)
 
     status, body = api.json("POST", "/projects", {"folder": str(folder), "from_design": "wall_bracket"})
     check("creating over a non-empty folder is refused", status == 400, body.get("error", ""))
