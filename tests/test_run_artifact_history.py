@@ -32,7 +32,9 @@ class ArtifactHistoryTest(unittest.TestCase):
                 output = path / "outputs"
                 output.mkdir(exist_ok=True)
                 (output / "report.json").write_bytes(next(counter))
-                return 0, {"pass": True}
+                (output / "verdict.json").write_text("{}")
+                (output / "old.json").write_text("stale")
+                return 0, {"pass": True, "designs": [{"artifacts": ["report.json"]}]}
 
             try:
                 with patch.object(api, "run_project", side_effect=run_project):
@@ -45,6 +47,10 @@ class ArtifactHistoryTest(unittest.TestCase):
                     self.assertEqual(response.read(), b"first")
                 with urlopen(f"{base}/{second.id}/artifacts/report.json") as response:
                     self.assertEqual(response.read(), b"second")
+                from urllib.error import HTTPError
+                with self.assertRaises(HTTPError) as missing:
+                    urlopen(f"{base}/{second.id}/artifacts/old.json")
+                self.assertEqual(missing.exception.code, 404)
             finally:
                 server.shutdown()
                 server.server_close()
