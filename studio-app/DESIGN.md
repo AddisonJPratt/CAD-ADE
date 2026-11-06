@@ -18,3 +18,7 @@ it into a content panel.
 
 Check desktop and mobile captures, keyboard access, dark/light focus, model loading,
 review errors and acceptance before shipping changes to this surface.
+
+Hallmark 2.0.0 is also used for polish and rendered audits. Preserve this application
+layout and user-selected density; apply its app-screen rules rather than marketing
+page composition. Record unresolved warnings in `.hallmark/README.md`.
