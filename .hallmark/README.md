@@ -26,3 +26,20 @@ Remaining warnings reviewed:
   primary actions.
 
 Render captures are local audit evidence and are ignored by git.
+
+## Second polish pass
+
+- Replaced on-model numeric overlay with an Envelope disclosure, keeping actual
+  computed bounds accessible without covering geometry.
+- Added selected camera-preset states and removed decorative status dots.
+- Preview browser now counts the proposal's actual bodies and labels its rows
+  Preview, rather than implying unloaded saved artifacts contain zero geometry.
+- Slightly widened shared camera framing so the model clears the camera dock.
+- Added a public browser test using the real cable-clip design: creates an isolated
+  project, prepares a cable-diameter proposal, opens the Envelope disclosure and
+  rejects the proposal. It captures desktop/mobile curved geometry.
+- Hallmark source and rendered workspace audit: 0 FAIL, 5 previously documented
+  warnings. Loaded proposal captures also receive visual review.
+- Finish-review request for units in the edit diff is deferred: proposal parameter
+  metadata has no unit field and may represent unitless counts. The code-style
+  diff retains exact source names; geometry envelope dimensions explicitly use mm.
