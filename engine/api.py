@@ -11,6 +11,9 @@
                                          then an "end" event. Honours Last-Event-ID.
     GET  /runs/<id>/artifacts/<path>     a file from the project's outputs folder (STL, STEP, PNG, report)
 
+    GET  /projects/parameters?project=...&design=...  literal defaults/ranges and brief units
+    POST /proposals                      {"project", "selection":{"design"}, "parameter":{"name","value"}}
+                                         explicit parameter edit, held for acceptance like a chat edit
     POST /projects                       {"folder", "from_design"}: a new project as version 1 (201)
     GET  /projects/versions?project=...  the version timeline, newest first, with each version's verdict
     POST /projects/versions              {"project", "message"}: save the current files as a version (201)
@@ -44,7 +47,8 @@ from harness.execute import run_worker
 from harness.sweep import plan_samples
 
 from .proposal_session import ProposalSession
-from .agents import ScriptedFakeAgent
+from .agents import ScriptedFakeAgent, ParameterEditAgent
+from .parameters import parameters_of
 from .projects import ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, run_project
 from .versions import (Conflict, create_project, list_versions, require_versioned,
                        restore_version, save_version, find_version, rebuild_version_artifacts, head, unsaved)
@@ -246,6 +250,11 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path == "/runs":
             return self.reply(HTTPStatus.OK, {"runs": [r.summary() for r in self.engine.all()]})
+        if path == "/projects/parameters":
+            query = parse_qs(urlsplit(self.path).query)
+            project = query.get("project", [""])[0]
+            design = query.get("design", [""])[0]
+            return self.guarded(lambda: (HTTPStatus.OK, {"parameters": parameters_of(require_versioned(project), design)}))
         if path == "/projects/designs":
             project = parse_qs(urlsplit(self.path).query).get("project", [""])[0]
             return self.guarded(lambda: (HTTPStatus.OK, {"designs": [p.name for p in designs_of(project)]}))
@@ -367,11 +376,12 @@ class Handler(BaseHTTPRequestHandler):
             return head(project)
         base = self.engine.change(project, prepare)
         try:
-            proposal = self.engine.agent.start(draft, body.get("brief"), body.get("selection"), body["message"])
+            agent = ParameterEditAgent() if "parameter" in body else self.engine.agent
+            proposal = agent.start(draft, body.get("brief"), body.get("selection"), body["parameter"] if "parameter" in body else body["message"])
         except Exception:
             shutil.rmtree(folder, ignore_errors=True)
             raise
-        proposal.update({"id": ident, "project": str(project), "state": "pending", "base": base})
+        proposal.update({"id": ident, "project": str(project), "state": "pending", "base": base, "agent": agent})
         def build(side, cancel):
             if side == "after":
                 (draft / proposal["file"]).write_text(proposal["source"])
@@ -385,7 +395,7 @@ class Handler(BaseHTTPRequestHandler):
                 return run_worker(draft / proposal["file"], out, cancel_event=cancel)
             finally:
                 self.engine.execution.release()
-        proposal["session"] = ProposalSession(ident, build, lambda: self.engine.agent.stream_events(proposal))
+        proposal["session"] = ProposalSession(ident, build, lambda: proposal["agent"].stream_events(proposal))
         with self.engine.lock:
             self.engine.proposals[ident] = proposal
         proposal["session"].start()
@@ -400,11 +410,11 @@ class Handler(BaseHTTPRequestHandler):
             if action == "resume":
                 if session.state != "interrupted":
                     raise ValueError("session is not interrupted")
-                self.engine.agent.resume(proposal)
+                proposal["agent"].resume(proposal)
                 session.resume()
             else:
                 session.interrupt()
-                self.engine.agent.interrupt(proposal)
+                proposal["agent"].interrupt(proposal)
             return HTTPStatus.OK, {"id": ident, "state": session.state}
 
     def reject_proposal(self, ident):
@@ -414,7 +424,7 @@ class Handler(BaseHTTPRequestHandler):
                 raise ProjectError("no pending proposal")
             proposal["state"] = "rejected"
             proposal["session"].reject()
-            self.engine.agent.interrupt(proposal)
+            proposal["agent"].interrupt(proposal)
             return HTTPStatus.OK, {"id": ident, "state": "rejected"}
 
     def accept_proposal(self, ident, body):

@@ -43,3 +43,22 @@ Render captures are local audit evidence and are ignored by git.
 - Finish-review request for units in the edit diff is deferred: proposal parameter
   metadata has no unit field and may represent unitless counts. The code-style
   diff retains exact source names; geometry envelope dimensions explicitly use mm.
+
+## Parameter-panel implementation and toolbar pass (#10)
+
+- Bounded inspector controls now create explicit numeric proposals through the
+  same preview/accept/gates/version pipeline as chat. Defaults and ranges are read
+  with AST literal parsing; units and intent come from brief metadata.
+- Custom hierarchy, inspector and parameter-adjustment SVGs clarify toolbar roles.
+  Active panel state is exposed, conflicting actions are disabled during review,
+  and project location collapses after opening to leave room for controls.
+- Continuous parameter types survive whole-number JSON submissions; regression
+  coverage accepts 24 and then successfully proposes 24.5.
+- Mobile export menu escapes toolbar clipping and produces a real .stl download.
+- Two-axis code review: one shared numeric-type finding, fixed and rechecked;
+  no remaining actionable standards/spec findings.
+- Impeccable critique: 31/40, no remaining P0/P1. Independent accessibility audit
+  found no remaining P0/P1 after mobile capture and export fixes.
+- Rendered Hallmark audit: 0 FAIL, 5 recorded warnings. Live Impeccable detector:
+  0 anti-patterns; its placeholder contrast advisory was corrected with themed ink.
+- Capability gaps and recommended ticket sequence: docs/IMPLEMENTATION_STATUS.md.

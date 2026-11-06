@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react';
-export type IconName = 'cube'|'folder'|'layers'|'eye'|'chat'|'history'|'download'|'fit'|'wire'|'sun'|'moon'|'check'|'arrow'|'close';
+export type IconName = 'browser'|'inspector'|'parameters'|'cube'|'folder'|'layers'|'eye'|'chat'|'history'|'download'|'fit'|'wire'|'sun'|'moon'|'check'|'arrow'|'close';
 const paths: Record<IconName, ReactNode> = {
+ browser:<><path d="M4 4v14h4M4 11h4"/><rect x="9" y="3" width="11" height="4" rx=".5"/><rect x="9" y="9" width="11" height="4" rx=".5"/><rect x="9" y="16" width="11" height="4" rx=".5"/></>,
+ inspector:<><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M14 4v16M17 8h1M17 12h1M17 16h1"/></>,
+ parameters:<><path d="M4 6h6m4 0h6M4 12h2m4 0h10M4 18h10m4 0h2"/><rect x="10" y="3" width="4" height="6" rx=".5"/><rect x="6" y="9" width="4" height="6" rx=".5"/><rect x="14" y="15" width="4" height="6" rx=".5"/></>,
  cube:<><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></>,
  folder:<path d="M3 7V5h6l2 2h10v12H3V7Z"/>,
  layers:<><path d="m3 8 9-5 9 5-9 5-9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></>,
