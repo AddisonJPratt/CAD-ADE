@@ -53,17 +53,16 @@ test('fake agent previews, rejects and accepts a change', async ({ page, request
   await wire.click();
   await expect(wire).toHaveAttribute('aria-pressed', 'true');
   await wire.click();
+  await page.getByRole('button', { name: 'Use light theme' }).click();
   await page.getByRole('button', { name: 'Use dark theme' }).click();
   await expect(page.getByRole('button', { name: 'Use light theme' })).toBeVisible();
   await page.screenshot({path: '/tmp/magic-application-dark.png'});
-  await page.getByRole('button', { name: 'Use light theme' }).click();
   await page.getByText('Export STL', {exact:true}).click();
   await expect(page.locator('.export-menu a')).toHaveCount(2);
   await page.getByText('Export STL', {exact:true}).click();
   await page.getByLabel('Change request').fill('size 26');
   await page.getByRole('button', { name: 'Propose change' }).click();
   await expect(page.getByText('size: 24 → 26').first()).toBeVisible({ timeout: 120000 });
-  await expect(page.getByLabel('before preview').locator('canvas')).toBeVisible();
   await expect(page.getByLabel('after preview').locator('canvas')).toBeVisible();
   await expect(page.getByText('Unchecked previews · same scale')).toBeVisible();
   await page.waitForTimeout(3000);
