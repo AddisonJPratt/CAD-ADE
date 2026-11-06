@@ -15,3 +15,20 @@
 .chat select{width:100%;font:inherit;padding:10px;background:white;border:1px solid #77716a;border-radius:4px}.chat select:focus-visible{outline:2px solid #1d1b18;outline-offset:3px}
 
 @media(max-width:760px){button,.camera-more summary{min-height:44px}}
+
+[hidden]{display:none!important}
+.comparison-stage{position:absolute;inset:0;display:flex;flex-direction:column;padding:32px;gap:16px}
+.comparison-heading{display:flex;align-items:baseline;justify-content:space-between;gap:16px}
+.comparison-heading h2{font-size:1.25rem;font-weight:400;margin:0}.comparison-heading span,.comparison-note,.comparison-models p{font-size:.8rem;color:#58544d}
+.comparison-models{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;flex:1;min-height:0}
+.comparison-models figure{display:flex;flex-direction:column;min-width:0;margin:0}.comparison-models figcaption{font-size:.875rem;font-weight:600;margin-bottom:8px}
+.comparison-canvas{position:relative;flex:1;min-height:200px;border:1px solid #d2cec7;background:#f1efea}.comparison-models p{margin:8px 0 0}
+.comparison-controls{display:flex;gap:6px;flex-wrap:wrap}.comparison-controls button,.comparison-more summary{padding:8px 12px;text-align:center;background:#f7f5f1}
+.comparison-more{position:relative}.comparison-more summary{cursor:pointer;border:1px solid #77716a;border-radius:4px;list-style:none}.comparison-more summary:focus-visible{outline:2px solid #1d1b18;outline-offset:3px}.comparison-more div{position:absolute;bottom:calc(100% + 8px);left:0;z-index:2;display:grid;grid-template-columns:repeat(2,max-content);gap:4px;padding:8px;background:#f7f5f1;border:1px solid #77716a}
+.comparison-note{margin:0;line-height:1.4}
+@media(max-width:760px){.stage:has(.comparison-stage){min-height:calc(100svh - 68px)}.comparison-stage{padding:20px 16px;gap:12px}.comparison-heading{display:block}.comparison-heading span{display:block;margin-top:4px}.comparison-models{gap:8px}.comparison-canvas{min-height:160px}.comparison-models p{font-size:.72rem}.comparison-controls button,.comparison-more summary{min-height:44px}.comparison-more div{max-width:calc(100vw - 32px)}}
+.stage:has(.comparison-stage){display:flex}
+.comparison-stage{position:relative;inset:auto;flex:1;min-height:calc(100svh - 68px)}
+@media(min-width:761px){.workspace{height:calc(100svh - 68px);min-height:0}.stage{min-height:0}.comparison-stage{min-height:0}}
+
+.comparison-models p{height:3.6em;overflow:auto;flex-shrink:0}

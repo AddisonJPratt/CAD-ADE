@@ -54,6 +54,17 @@ test('fake agent previews, rejects and accepts a change', async ({ page, request
   await expect(page.getByText('size: 24 → 26')).toBeVisible({ timeout: 120000 });
   await expect(page.getByLabel('before preview').locator('canvas')).toBeVisible();
   await expect(page.getByLabel('after preview').locator('canvas')).toBeVisible();
+  await expect(page.getByText('Unchecked previews · same scale')).toBeVisible();
+  await page.waitForTimeout(3000);
+  await page.screenshot({path: '/tmp/magic-comparison-initial.png'});
+  await page.getByRole('group', { name: 'Preview camera controls' }).getByRole('button', { name: 'Iso' }).click();
+  await page.waitForTimeout(1000);
+  await page.screenshot({path: '/tmp/magic-comparison-desktop.png'});
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.getByLabel('before preview').locator('canvas')).toBeVisible();
+  await page.waitForTimeout(3000);
+  await page.screenshot({path: '/tmp/magic-comparison-mobile.png'});
+  await page.setViewportSize({ width: 1280, height: 720 });
   await page.getByRole('button', { name: 'Reject change' }).click();
   await expect(page.getByText('Proposed change ready to review')).toHaveCount(0);
   await page.getByRole('button', { name: 'Propose change' }).click();
