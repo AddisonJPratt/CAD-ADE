@@ -48,7 +48,7 @@ from harness.sweep import plan_samples
 
 from .proposal_session import ProposalSession
 from .agents import ScriptedFakeAgent, ParameterEditAgent
-from .parameters import parameters_of
+from .parameters import parameters_of, accepted_brief_edit
 from .projects import ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, run_project
 from .versions import (Conflict, create_project, list_versions, require_versioned,
                        restore_version, save_version, find_version, rebuild_version_artifacts, head, unsaved)
@@ -95,14 +95,22 @@ class Busy(Conflict):
 class Engine:
     """The run registry and its single worker thread."""
 
-    def __init__(self):
+    def __init__(self, agent=None):
         self.runs, self.pending = {}, queue.Queue()
         self.proposals = {}
-        self.agent = ScriptedFakeAgent()
+        self.agent = agent or ScriptedFakeAgent()
         self.artifacts = tempfile.TemporaryDirectory(prefix="magic-cad-runs-")
         self.lock = threading.Lock()
         self.execution = threading.Lock()
         threading.Thread(target=self.work, name="engine-runs", daemon=True).start()
+
+    def close(self):
+        """Stop pending agent processes when the local service shuts down."""
+        with self.lock:
+            pending = [p for p in self.proposals.values() if p['state'] == 'pending']
+        for proposal in pending:
+            proposal['session'].reject()
+            proposal['agent'].interrupt(proposal)
 
     def submit(self, project, samples=None, timeout=180):
         project = Path(project).expanduser().resolve()
@@ -194,7 +202,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         path = urlsplit(self.path).path
         if path == "/health":
-            return self.reply(HTTPStatus.OK, {"engine": "magic-cad", "api": API_VERSION})
+            return self.reply(HTTPStatus.OK, {"engine": "magic-cad", "api": API_VERSION, "agent": getattr(self.engine.agent, "name", "scripted")})
         session_events = re.fullmatch(r"/proposals/([0-9a-f]{32})/events", path)
         if session_events:
             proposal = self.engine.proposals.get(session_events.group(1))
@@ -445,11 +453,16 @@ class Handler(BaseHTTPRequestHandler):
                 raise Conflict("project changed since this proposal; make a new proposal")
             target = project / proposal["file"]
             original = target.read_text()
+            brief_edit = accepted_brief_edit(project, proposal["file"], proposal["changes"])
             try:
                 target.write_text(proposal["source"])
+                if brief_edit:
+                    brief_edit[0].write_text(brief_edit[2])
                 version = save_version(project, "Accepted proposed change")
             except Exception:
                 target.write_text(original)
+                if brief_edit:
+                    brief_edit[0].write_text(brief_edit[1])
                 raise
             proposal["state"] = "accepted"
             return version, self.engine.queue(project, *options)
@@ -530,13 +543,15 @@ def make_server(port=PORT, engine=None):
     return server
 
 
-def serve(port=PORT):
-    server = make_server(port)
+def serve(port=PORT, agent="claude"):
+    from .claude_agent import ClaudeCodeAgent
+    server = make_server(port, Engine(agent=ClaudeCodeAgent() if agent == "claude" else ScriptedFakeAgent()))
     print(f"Magic CAD engine API on http://{HOST}:{server.server_address[1]}  (Ctrl-C stops)")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         pass
     finally:
+        server.RequestHandlerClass.engine.close()
         server.server_close()
     return 0

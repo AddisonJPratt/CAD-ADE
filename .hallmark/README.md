@@ -62,3 +62,48 @@ Render captures are local audit evidence and are ignored by git.
 - Rendered Hallmark audit: 0 FAIL, 5 recorded warnings. Live Impeccable detector:
   0 anti-patterns; its placeholder contrast advisory was corrected with themed ink.
 - Capability gaps and recommended ticket sequence: docs/IMPLEMENTATION_STATUS.md.
+
+## Claude M0 and contextual tools pass
+
+- Plasticity/Shapr3D references inform compact property rows, restrained selected
+  tools and functional translucent floating docks. Glass was explicitly requested
+  by the owner; solid/reduced-transparency fallbacks remain available.
+- Watermelon Command Search and Tooltip 8 source retrieved through its public MCP,
+  adapted to native dialog/React portals and custom SVGs. See the MIT notice.
+- Hallmark rendered workspace audit: 0 FAIL, 7 WARN. The previous five warnings
+  remain as documented above. Two new warnings concern requested glass and a
+  shared floating-surface recipe: consistent material identifies contextual
+  controls over the canvas; panel dimensions and placement distinguish roles.
+- Rendered Impeccable detector returned [] (unopened workspace). Loaded state
+  screenshots and Playwright exercise the model, properties and command menu.
+- Fixed command text inheriting legacy header color and Escape being consumed
+  by the native search input before dismissing the dialog.
+
+### Impeccable review provenance
+
+DEGRADED: single-context final UI critique/audit. Independent review capacity was
+exhausted during this run; this is not an independent two-assessment result.
+Manual review uses source plus desktop/mobile screenshots, with deterministic
+rendered checks above. Heuristics (0–4): status 3, real-world match 3, control 4,
+consistency 3, prevention 3, recognition 3, efficiency 4, minimalism 3, recovery 3,
+help 3 (32/40). The compact measured-property rows and large model retain CAD
+context; searchable real commands improve keyboard efficiency without adding
+fake capabilities.
+
+Audit: accessibility 3, performance 2, theming 4, responsive 3, integrity 3
+(15/20). No open P0/P1 found in the reviewed scope. P2: existing initial JS bundle
+remains ~1.2 MB before gzip; later lazy-loading work should reduce startup cost.
+P2: small desktop auxiliary labels remain dense; touch/physical-device use has
+not been certified. Responsive screenshots are emulation, not device testing.
+Questions skipped: user requested continuing implementation; scope is already set.
+
+### Code review provenance
+
+Spec reviewer identified an interrupt-during-stdin BrokenPipe race. Fixed and
+covered with the blocked-input process regression. Standards sub-agent stopped
+on account usage limit; manual standards review found no further actionable
+violations. The final standards axis is therefore not an independent pass.
+Owner live M0 acceptance remains explicitly outstanding (docs/M0_DEMO.md).
+
+Final validation: 5/5 Playwright, 20/20 engine integration tests, 68/68 harness
+checks; TypeScript/production build passed. Existing large-bundle warning remains.

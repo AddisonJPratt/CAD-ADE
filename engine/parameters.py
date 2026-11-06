@@ -84,3 +84,24 @@ def parameter_edit(project, design, name, value):
             'changes': [{'parameter': name, 'old': old, 'new': value}],
             'events': [{'type': 'plan', 'message': f'Change {name} to {value}'}],
             'cursor': 0, 'interrupted': False}
+
+
+def accepted_brief_edit(project, design_file, changes):
+    """Synchronize only approved editable defaults; never alter hard requirements."""
+    path = Path(project) / 'briefs' / (Path(design_file).stem + '.yaml')
+    if not path.is_file():
+        return None
+    original = path.read_text()
+    brief = yaml.safe_load(original)
+    if not isinstance(brief, dict) or not isinstance(brief.get('params'), dict):
+        raise ProjectError('brief has no parameter metadata')
+    for change in changes:
+        metadata = brief['params'].get(change['parameter'])
+        if not isinstance(metadata, dict) or metadata.get('value') != change['old']:
+            raise ProjectError('brief parameter default is stale; resolve it before accepting')
+        if not metadata['min'] <= change['new'] <= metadata['max']:
+            raise ProjectError('proposed value is outside the brief parameter range')
+        metadata = dict(metadata)
+        metadata['value'] = change['new']
+        brief['params'][change['parameter']] = metadata
+    return path, original, yaml.safe_dump(brief, sort_keys=False)

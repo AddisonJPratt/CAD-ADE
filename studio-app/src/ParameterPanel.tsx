@@ -33,9 +33,9 @@ export function ParameterPanel({project, design, version, current, busy, onPropo
       const changed = value !== '' && Number(value) !== parameter.value;
       const id = `parameter-${parameter.name}`;
       return <form key={parameter.name} onSubmit={event => { event.preventDefault(); if (!busy && changed) void onPropose(parameter.name, Number(value)); }}>
-        <div className="parameter-label"><label htmlFor={id}>{parameter.name}</label>{parameter.unit && <span>{parameter.unit}</span>}</div>
+        <div className="parameter-label"><label htmlFor={id}>{parameter.name}</label></div>
         {parameter.intent && <p className="parameter-intent">{parameter.intent}</p>}
-        <div className="parameter-control"><input id={id} type="number" required min={parameter.min} max={parameter.max} step={parameter.integer ? 1 : 'any'} value={value} disabled={busy} aria-describedby={`${id}-range`} onChange={event => setDrafts(previous => ({...previous, [parameter.name]: event.target.value}))}/><button type="submit" aria-label={`Review ${parameter.name}`} title="Preview this edit" disabled={busy || !changed}><Icon name="arrow"/></button></div>
+        <div className="parameter-control"><input id={id} type="number" required min={parameter.min} max={parameter.max} step={parameter.integer ? 1 : 'any'} value={value} disabled={busy} aria-describedby={`${id}-range`} onChange={event => setDrafts(previous => ({...previous, [parameter.name]: event.target.value}))}/>{parameter.unit && <span className="parameter-unit" aria-hidden="true">{parameter.unit}</span>}<button type="submit" aria-label={`Review ${parameter.name}`} title="Preview this edit" disabled={busy || !changed}><Icon name="arrow"/></button></div>
         <small id={`${id}-range`}>{parameter.min} to {parameter.max}{parameter.unit ? ` ${parameter.unit}` : ' / unit not declared'}{parameter.integer ? ' / whole numbers' : ''}</small>
       </form>;
     })}

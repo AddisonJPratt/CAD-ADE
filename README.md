@@ -29,7 +29,9 @@ Results land in `runs/wall_bracket/`: `report.md`, `report.json`, `bracket.stl`,
 - `project <folder>` runs every design in a project folder (`designs/*.py`, optional
   `briefs/<stem>.yaml`) through the same gates as `run`, writing `outputs/<stem>/` and
   `outputs/verdict.json` inside the folder.
-- `serve` starts the local engine API on `127.0.0.1:8766`: POST a project folder to `/runs`,
+- `serve` uses the local Claude Code login for bounded M0 chat proposals;
+  `serve --agent scripted` selects the deterministic test runtime. See [M0 demo](docs/M0_DEMO.md).
+  It starts the local engine API on `127.0.0.1:8766`: POST a project folder to `/runs`,
   follow gate start/finish events live on `/runs/<id>/events` (Server-Sent Events), and fetch
   the STL, STEP, renders and report from `/runs/<id>/artifacts/`. See `engine/api.py`;
   `tests/test_engine_api.py` (about 3 min) tests it against fixture projects.

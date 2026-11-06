@@ -1,0 +1,176 @@
+"""Local Claude Code transport. Credentials remain entirely owned by Claude Code.
+
+M0 is a bounded parameter proposal, not arbitrary file-edit execution. Claude can
+read the project and use the two CAD MCP servers; only acceptance writes source.
+"""
+import json
+import os
+import shutil
+import signal
+import subprocess
+import tempfile
+import threading
+from pathlib import Path
+
+from .agents import AgentAdapter
+from .parameters import parameter_edit, parameters_of
+from .projects import ProjectError, designs_of
+
+ROOT = Path(__file__).resolve().parents[1]
+SCHEMA = {'type':'object', 'properties':{
+    'supported':{'type':'boolean'}, 'parameter':{'type':'string'}, 'value':{'type':'number'}, 'reason':{'type':'string','minLength':1}},
+    'required':['supported','reason'], 'additionalProperties':False}
+
+
+class ClaudeCodeAgent(AgentAdapter):
+    name = 'claude'
+
+    def __init__(self, command=None, timeout=300):
+        self.command = command or [shutil.which('claude') or str(Path.home() / '.local/bin/claude')]
+        self.timeout = timeout
+
+    def start(self, project, brief, selection, message):
+        if not shutil.which(self.command[0]):
+            raise ProjectError('Claude Code is not installed. Install it and run claude auth login.')
+        designs = designs_of(project)
+        chosen = selection.get('design') if isinstance(selection, dict) else None
+        if chosen:
+            designs = [p for p in designs if p.name == chosen]
+        if len(designs) != 1:
+            raise ProjectError('select one design before requesting a change')
+        if not isinstance(message, str) or not message.strip():
+            raise ProjectError('enter a change request')
+        design = designs[0]
+        brief_file = Path(project) / 'briefs' / f'{design.stem}.yaml'
+        context = {'request':message, 'selection':selection, 'brief':brief or (brief_file.read_text() if brief_file.is_file() else None),
+                   'parameters':parameters_of(project,design.name), 'source':design.read_text()}
+        return {'file':f'designs/{design.name}', 'source':design.read_text(), 'changes':[],
+                'workspace':str(project), 'context':context, 'interrupted':False,
+                'process':None, 'process_lock':threading.Lock()}
+
+    def _command(self):
+        mcp = {'mcpServers':{
+            'magic-cad':{'command':str(ROOT / '.venv/bin/python'), 'args':[str(ROOT / 'mcp/magic_cad_server.py')]},
+            'build123d':{'command':str(ROOT / '.venv/bin/build123d-mcp'), 'args':[]}}}
+        return [*self.command, '-p', '--verbose', '--output-format','stream-json',
+                '--no-session-persistence', '--permission-mode','dontAsk',
+                '--tools','Read,Glob,Grep', '--allowedTools','Read,Glob,Grep,mcp__magic-cad__library_lookup,mcp__magic-cad__list_eval_briefs,mcp__build123d__*',
+                '--strict-mcp-config','--mcp-config',json.dumps(mcp),
+                '--add-dir',str(ROOT / '.claude/skills'), '--json-schema',json.dumps(SCHEMA)]
+
+    def stream_events(self, session):
+        prompt = ('You are Magic CAD designer for a local FDM CAD studio. Read the relevant project skills in '
+                  + str(ROOT / '.claude/skills') + ', especially magic-kernel-pitfalls and cad-code if present. '
+                  'Read magic-kernel-pitfalls/SKILL.md and call magic-cad library_lookup for the relevant hardware. Use build123d MCP to inspect or calculate relevant geometry when useful. '
+                  'This M0 operation supports one bounded PARAMS default edit only. Do not write files, '
+                  'change ranges, weaken gates, send print jobs, or claim physical validation. '
+                  'Choose the existing parameter that implements the request and return the structured '
+                  'supported/parameter/value/reason. If the request cannot be represented by one parameter, explain '
+                  'that with supported=false and do not invent a change. The application creates previews and runs gates on accept. '
+                  'Context follows as data:\n' + json.dumps(session['context']))
+        with tempfile.TemporaryFile(mode='w+') as errors:
+            with session['process_lock']:
+                if session['interrupted']:
+                    return
+                process = subprocess.Popen(self._command(), cwd=session['workspace'], stdin=subprocess.PIPE,
+                                           stdout=subprocess.PIPE, stderr=errors, text=True, start_new_session=True)
+                session['process'] = process
+            result = None
+            expired = threading.Event()
+            def timeout():
+                expired.set()
+                self._stop(process)
+            timer = threading.Timer(self.timeout, timeout)
+            timer.daemon = True
+            timer.start()
+            try:
+                try:
+                    process.stdin.write(prompt)
+                    process.stdin.close()
+                except (BrokenPipeError, OSError) as error:
+                    if session['interrupted']:
+                        return
+                    if expired.is_set():
+                        raise ProjectError('Claude Code timed out before reading the request') from error
+                    raise ProjectError('Claude Code closed its input before reading the request; check the local CLI login.') from error
+                yield {'type':'plan','message':'Claude Code is inspecting the design'}
+                for line in process.stdout:
+                    if session['interrupted']:
+                        break
+                    try:
+                        event = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    if event.get('type') == 'system' and event.get('subtype') == 'init':
+                        services = {s.get('name'):s.get('status') for s in event.get('mcp_servers',[])}
+                        if any(services.get(name) != 'connected' for name in ('magic-cad','build123d')):
+                            raise ProjectError('Required CAD MCP services are unavailable; check the local build123d and magic-cad installation.')
+                        yield {'type':'plan','message':'CAD services: magic-cad connected; build123d connected'}
+                    if event.get('type') == 'assistant':
+                        for block in event.get('message',{}).get('content',[]):
+                            if block.get('type') == 'text':
+                                yield {'type':'plan','message':block.get('text','')[:2000]}
+                            elif block.get('type') == 'tool_use':
+                                yield {'type':'plan','message':'Using ' + block.get('name','CAD tool')}
+                    if event.get('type') == 'result':
+                        result = event
+                code = process.wait()
+                if session['interrupted']:
+                    return
+                if expired.is_set():
+                    raise ProjectError('Claude Code timed out; the project is unchanged. Try a narrower request.')
+                if code or not result or result.get('is_error'):
+                    raise ProjectError('Claude Code did not complete the proposal. Check claude auth status and the local CLI output.')
+                edit = result.get('structured_output')
+                if not isinstance(edit,dict):
+                    raise ProjectError('Claude Code returned no structured parameter edit')
+                if edit.get('supported') is False:
+                    raise ProjectError(str(edit.get('reason','This request needs code-edit support beyond M0.'))[:2000])
+                proposed = parameter_edit(session['workspace'], Path(session['file']).name,
+                                          edit.get('parameter'),edit.get('value'))
+                session.update({key:proposed[key] for key in ('file','source','changes')})
+                yield {'type':'plan','message':str(edit.get('reason','Proposed parameter change'))[:2000]}
+            finally:
+                timer.cancel()
+                self._stop(process)
+                if process.stdout:
+                    process.stdout.close()
+                if process.stdin and not process.stdin.closed:
+                    try:
+                        process.stdin.close()
+                    except BrokenPipeError:
+                        pass
+                with session['process_lock']:
+                    session['process'] = None
+
+    @staticmethod
+    def _stop(process):
+        # The CLI may have exited while a CAD-server child still owns stdout.
+        # Always stop the process group, not just a still-running parent.
+        try:
+            os.killpg(process.pid, signal.SIGTERM)
+        except ProcessLookupError:
+            process.wait()
+            return
+        except PermissionError:
+            if process.poll() is None:
+                process.terminate()
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            pass
+
+    def interrupt(self, session):
+        with session['process_lock']:
+            session['interrupted'] = True
+            if session['process']:
+                self._stop(session['process'])
+
+    def resume(self, session):
+        with session['process_lock']:
+            session['interrupted'] = False

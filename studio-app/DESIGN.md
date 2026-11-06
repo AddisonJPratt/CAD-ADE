@@ -22,3 +22,20 @@ review errors and acceptance before shipping changes to this surface.
 Hallmark 2.0.0 is also used for polish and rendered audits. Preserve this application
 layout and user-selected density; apply its app-screen rules rather than marketing
 page composition. Record unresolved warnings in `.hallmark/README.md`.
+
+November 6 refinement: use Plasticity's viewport-first sculptural workflow and
+Shapr3D's contextual, model-led hierarchy as references, without copying their
+branding or implying their modeling capabilities. Owner explicitly requested
+restrained glassmorphism on floating docks; this supersedes the earlier no-glass
+rule for those functional surfaces. Keep solid fallbacks and reduced-transparency
+support. Text uses pearl headings, steel secondary copy and ice-tinted values;
+compact property rows replace tall full-width number fields. Remove orange
+underlines from navigation and camera buttons.
+References: https://www.plasticity.xyz/ and
+https://www.shapr3d.com/de-de/content-library/refreshing-the-shapr3d-user-interface
+
+Watermelon UI compatibility pass: Command Search and Tooltip 8 were retrieved from
+its public MCP registry and adapted to native dialog/React portals, our design tokens
+and custom SVG system. The command menu exposes actual Studio actions, supports
+Cmd/Ctrl K, arrows, Enter and Escape, and contains keyboard focus. Source/license
+are preserved in src/watermelon/NOTICE.md. No Tailwind/shadcn scaffold is required.

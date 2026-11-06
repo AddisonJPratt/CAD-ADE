@@ -158,3 +158,44 @@ html,body{overflow-x:clip}
 @media(max-width:760px){.app .empty button{min-height:44px}}
 @media(max-width:760px){.export-menu>div{position:fixed;top:96px;right:12px;left:auto;max-width:calc(100% - 24px)}}
 .app input::placeholder{color:var(--muted);opacity:1}
+
+/* Compact property rows and typographic tool states. */
+.app .app-toolbar .tool-modes button,.app .app-toolbar .display-tools>button,.app .views button,.app .comparison-controls button{box-shadow:none;border-color:transparent}
+.app .app-toolbar .tool-modes button.active,.app .app-toolbar .display-tools>button[aria-pressed=true],.app .views button[aria-pressed=true],.app .comparison-controls button[aria-pressed=true]{box-shadow:none;background:transparent;color:var(--ink);font-weight:600}
+.app .app-toolbar .tool-modes button:not(.active){color:var(--muted)}.app .app-toolbar button.active svg,.app .app-toolbar button[aria-pressed=true] svg{stroke-width:2}
+.app .parameter-panel form{display:grid;grid-template-columns:minmax(0,1fr) 112px;column-gap:8px;row-gap:0;padding:8px 0;border-bottom:1px solid var(--line);align-items:center}
+.parameter-label{grid-column:1;grid-row:1;margin:0;min-width:0}.parameter-label label{overflow-wrap:anywhere;font-size:.6875rem}
+.app .parameter-panel .parameter-intent{grid-column:1/-1;grid-row:3;font-size:.6875rem;margin:4px 0 0;line-height:1.35}
+.app .parameter-control{grid-column:2;grid-row:1/3;align-items:center;gap:4px}
+.app .parameter-control input{min-height:24px;height:24px;padding:2px 4px;width:60px;text-align:right;border-radius:2px;font-size:.75rem;background:transparent;border-color:var(--line)}
+.parameter-unit{font-size:.6875rem;color:var(--muted);min-width:16px}.app .parameter-control button{width:24px;height:24px;min-height:24px;border:0;background:transparent;padding:4px}.app .parameter-control button svg{width:13px;height:13px}
+.app .parameter-panel form>small{grid-column:1;grid-row:2;font-size:.6875rem;margin:4px 0 0}.parameter-heading{margin-bottom:8px}.parameter-panel{padding:12px 0}
+@media(max-width:760px){.app .parameter-control input{height:32px;min-height:32px}.app .parameter-control button{width:32px;min-height:40px}.app .parameter-panel form{grid-template-columns:minmax(0,1fr) 128px}.app .parameter-control{gap:8px}}
+
+/* Reference direction: sculptural CAD canvas, compact contextual glass docks. */
+:root{--glass-dark:rgba(25,34,46,.84);--glass-light:rgba(246,249,251,.88);--glass-edge-dark:rgba(194,214,239,.18);--glass-edge-light:rgba(51,76,100,.22);--glass-shadow:rgba(0,8,18,.24);--text-pearl:#e2eaf4;--text-steel:#a9b9ce;--text-label:#bdcee3;--text-value:#d4e8f8;--text-day:#263d50;--text-day-muted:#536c81;--surface-cool:#19232e;--surface-hover:#2a3a4a;--focus-ice:#bad9ef}
+.app{--label-ink:var(--text-day);--value-ink:var(--text-day);--glass-fill:var(--glass-light);--glass-edge:var(--glass-edge-light)}
+.app.dark{--surface:var(--surface-cool);--ink:var(--text-pearl);--muted:var(--text-steel);--label-ink:var(--text-label);--value-ink:var(--text-value);--hover:var(--surface-hover);--glass-fill:var(--glass-dark);--glass-edge:var(--glass-edge-dark);color-scheme:dark}
+.app:not(.dark){color-scheme:light;--ink:var(--text-day);--muted:var(--text-day-muted)}
+.app .model-tree,.app aside,.app .comparison-review,.app .views,.app .comparison-controls,.app .mobile-comparison-switch{border-color:var(--glass-edge);box-shadow:0 8px 24px var(--glass-shadow);border-radius:8px}
+@supports(backdrop-filter:blur(1px)){.app .model-tree,.app aside,.app .comparison-review,.app .views,.app .comparison-controls,.app .mobile-comparison-switch{background:var(--glass-fill);backdrop-filter:blur(16px) saturate(115%);-webkit-backdrop-filter:blur(16px) saturate(115%)}}
+.app .parameter-label label,.app .tree-title,.app .inspector-heading{color:var(--label-ink)}.app .parameter-control input{color:var(--value-ink);font-variant-numeric:tabular-nums}.app .parameter-label label{font-weight:400}.app .parameter-heading h2{font-weight:500;color:var(--label-ink)}
+.app .tool-modes button,.app .comparison-controls button,.app .views button{font-size:.72rem;letter-spacing:.01em}.app .tool-modes button.active,.app .comparison-controls button[aria-pressed=true],.app .views button[aria-pressed=true]{box-shadow:none;color:var(--value-ink);background:transparent}
+.app .parameter-control input:focus-visible{outline-color:var(--focus-ice)}
+@media(prefers-reduced-transparency:reduce){.app .model-tree,.app aside,.app .comparison-review,.app .views,.app .comparison-controls,.app .mobile-comparison-switch{background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none}}
+.app{--control-focus:var(--text-day)}.app.dark{--control-focus:var(--focus-ice)}
+.app .parameter-control{justify-content:flex-end}.app .parameter-control input:focus-visible{outline-color:var(--control-focus)}
+
+/* Watermelon Command Search and tool hints, adapted to Studio's local theme. */
+:root{--command-scrim:rgba(3,8,15,.58)}
+.app .command-trigger{display:flex;align-items:center;gap:8px;border:1px solid var(--glass-edge);border-radius:5px;padding:4px 8px;min-height:28px;background:transparent;color:var(--muted);font-size:.6875rem}.command-trigger svg{width:14px;height:14px}.command-trigger kbd,.studio-command kbd{font-family:var(--font-2);font-size:.6875rem;font-weight:400;color:var(--muted)}.app .command-trigger:hover{background:var(--hover);color:var(--ink)}
+.studio-command{width:min(520px,calc(100% - 32px));max-height:78svh;margin:12svh auto 0;padding:0;border:1px solid var(--glass-edge);border-radius:10px;background:var(--surface);color:var(--ink);box-shadow:0 16px 48px var(--glass-shadow);overflow:hidden}.studio-command::backdrop{background:var(--command-scrim);backdrop-filter:blur(4px)}
+.command-heading{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line)}.command-heading>svg{width:16px;height:16px;color:var(--muted)}.command-heading h2{margin:0;font-size:.8125rem;font-weight:500}.app .command-heading>button{margin-left:auto;display:grid;place-items:center;border:0;padding:4px;color:var(--muted);background:transparent}.command-heading button svg{width:16px;height:16px}
+.app .studio-command>input{width:calc(100% - 32px);margin:12px 16px 4px;padding:8px 12px;background:var(--bench);color:var(--ink);border:1px solid var(--muted);border-radius:4px;font-size:.8125rem;min-height:36px}
+.command-results{max-height:48svh;overflow:auto;padding:4px 8px 8px}.command-section{font-size:.6875rem;color:var(--muted);padding:12px 8px 4px}.app .command-results button{display:flex;align-items:center;gap:12px;width:100%;padding:8px;min-height:36px;text-align:left;background:transparent;border:0;color:var(--muted);border-radius:4px}.command-results button>svg{width:16px;height:16px;flex-shrink:0}.command-results button>svg:last-child{margin-left:auto;width:13px}.command-results button span{display:flex;flex-direction:column;gap:4px;min-width:0}.command-results button strong{font-size:.75rem;font-weight:400}.command-results button small{font-size:.6875rem}.app .command-results button[aria-selected=true]{color:var(--ink);background:var(--hover)}.app .command-results button:disabled{color:var(--muted);background:var(--surface);cursor:not-allowed}.command-results button:disabled>svg:last-child{visibility:hidden}.command-empty{padding:24px 12px;color:var(--muted);font-size:.8125rem;text-align:center}.command-footer{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding:8px 16px;font-size:.6875rem;color:var(--muted)}
+.studio-tooltip{position:fixed;z-index:100;max-width:240px;padding:8px 12px;border:1px solid var(--glass-edge);background:var(--surface);color:var(--ink);border-radius:5px;box-shadow:0 4px 16px var(--glass-shadow);font-size:.6875rem;line-height:1.45;pointer-events:none}
+@supports(backdrop-filter:blur(1px)){.studio-command{background:var(--glass-fill);backdrop-filter:blur(20px) saturate(115%)}}
+@media(max-width:760px){.app .command-trigger{min-height:40px;padding:4px 8px}.command-trigger>span,.command-trigger>kbd{display:none}.studio-command{margin-top:8svh;width:calc(100% - 24px);max-height:84svh}.command-results{max-height:56svh}.app .command-results button{min-height:44px}.command-footer{flex-wrap:wrap;gap:4px 12px}.command-heading{padding:12px}.command-heading>button{min-width:32px;min-height:32px}}
+@media(prefers-reduced-transparency:reduce){.studio-command{background:var(--surface);backdrop-filter:none}.studio-command::backdrop{backdrop-filter:none}}
+
+.app .command-trigger > span, .app .studio-command span { color: inherit; }

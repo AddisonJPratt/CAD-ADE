@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
-export type IconName = 'browser'|'inspector'|'parameters'|'cube'|'folder'|'layers'|'eye'|'chat'|'history'|'download'|'fit'|'wire'|'sun'|'moon'|'check'|'arrow'|'close';
+export type IconName = 'search'|'browser'|'inspector'|'parameters'|'cube'|'folder'|'layers'|'eye'|'chat'|'history'|'download'|'fit'|'wire'|'sun'|'moon'|'check'|'arrow'|'close';
 const paths: Record<IconName, ReactNode> = {
+ search:<><circle cx="10" cy="10" r="6"/><path d="m14.5 14.5 5.5 5.5"/></>,
  browser:<><path d="M4 4v14h4M4 11h4"/><rect x="9" y="3" width="11" height="4" rx=".5"/><rect x="9" y="9" width="11" height="4" rx=".5"/><rect x="9" y="16" width="11" height="4" rx=".5"/></>,
  inspector:<><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M14 4v16M17 8h1M17 12h1M17 16h1"/></>,
  parameters:<><path d="M4 6h6m4 0h6M4 12h2m4 0h10M4 18h10m4 0h2"/><rect x="10" y="3" width="4" height="6" rx=".5"/><rect x="6" y="9" width="4" height="6" rx=".5"/><rect x="14" y="15" width="4" height="6" rx=".5"/></>,

@@ -88,3 +88,25 @@ class ParameterApiTest(unittest.TestCase):
             'project': str(project), 'selection': {'design': 'gear_pair.py'},
             'parameter': {'name': 'teeth_a', 'value': 22.5}})
         self.assertEqual(status, 400)
+
+    def test_accepted_edit_keeps_brief_defaults_in_sync_without_changing_requirements(self):
+        import yaml
+        brief = self.project / 'briefs/cable_clip.yaml'
+        before = yaml.safe_load(brief.read_text())
+        _, pending = self.request('POST', '/proposals', {
+            'project':str(self.project), 'selection':{'design':'cable_clip.py'},
+            'parameter':{'name':'cable_dia','value':8}})
+        deadline = time.monotonic() + 120
+        while pending['state'] not in ('ready','error') and time.monotonic() < deadline:
+            time.sleep(.1)
+            _, pending = self.request('GET', '/proposals/' + pending['id'])
+        self.assertEqual(pending['state'],'ready',pending.get('error'))
+        status, accepted = self.request('POST', '/proposals/' + pending['id'] + '/accept', {'wait':True,'samples':7})
+        self.assertEqual(status,200)
+        self.assertTrue(accepted['run']['verdict']['pass'])
+        after = yaml.safe_load(brief.read_text())
+        self.assertEqual(after['hard_dimensions'],before['hard_dimensions'])
+        self.assertEqual(after['measures'],before['measures'])
+        self.assertEqual(after['params']['cable_dia']['value'],8)
+        self.assertEqual(after['params']['cable_dia']['min'],3)
+        self.assertEqual(after['params']['cable_dia']['max'],10)
