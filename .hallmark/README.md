@@ -135,3 +135,16 @@ Final viewport pass validation: 5/5 Playwright tests and TypeScript/production b
 passed. Curved-model coverage verifies material changes in rendered pixels, native
 lighting keyboard input, grid reset, drag-to-pan, display dismissal, and mobile
 layout; existing accept/reject/version/export paths also pass. No backend changed.
+
+## Colored optical-glass icon finish
+
+- Owner explicitly requested colored, glass-like custom icons. Added role palettes,
+  translucent SVG fills, refracted-edge gradients and subtle offset shadows within
+  the original shapes. This records the requested exception to gradient restraint.
+- Unique React IDs isolate each glyph's gradient definitions. Material swatches
+  remain color-accurate; light theme uses dark linework, disabled icons use muted
+  achromatic styling and high-contrast mode restores inherited ink.
+- Production build and focused curved-model desktop/mobile browser test passed.
+  Live unopened-workspace Impeccable detector returned []. Manual loaded dark/light
+  captures and the exported icon sheet were reviewed; no new P0/P1 found.
+  Review remains single-context with the prior independent-review limitation.

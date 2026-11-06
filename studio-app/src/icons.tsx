@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 export type IconName = 'orbit'|'pan'|'fitModel'|'display'|'grid'|'shaded'|'front'|'top'|'side'|'iso'|'zoomIn'|'zoomOut'|'reset'|'eyeOff'|'search'|'browser'|'inspector'|'parameters'|'cube'|'folder'|'layers'|'eye'|'chat'|'history'|'download'|'fit'|'wire'|'sun'|'moon'|'check'|'arrow'|'close';
 const paths: Record<IconName, ReactNode> = {
  // Original precision-CAD glyphs: cut faces, open corners and calibrated axes.
@@ -33,4 +33,50 @@ const paths: Record<IconName, ReactNode> = {
  moon:<path d="M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11Z"/>,
  check:<path d="m5 12 4 4L19 6"/>, arrow:<path d="M4 12h16m-6-6 6 6-6 6"/>,close:<path d="m6 6 12 12M18 6 6 18"/>
 };
-export function Icon({name}: {name: IconName}) {return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.45" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>}
+type IconTone = 'sky'|'mint'|'amber'|'violet'|'neutral';
+const tones:Partial<Record<IconName,IconTone>> = {
+ orbit:'sky',pan:'amber',fitModel:'mint',display:'violet',grid:'mint',shaded:'sky',
+ front:'sky',top:'mint',side:'amber',iso:'sky',zoomIn:'sky',zoomOut:'sky',reset:'amber',
+ browser:'sky',inspector:'sky',parameters:'amber',cube:'sky',folder:'amber',layers:'violet',
+ chat:'violet',history:'sky',download:'mint',fit:'mint',wire:'mint',sun:'amber',moon:'violet',check:'mint'
+};
+// Filled silhouettes sit behind the precise linework, with a separate refracted edge.
+const glass:Partial<Record<IconName,ReactNode>> = {
+ orbit:<path d="m12 7 4 2.5v5L12 17l-4-2.5v-5L12 7Z"/>,
+ pan:<rect x="8" y="8" width="8" height="8" rx="2"/>,
+ fitModel:<path d="m12 6 5 3v6l-5 3-5-3V9l5-3Z"/>,
+ display:<path d="m12 2 8.5 5v10L12 22l-8.5-5V7L12 2Z"/>,
+ grid:<path d="m2 13 9-9 11 7-9 9-11-7Z"/>,
+ shaded:<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/>,
+ front:<path d="m7 7 5-3 8 4.5V17l-5 3H7V7Z"/>,
+ top:<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/>,
+ side:<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/>,
+ iso:<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/>,
+ zoomIn:<circle cx="10" cy="10" r="6.5"/>,zoomOut:<circle cx="10" cy="10" r="6.5"/>,
+ reset:<rect x="8" y="8" width="8" height="8" rx="2"/>,
+ browser:<><rect x="9" y="3" width="11" height="4" rx=".5"/><rect x="9" y="9" width="11" height="4" rx=".5"/><rect x="9" y="16" width="11" height="4" rx=".5"/></>,
+ inspector:<rect x="3" y="4" width="18" height="16" rx="1"/>,
+ parameters:<><rect x="10" y="3" width="4" height="6" rx=".5"/><rect x="6" y="9" width="4" height="6" rx=".5"/><rect x="14" y="15" width="4" height="6" rx=".5"/></>,
+ cube:<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/>,
+ folder:<path d="M3 7V5h6l2 2h10v12H3V7Z"/>,
+ layers:<path d="m3 8 9-5 9 5-9 5-9-5Z"/>,
+ chat:<path d="M4 4h16v12H9l-5 4V4Z"/>,
+ history:<circle cx="12" cy="12" r="7"/>,download:<path d="M4 16h16v5H4v-5Z"/>,
+ fit:<rect x="8" y="8" width="8" height="8" rx="1"/>,
+ wire:<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/>,
+ sun:<circle cx="12" cy="12" r="4"/>,moon:<path d="M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11Z"/>
+};
+export function Icon({name,tone}: {name:IconName;tone?:IconTone|'material'}) {
+ const id=useId().replace(/:/g,'');
+ const hue=tone || tones[name] || 'neutral';
+ if(hue==='material') return <svg className="cad-icon icon-material" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.45" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
+ return <svg className={`cad-icon icon-${hue}`} width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+  <defs>
+   <linearGradient id={`${id}-glass`} x1="10%" y1="0%" x2="85%" y2="100%"><stop stopColor="var(--icon-light)" stopOpacity=".85"/><stop offset=".42" stopColor="var(--icon-hue)" stopOpacity=".38"/><stop offset="1" stopColor="var(--icon-deep)" stopOpacity=".72"/></linearGradient>
+   <linearGradient id={`${id}-edge`} x1="0%" y1="0%" x2="100%" y2="100%"><stop stopColor="var(--icon-glint)"/><stop offset=".45" stopColor="var(--icon-light)"/><stop offset="1" stopColor="var(--icon-hue)"/></linearGradient>
+  </defs>
+  {glass[name] && <g className="icon-glass-body" fill={`url(#${id}-glass)`} stroke={`url(#${id}-edge)`} strokeWidth=".7">{glass[name]}</g>}
+  <g className="icon-detail" stroke="var(--icon-line)">{paths[name]}</g>
+  {glass[name] && <g className="icon-glass-edge" stroke={`url(#${id}-edge)`} strokeWidth=".55" opacity=".9">{glass[name]}</g>}
+ </svg>;
+}

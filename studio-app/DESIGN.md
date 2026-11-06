@@ -48,3 +48,10 @@ or exported files. Comparison keeps its matched before/after presentation.
 Fourteen original SVG glyphs use 1.45-unit strokes and subtle cut-face fills,
 including distinct front/top/side faces, orbit, pan, grid and fit. Existing labels
 remain accessible names; icon-only tools include pointer/keyboard explanations.
+
+Owner-requested icon finish: colored optical glass. Original SVG silhouettes gain
+translucent hue fills, pale refracted rims and subtle offset shadows, with sky,
+mint, amber and violet role palettes. Same-hue SVG gradients are confined to the
+glyphs, an explicit exception to the previous blanket no-gradient direction.
+Light theme uses dark precision strokes; disabled icons lose chroma and use muted
+ink. Material previews retain actual finish colors rather than the tool palette.
