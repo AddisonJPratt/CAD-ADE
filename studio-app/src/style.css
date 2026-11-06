@@ -9,3 +9,9 @@
 .views{max-width:min(710px,calc(100% - 64px));flex-wrap:wrap}.views button{min-width:0;padding:7px 9px}.views button:disabled{opacity:.45;cursor:default}@media(max-width:760px){.views{max-width:calc(100% - 32px);bottom:48px}.views button{padding:8px}}
 
 .camera-more{position:relative}.camera-more summary{cursor:pointer;list-style:none;background:#f7f5f1;border:1px solid #77716a;border-radius:4px;padding:7px 9px}.camera-more summary:focus-visible{outline:2px solid #1d1b18;outline-offset:3px}.camera-actions{position:absolute;bottom:calc(100% + 8px);left:0;display:grid;grid-template-columns:repeat(2,max-content);gap:4px;background:#f7f5f1;padding:8px;border:1px solid #77716a;border-radius:4px;z-index:2}
+
+.chat{border-top:1px solid #d2cec7;border-bottom:1px solid #d2cec7;padding:24px 0;margin-bottom:24px}.chat p,.gate-progress{font-size:.8rem;line-height:1.45;color:#58544d}.chat form{display:grid;gap:8px}.proposal h3{font-size:1rem;font-weight:600}.preview-grid{display:grid;grid-template-columns:1fr;gap:12px}.preview-grid figure{margin:0;min-width:0}.preview-grid figcaption{font-size:.7rem;line-height:1.3;margin-bottom:6px}.preview-canvas{height:180px;background:#ece9e3;border:1px solid #d2cec7}.proposal-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.gate-progress{margin-top:12px;max-height:12rem;overflow:auto}
+
+.chat select{width:100%;font:inherit;padding:10px;background:white;border:1px solid #77716a;border-radius:4px}.chat select:focus-visible{outline:2px solid #1d1b18;outline-offset:3px}
+
+@media(max-width:760px){button,.camera-more summary{min-height:44px}}

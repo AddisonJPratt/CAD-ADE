@@ -41,3 +41,25 @@ test('opens a project and inspects an older version', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({path: '/tmp/magic-studio-mobile.png', fullPage:true});
 });
+
+test('fake agent previews, rejects and accepts a change', async ({ page, request }) => {
+  const project = process.env.MAGIC_TEST_PROJECT!;
+  const restored = await request.post('/api/projects/rollback', { data: { project, version: '2', wait: true, samples: 5 }, timeout: 180000 });
+  expect(restored.ok()).toBeTruthy();
+  await page.goto('/');
+  await page.getByLabel('Project folder').fill(project);
+  await page.getByRole('button', { name: 'Open project' }).click();
+  await page.getByLabel('Change request').fill('size 26');
+  await page.getByRole('button', { name: 'Propose change' }).click();
+  await expect(page.getByText('size: 24 → 26')).toBeVisible({ timeout: 120000 });
+  await expect(page.getByLabel('before preview').locator('canvas')).toBeVisible();
+  await expect(page.getByLabel('after preview').locator('canvas')).toBeVisible();
+  await page.getByRole('button', { name: 'Reject change' }).click();
+  await expect(page.getByText('Proposed change ready to review')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Propose change' }).click();
+  await expect(page.getByText('size: 24 → 26')).toBeVisible({ timeout: 120000 });
+  await page.getByRole('button', { name: 'Accept change' }).click();
+  await expect(page.getByText('Previous: passed · Now: passed')).toBeVisible({ timeout: 180000 });
+  await expect(page.getByText('3 Printability: PASS')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Version 5' })).toBeVisible();
+});
