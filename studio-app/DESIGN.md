@@ -39,3 +39,12 @@ its public MCP registry and adapted to native dialog/React portals, our design t
 and custom SVG system. The command menu exposes actual Studio actions, supports
 Cmd/Ctrl K, arrows, Enter and Escape, and contains keyboard focus. Source/license
 are preserved in src/watermelon/NOTICE.md. No Tailwind/shadcn scaffold is required.
+
+Second Watermelon MCP pass: ButtonGroup 3/12 and Popover 9 inform the contextual
+viewport rail, icon/label view segments and native display popover. This adds
+working pan/orbit modes, fit visible bodies, surface finishes, studio illumination,
+and an XY workplane grid. These are view settings; they never alter CAD geometry
+or exported files. Comparison keeps its matched before/after presentation.
+Fourteen original SVG glyphs use 1.45-unit strokes and subtle cut-face fills,
+including distinct front/top/side faces, orbit, pan, grid and fit. Existing labels
+remain accessible names; icon-only tools include pointer/keyboard explanations.

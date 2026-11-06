@@ -3,6 +3,11 @@
 The source was retrieved through Watermelon UI's public MCP server:
 https://mcp.watermelon.sh/mcp
 
+- ButtonGroup 3/12: https://ui.watermelon.sh/components/button-group
+  Registries: https://registry.watermelon.sh/r/button-group-3.json and
+  https://registry.watermelon.sh/r/button-group-12.json
+- Popover 9: https://ui.watermelon.sh/components/popover
+  Registry: https://registry.watermelon.sh/r/popover-9.json
 - Command Search: https://ui.watermelon.sh/animated-components/command-search
   Registry: https://registry.watermelon.sh/r/command-search.json
 - Tooltip 8: https://ui.watermelon.sh/components/tooltip
@@ -42,3 +47,9 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+ButtonGroup 3/12 contribute compact grouped icon actions and icon/label segments;
+Popover 9 contributes grouped settings, live range readout and a reset action.
+The adaptation uses native HTML popover, checkbox and range controls with real
+Three.js appearance state, rather than the catalog's sample filters or budget.
+All CAD icons are original vector drawings, not Watermelon/Lucide icon assets.

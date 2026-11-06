@@ -107,3 +107,31 @@ Owner live M0 acceptance remains explicitly outstanding (docs/M0_DEMO.md).
 
 Final validation: 5/5 Playwright, 20/20 engine integration tests, 68/68 harness
 checks; TypeScript/production build passed. Existing large-bundle warning remains.
+
+## Watermelon viewport controls and original icon set
+
+- Retrieved ButtonGroup 3, ButtonGroup 12 and Popover 9 from Watermelon's public
+  MCP; retained MIT source references. Adapted grouping, tooltips, native popover,
+  settings groups, range readout and reset to supported Studio actions.
+- Fourteen original SVG glyphs use facet fills and calibrated 1.45-unit strokes.
+  Integrated into orbit/pan, fit, display, grid, view presets, command search,
+  surface swatches and hidden-body states. No icon/animation package was added.
+- Saved-view controls alter only view state, never CAD/exported geometry. Matched
+  proposal previews keep their existing presentation. Lighting updates reuse the
+  environment texture rather than regenerating it on every slider movement.
+- Source Hallmark: 0 FAIL, 8 WARN, no spacing notes. Rendered unopened workspace:
+  0 FAIL; Impeccable live detector []. Loaded desktop/light/mobile display states
+  visually reviewed and exercised in the curved-clip browser test.
+- New swatch warning is intentional: a dark finish is shown as its true dark color
+  on the neutral swatch backdrop. High-contrast text labels and selected checks
+  convey its identity/state; the swatch color alone never carries the operation.
+- Manual final critique/audit remains degraded (same independent review capacity
+  limitation documented above). No P0/P1 found in the reviewed scope. Existing
+  bundle-size P2 remains (~1.21 MB before gzip). Physical-device/touch validation
+  remains unperformed; phone evidence is browser viewport emulation.
+Questions skipped: the user supplied the direction and requested implementation.
+
+Final viewport pass validation: 5/5 Playwright tests and TypeScript/production build
+passed. Curved-model coverage verifies material changes in rendered pixels, native
+lighting keyboard input, grid reset, drag-to-pan, display dismissal, and mobile
+layout; existing accept/reject/version/export paths also pass. No backend changed.

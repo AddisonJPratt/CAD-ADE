@@ -1,6 +1,21 @@
 import type { ReactNode } from 'react';
-export type IconName = 'search'|'browser'|'inspector'|'parameters'|'cube'|'folder'|'layers'|'eye'|'chat'|'history'|'download'|'fit'|'wire'|'sun'|'moon'|'check'|'arrow'|'close';
+export type IconName = 'orbit'|'pan'|'fitModel'|'display'|'grid'|'shaded'|'front'|'top'|'side'|'iso'|'zoomIn'|'zoomOut'|'reset'|'eyeOff'|'search'|'browser'|'inspector'|'parameters'|'cube'|'folder'|'layers'|'eye'|'chat'|'history'|'download'|'fit'|'wire'|'sun'|'moon'|'check'|'arrow'|'close';
 const paths: Record<IconName, ReactNode> = {
+ // Original precision-CAD glyphs: cut faces, open corners and calibrated axes.
+ orbit:<><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(-28 12 12)"/><path d="m18 3 1 5-5-1"/><path d="m12 7 4 2.5v5L12 17l-4-2.5v-5L12 7Z" fill="currentColor" fillOpacity=".12"/></>,
+ pan:<><path d="M12 2v20M2 12h20m-13-7 3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3m14-6 3 3-3 3"/><rect x="9" y="9" width="6" height="6" rx="1" fill="currentColor" fillOpacity=".18"/></>,
+ fitModel:<><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><path d="m12 6 5 3v6l-5 3-5-3V9l5-3Z" fill="currentColor" fillOpacity=".12"/><path d="m7 9 5 3 5-3m-5 3v6"/></>,
+ display:<><path d="m12 2 8.5 5v10L12 22l-8.5-5V7L12 2Z"/><path d="M12 2v20m0-20 8.5 5L12 12V2Z" fill="currentColor" fillOpacity=".22"/><path d="m3.5 7 8.5 5 8.5-5M12 12v10"/></>,
+ grid:<><path d="m2 13 9-9 11 7-9 9-11-7Z" fill="currentColor" fillOpacity=".08"/><path d="m5 10 11 7M8 7l11 7M6 15.5l9-9m-5.5 11L18.5 8"/></>,
+ shaded:<><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4 7.5 8 4.5v9l-8-4.5v-9Z" fill="currentColor" fillOpacity=".24"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></>,
+ front:<><path d="m7 7 5-3 8 4.5V17l-5 3H7V7Z"/><path d="M7 7h8v13H7Z" fill="currentColor" fillOpacity=".25"/><path d="m15 7 5 1.5M15 7v13M4 10v10h8"/></>,
+ top:<><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m12 3 8 4.5-8 4.5-8-4.5L12 3Z" fill="currentColor" fillOpacity=".3"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></>,
+ side:<><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m12 12 8-4.5v9L12 21v-9Z" fill="currentColor" fillOpacity=".3"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></>,
+ iso:<><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m12 3 8 4.5-8 4.5-8-4.5L12 3Z" fill="currentColor" fillOpacity=".16"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9M2 20h3m14-17h3"/></>,
+ zoomIn:<><circle cx="10" cy="10" r="6.5"/><path d="m15 15 6 6M7 10h6m-3-3v6"/></>,
+ zoomOut:<><circle cx="10" cy="10" r="6.5"/><path d="m15 15 6 6M7 10h6"/></>,
+ reset:<><path d="M4 9a8 8 0 1 1 0 7M3 3v7h7"/><rect x="9" y="9" width="6" height="6" rx=".5" fill="currentColor" fillOpacity=".16"/></>,
+ eyeOff:<><path d="m3 3 18 18M9 5a12 12 0 0 1 13 7 18 18 0 0 1-4 4M6 6a18 18 0 0 0-4 6s4 7 10 7c2 0 3.5-.5 5-1.5M10 10a3 3 0 0 0 4 4"/></>,
  search:<><circle cx="10" cy="10" r="6"/><path d="m14.5 14.5 5.5 5.5"/></>,
  browser:<><path d="M4 4v14h4M4 11h4"/><rect x="9" y="3" width="11" height="4" rx=".5"/><rect x="9" y="9" width="11" height="4" rx=".5"/><rect x="9" y="16" width="11" height="4" rx=".5"/></>,
  inspector:<><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M14 4v16M17 8h1M17 12h1M17 16h1"/></>,
@@ -18,4 +33,4 @@ const paths: Record<IconName, ReactNode> = {
  moon:<path d="M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11Z"/>,
  check:<path d="m5 12 4 4L19 6"/>, arrow:<path d="M4 12h16m-6-6 6 6-6 6"/>,close:<path d="m6 6 12 12M18 6 6 18"/>
 };
-export function Icon({name}: {name: IconName}) {return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>}
+export function Icon({name}: {name: IconName}) {return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.45" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>}
