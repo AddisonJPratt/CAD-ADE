@@ -293,7 +293,10 @@ test('Watermelon-adapted command search runs real Studio actions', async ({ page
 
 test('the header shows the Magic box brand and the favicon is served', async ({ page, request }) => {
   await page.goto('/');
-  const brand = page.getByRole('link', {name:'Magic CAD Studio'});
+  await expect(page).toHaveTitle('Magic CAD');
+  // The logo is a plain image named "Magic CAD": nothing to click, and not a Tab stop.
+  const brand = page.getByRole('img', {name:'Magic CAD', exact:true});
+  await expect(page.getByRole('link', {name:/Magic CAD/})).toHaveCount(0);
   const mark = brand.locator('svg.brand-mark'), wordmark = brand.locator('svg.brand-wordmark');
   await expect(mark).toBeVisible();
   await expect(wordmark).toBeVisible();
