@@ -104,3 +104,15 @@ on the viewport rail draws a lasso that is laid onto the surface as a loop. A co
 sits under the selection: Ask, Measure (with two selections), Note, Keep as is (shown in sage, sent
 as "keep unchanged"). Measurements appear as a dimension on the model; clicking the number and
 typing a new value writes the request. The composer only shows what is attached (chips).
+
+November 7 brand (owner): the mark is the Magic box, a graphite box in true isometric (30° edges)
+whose lid floats just above the base, with warm light spilling out of the gap: something magic
+inside, and a nod to the enclosures the product makes. The wordmark is MAGIC CAD in wide capitals,
+Archivo at width 125 and weight 700 with +0.03em tracking (SIL OFL 1.1), drawn as outlines in
+src/Brand.tsx so the app loads no font. Header lockup: 22 px mark, 8 px gap, 9.5 px wordmark in the
+text colour; on phones the wordmark drops and the mark stays. Light surfaces use the graphite finish;
+dark surfaces use a lifted finish with brighter rims so the outline holds on the graphite header.
+The app icon and favicon sit on a warm stone tile (#efe9df to #cfc6b6); the favicon widens the gap
+and drops the bloom so the light survives 16 px. The glow is the one deliberate non-action use of
+orange: it belongs to the mark only and never appears on controls. The isometric cube glyph is a
+camera-view icon again, not the logo. Sources: public/brand/*.svg, public/favicon.svg.

@@ -9,6 +9,7 @@ import './style.css';
 import { Evidence, type EvidenceDesign } from './Evidence';
 import { Catalogue } from './Catalogue';
 import { Icon } from './icons';
+import { BrandMark, Wordmark } from './Brand';
 import { ParameterPanel } from './ParameterPanel';
 import { CommandSearch, type StudioCommand } from './watermelon/CommandSearch';
 import { ToolHint } from './watermelon/ToolHint';
@@ -229,7 +230,7 @@ function App() {
   const focusComposerSoon = () => requestAnimationFrame(() => document.getElementById('request')?.focus());
   return <main className={`app desk${dark ? ' dark' : ''}`} style={{ '--column': `${column}px` } as React.CSSProperties}>
     <header className="app-header">
-      <a className="brand" href="#" aria-label="Magic CAD Studio"><Icon name="cube"/><strong>Magic CAD</strong></a>
+      <a className="brand" href="#" aria-label="Magic CAD Studio"><BrandMark className="brand-mark" surface={dark ? 'dark' : 'light'}/><Wordmark className="brand-wordmark"/></a>
       {project ? <details className="project-switch"><summary title={project}>{projectName}</summary><form className="project-open compact" noValidate onSubmit={e => { open(e); (e.currentTarget.closest('details') as HTMLDetailsElement | null)?.removeAttribute('open'); }}><label htmlFor="folder">Project folder</label><div className="open-field"><input id="folder" value={folder} onChange={e => { setFolder(e.target.value); setFolderHint(false); }} placeholder="/path/to/project" aria-describedby={folderHint ? 'folder-hint' : undefined} aria-invalid={folderHint || undefined} autoComplete="off" spellCheck={false}/><button className="open-button" aria-label="Open project" disabled={proposalBusy || opening}>{opening ? 'Opening…' : 'Open'}<Icon name="arrow"/></button></div>{folderHint && <p id="folder-hint" className="field-hint">Enter the folder that holds your project.</p>}</form></details> : <span className="project-name">No project open</span>}
       <nav className="mode-nav" aria-label="Workspace modes">{(['Make', 'Studio', 'Mission Control'] as Mode[]).map(name => <button type="button" key={name} aria-current={mode === name ? 'page' : undefined} onClick={() => setMode(name)}>{name}</button>)}</nav>
       <span className="save-state">{proposalBusy ? 'Working…' : project ? 'Saved locally' : 'Local studio'}</span>

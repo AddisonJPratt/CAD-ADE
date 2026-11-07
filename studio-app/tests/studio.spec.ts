@@ -259,6 +259,23 @@ test('Watermelon-adapted command search runs real Studio actions', async ({ page
   await expect(page.getByRole('button', {name:'Use dark theme'})).toBeVisible();
 });
 
+test('the header shows the Magic box brand and the favicon is served', async ({ page, request }) => {
+  await page.goto('/');
+  const brand = page.getByRole('link', {name:'Magic CAD Studio'});
+  const mark = brand.locator('svg.brand-mark'), wordmark = brand.locator('svg.brand-wordmark');
+  await expect(mark).toBeVisible();
+  await expect(wordmark).toBeVisible();
+  await expect(mark).toHaveAttribute('data-surface', 'dark');
+  await page.getByRole('button', {name:'Use light theme'}).click();
+  await expect(mark).toHaveAttribute('data-surface', 'light');
+  const favicon = await page.locator('link[rel="icon"][type="image/svg+xml"]').getAttribute('href');
+  expect(favicon).toBe('/favicon.svg');
+  for (const icon of [favicon!, '/favicon-32.png', '/apple-touch-icon.png']) expect((await request.get(icon)).ok()).toBe(true);
+  await page.setViewportSize({width:390, height:844});
+  await expect(wordmark).toBeHidden();
+  await expect(mark).toBeVisible();
+});
+
 test('modes preserve the project and selected version, and Mission Control shows saved sources', async ({ page }) => {
   await page.goto('/');
   await page.getByLabel('Project folder').fill(process.env.MAGIC_TEST_PROJECT!);
