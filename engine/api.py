@@ -12,6 +12,8 @@
     GET  /runs/<id>/artifacts/<path>     a file from the project's outputs folder (STL, STEP, PNG, report)
 
     POST /projects                       {"folder", "from_design"}: a new project as version 1 (201)
+    GET  /projects/printer?project=...   current printer and material
+    POST /projects/printer               {"project", "material", "printer"?}: select project settings
     GET  /projects/versions?project=...  the version timeline, newest first, with each version's verdict
     POST /projects/versions              {"project", "message"}: save the current files as a version (201)
     POST /projects/rollback              {"project", "version", "wait"?}: restore a version's files as a
@@ -40,6 +42,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
 
 from .catalogue import BUILTIN, add_component, list_components, project_path
+from .printers import PROFILE, project_printer, select_printer
 from .projects import (ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, project_parts_list,
                        run_project, verdict_artifacts)
 from .versions import (Conflict, create_project, list_versions, require_versioned,
@@ -187,6 +190,9 @@ class Handler(BaseHTTPRequestHandler):
             return self.guarded(lambda: self.catalogue(project))
         if path == "/runs":
             return self.reply(HTTPStatus.OK, {"runs": [r.summary() for r in self.engine.all()]})
+        if path == "/projects/printer":
+            project = parse_qs(urlsplit(self.path).query).get("project", [""])[0]
+            return self.guarded(lambda: (HTTPStatus.OK, project_printer(project)))
         if path == "/projects/versions":
             project = parse_qs(urlsplit(self.path).query).get("project", [""])[0]
             return self.guarded(lambda: (HTTPStatus.OK, {"project": project,
@@ -289,7 +295,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self.host_ok():
             return
         path = urlsplit(self.path).path
-        routes = {"/catalogue": self.post_catalogue, "/runs": self.post_run, "/projects": self.post_project,
+        routes = {"/catalogue": self.post_catalogue, "/projects/printer": self.post_printer, "/runs": self.post_run, "/projects": self.post_project,
                   "/projects/versions": self.post_version, "/projects/rollback": self.post_rollback,
                   "/projects/version-artifacts": self.post_version_artifacts}
         if path not in routes:
@@ -316,6 +322,15 @@ class Handler(BaseHTTPRequestHandler):
         with run.changed:
             run.changed.wait_for(lambda: run.status in TERMINAL)
         return HTTPStatus.OK
+
+    def post_printer(self, body):
+        project = Path(body["project"]).expanduser().resolve()
+        designs_of(project)
+        with self.engine.lock:
+            if any(r.project == project and r.status not in TERMINAL for r in self.engine.runs.values()):
+                raise Busy(f"{project} has a run in progress; try again when it finishes")
+            result = select_printer(project, body.get("printer", PROFILE["id"]), body["material"])
+        return HTTPStatus.OK, result
 
     def post_version_artifacts(self, body):
         version = rebuild_version_artifacts(body["project"], body["version"])
