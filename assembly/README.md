@@ -34,6 +34,15 @@ computed check, not a physical assembly test.
 .venv/bin/python magic.py assembly tests/fixtures/assembly_stack/assembly.py
 ```
 
+### Parts list
+
+`assembly/parts_list.py` turns the gate's derived rows into the parts list: printed parts
+(design and parameters), hardware with size and length, and purchased components with their
+source link and dimension provenance, each with a quantity and the instances it covers. It is
+never edited by hand. The gate writes it beside its report as `parts_list.csv` and
+`parts_list.json`; the engine API serves the current assembly's list at
+`GET /projects/parts-list?project=<folder>[&format=csv]`, and Mission Control shows it.
+
 A project folder with an `assembly.py` runs the gate after its designs (`magic.py project`,
 or POST `/runs` on the engine API); its verdict carries an `assembly` entry, gate
 `6 Assembly`, and passes only if the assembly does. The report is `outputs/_assembly/report.json`.

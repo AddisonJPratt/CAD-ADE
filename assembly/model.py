@@ -129,7 +129,7 @@ class Assembly:
         item = found[0]
         dims = {k: v['value'] for k, v in item['dimensions'].items()}
         shape = Box(dims['width'], dims['length'], dims['height'], align=(Align.CENTER, Align.CENTER, Align.MIN))
-        spec = {'catalogue_id': component_id, 'source': item.get('source'),
+        spec = {'catalogue_id': component_id, 'source': item.get('source'), 'dimensions': dims,
                 'provenance': {k: v['provenance'] for k, v in item['dimensions'].items()}}
         return self._add(Instance(ident, name or item['name'], 'component', shape, spec))
 

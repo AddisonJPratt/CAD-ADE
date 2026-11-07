@@ -26,7 +26,8 @@ OUTPUTS = "outputs"
 ASSEMBLY = "assembly.py"
 ASSEMBLY_OUT = "_assembly"   # a leading _ can never be a design stem (designs_of skips them)
 ARTIFACT_TYPES = {".stl": "model/stl", ".step": "model/step", ".png": "image/png",
-                  ".json": "application/json", ".md": "text/markdown; charset=utf-8"}
+                  ".json": "application/json", ".md": "text/markdown; charset=utf-8",
+                  ".csv": "text/csv; charset=utf-8"}
 
 
 class ProjectError(ValueError):
@@ -107,6 +108,21 @@ def run_assembly(project, emit, timeout=180):
     return {"assembly": ASSEMBLY, "pass": report["pass"], "gates": [gate], "checks": report["checks"],
             "report": f"{ASSEMBLY_OUT}/report.json", "claims": report["claims"],
             "artifacts": artifacts_of(project, ASSEMBLY_OUT)}
+
+
+def project_parts_list(project, timeout=180):
+    """The parts list of the project's assembly file as it is now (not as of the last run)."""
+    from assembly.gate import evaluate_parts
+    from assembly.parts_list import parts_list
+    project = Path(project).resolve()
+    designs_of(project)
+    if not (project / ASSEMBLY).is_file():
+        raise ProjectError(f"no {ASSEMBLY} in {project}")
+    report = evaluate_parts(project / ASSEMBLY, project, timeout)
+    failed = next((c for c in report["checks"] if c["name"] == "Assembly file" and c["status"] == "FAIL"), None)
+    if failed:
+        raise ProjectError(f"the assembly file does not build: {failed['detail']}")
+    return parts_list(report)
 
 
 def verdict_artifacts(verdict):
