@@ -21,7 +21,8 @@ STATE = ".magic"
 IGNORED = [f"/{OUTPUTS}/", f"/{STATE}/", "__pycache__/", "*.py[cod]"]
 # Identity and safety for the project's own repository: never the user's hooks, signing or editor.
 GIT = ["git", "-c", "user.name=Magic CAD", "-c", "user.email=magic-cad@localhost",
-       "-c", "commit.gpgsign=false", "-c", "core.hooksPath=/dev/null", "-c", "core.autocrlf=false"]
+       "-c", "commit.gpgsign=false", "-c", "core.hooksPath=/dev/null", "-c", "core.autocrlf=false",
+       "-c", "core.quotePath=false"]  # real file names (e.g. café.yaml), not git's octal escapes
 
 
 class VersionError(ProjectError):
@@ -150,7 +151,7 @@ def restore_version(project, ref):
     if target["current"]:
         raise Conflict(f"version {target['number']} is already the current version")
     git(project, "rm", "-r", "--quiet", "--cached", "--ignore-unmatch", ".")
-    for stale in git(project, "ls-files", "--others", "--exclude-standard").splitlines():
+    for stale in filter(None, git(project, "ls-files", "-z", "--others", "--exclude-standard").split("\0")):
         (project / stale).unlink()
     git(project, "checkout", target["id"], "--", ".")  # exactly that version's files, no others
     git(project, "add", "--all")

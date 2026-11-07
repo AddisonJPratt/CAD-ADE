@@ -17,6 +17,8 @@ design = project / 'designs/good_two_parts.py'
 design.write_text(design.read_text().replace('"size": (20.0,', '"size": (24.0,'))
 (project / 'briefs').mkdir(exist_ok=True)
 (project / 'briefs' / 'café.yaml').write_text('note: saved Unicode filename\n')
+# A project-local catalogue entry, saved with the version like any source file.
+(project / 'catalogue.json').write_text(json.dumps([{'id': 'measured-test', 'name': 'Measured test part', 'source': 'user measurements', 'dimensions': {'width': {'value': 17.2, 'unit': 'mm', 'provenance': 'user-measured'}}}]))
 save_version(project, 'Changed height')
 assert run_project(project, samples=5)[1]['pass']
 design.write_text(design.read_text().replace('size, size, size,', 'size, size, 37.5,'))
@@ -24,5 +26,4 @@ save_version(project, 'Invalid height')
 assert not run_project(project, samples=5)[1]['pass']
 oldest = list_versions(project)[-1]["id"]
 shutil.rmtree(project / '.magic' / 'artifacts' / oldest)
-(project / 'catalogue.json').write_text(json.dumps([{'id': 'measured-test', 'name': 'Measured test part', 'source': 'user measurements', 'dimensions': {'width': {'value': 17.2, 'unit': 'mm', 'provenance': 'user-measured'}}}]))
 print(project)

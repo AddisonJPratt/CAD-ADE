@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 
 from .projects import ProjectError, designs_of
-from .versions import Conflict
+from .versions import Conflict, git, is_versioned
 
 ROOT = Path(__file__).resolve().parent.parent
 BUILTIN = ROOT / 'library' / 'components.json'
@@ -73,4 +73,10 @@ def add_component(project, item):
     finally:
         if name and os.path.exists(name):
             os.unlink(name)
+    if is_versioned(path.parent):
+        # Save the catalogue as its own version so a new part never leaves the project with
+        # unsaved changes (which blocks rollback and proposals); other unsaved edits stay unsaved.
+        git(path.parent, 'add', '--', path.name)
+        git(path.parent, 'commit', '--quiet', '--message', f"Add catalogue part: {component['name']}",
+            '--', path.name)
     return component

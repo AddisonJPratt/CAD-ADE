@@ -89,7 +89,9 @@ def engine_command(command, argv):
     if command == "serve":
         from engine.api import PORT, serve
         parser.add_argument("--port", type=int, default=PORT)
-        return serve(parser.parse_args(argv).port)
+        parser.add_argument("--agent", choices=("claude", "scripted"), default="claude")
+        args = parser.parse_args(argv)
+        return serve(args.port, args.agent)
     from engine import versions
     from engine.projects import ProjectError, run_project
     parser.add_argument("folder")

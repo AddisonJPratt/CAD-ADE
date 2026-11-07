@@ -13,6 +13,9 @@
                                          then an "end" event. Honours Last-Event-ID.
     GET  /runs/<id>/artifacts/<path>     a file from the project's outputs folder (STL, STEP, PNG, report)
 
+    GET  /projects/parameters?project=...&design=...  literal defaults/ranges and brief units
+    POST /proposals                      {"project", "selection":{"design"}, "parameter":{"name","value"}}
+                                         explicit parameter edit, held for acceptance like a chat edit
     POST /projects                       {"folder", "from_design"}: a new project as version 1 (201)
     GET  /projects/printer?project=...   current printer and material
     POST /projects/printer               {"project", "material", "printer"?}: select project settings
@@ -29,6 +32,7 @@ Content-Type: application/json, which a web page cannot send cross-origin withou
 preflight this server never answers. Runs execute one at a time, in order: the gates share
 the CPU and the renderer, and a verdict must never depend on what else was running.
 """
+import ast
 import json
 import queue
 import re
@@ -43,12 +47,18 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
 
+from harness.execute import run_worker
+from harness.sweep import plan_samples
+
+from .proposal_session import ProposalSession
+from .agents import ScriptedFakeAgent, ParameterEditAgent
 from .catalogue import BUILTIN, add_component, list_components, project_path
+from .parameters import parameters_of, accepted_brief_edit
 from .printers import PROFILE, project_printer, select_printer
 from .projects import (ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, project_parts_list,
                        run_project, verdict_artifacts)
 from .versions import (Conflict, create_project, list_versions, require_versioned,
-                       restore_version, save_version, find_version, rebuild_version_artifacts, git)
+                       restore_version, save_version, find_version, rebuild_version_artifacts, head, unsaved, git)
 
 HOST = "127.0.0.1"
 PORT = 8766  # the plain-JS UI server keeps 8765
@@ -92,11 +102,22 @@ class Busy(Conflict):
 class Engine:
     """The run registry and its single worker thread."""
 
-    def __init__(self):
+    def __init__(self, agent=None):
         self.runs, self.pending = {}, queue.Queue()
+        self.proposals = {}
+        self.agent = agent or ScriptedFakeAgent()
         self.artifacts = tempfile.TemporaryDirectory(prefix="magic-cad-runs-")
         self.lock = threading.Lock()
+        self.execution = threading.Lock()
         threading.Thread(target=self.work, name="engine-runs", daemon=True).start()
+
+    def close(self):
+        """Stop pending agent processes when the local service shuts down."""
+        with self.lock:
+            pending = [p for p in self.proposals.values() if p['state'] == 'pending']
+        for proposal in pending:
+            proposal['session'].reject()
+            proposal['agent'].interrupt(proposal)
 
     def submit(self, project, samples=None, timeout=180, slice=False):
         project = Path(project).expanduser().resolve()
@@ -133,7 +154,8 @@ class Engine:
             run = self.pending.get()
             run.set_status("running")
             try:
-                _, run.verdict = run_project(run.project, run.emit, run.samples, run.timeout, run.slice)
+                with self.execution:
+                    _, run.verdict = run_project(run.project, run.emit, run.samples, run.timeout, run.slice)
                 snapshot = Path(self.artifacts.name) / run.id
                 for relative in ["verdict.json", *verdict_artifacts(run.verdict)]:
                     source = artifact_path(run.project, relative)
@@ -186,12 +208,73 @@ class Handler(BaseHTTPRequestHandler):
             return
         path = urlsplit(self.path).path
         if path == "/health":
-            return self.reply(HTTPStatus.OK, {"engine": "magic-cad", "api": API_VERSION})
+            return self.reply(HTTPStatus.OK, {"engine": "magic-cad", "api": API_VERSION, "agent": getattr(self.engine.agent, "name", "scripted")})
+        session_events = re.fullmatch(r"/proposals/([0-9a-f]{32})/events", path)
+        if session_events:
+            proposal = self.engine.proposals.get(session_events.group(1))
+            if not proposal:
+                return self.reply(HTTPStatus.NOT_FOUND, {"error": "no such session"})
+            session = proposal["session"]
+            try:
+                sent = max(0, int(self.headers.get("Last-Event-ID", 0)))
+            except ValueError:
+                sent = 0
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "text/event-stream")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            try:
+                while True:
+                    with session.changed:
+                        session.changed.wait_for(lambda: len(session.events) > sent or session.state in ("ready", "error", "rejected"), timeout=15)
+                        events = session.events[sent:]
+                        ended = session.state in ("ready", "error", "rejected")
+                    for event in events:
+                        self.wfile.write(f"id: {event['id']}\nevent: {event['type']}\ndata: {json.dumps(event)}\n\n".encode())
+                    sent += len(events)
+                    if ended:
+                        self.wfile.write(b"event: end\ndata: {}\n\n")
+                        self.wfile.flush()
+                        return
+                    if not events:
+                        self.wfile.write(b": keep-alive\n\n")
+                    self.wfile.flush()
+            except (BrokenPipeError, ConnectionResetError):
+                return
+        proposal_match = re.fullmatch(r"/proposals/([0-9a-f]{32})", path)
+        if proposal_match:
+            proposal = self.engine.proposals.get(proposal_match.group(1))
+            if not proposal:
+                return self.reply(HTTPStatus.NOT_FOUND, {"error": "no such proposal"})
+            return self.reply(HTTPStatus.OK, self.proposal_summary(proposal))
+        preview = re.fullmatch(r"/proposals/([0-9a-f]{32})/preview/(before|after)/(\d+)", path)
+        if preview:
+            ident, side, index = preview.groups()
+            proposal = self.engine.proposals.get(ident)
+            parts = proposal["session"].previews.get(side, []) if proposal else []
+            files = [part["stl"] for part in parts]
+            if int(index) >= len(files):
+                return self.reply(HTTPStatus.NOT_FOUND, {"error": "no such preview"})
+            data = Path(files[int(index)]).read_bytes()
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "model/stl")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+            return
         if path == "/catalogue":
             project = parse_qs(urlsplit(self.path).query).get("project", [""])[0]
             return self.guarded(lambda: self.catalogue(project))
         if path == "/runs":
             return self.reply(HTTPStatus.OK, {"runs": [r.summary() for r in self.engine.all()]})
+        if path == "/projects/parameters":
+            query = parse_qs(urlsplit(self.path).query)
+            project = query.get("project", [""])[0]
+            design = query.get("design", [""])[0]
+            return self.guarded(lambda: (HTTPStatus.OK, {"parameters": parameters_of(require_versioned(project), design)}))
+        if path == "/projects/designs":
+            project = parse_qs(urlsplit(self.path).query).get("project", [""])[0]
+            return self.guarded(lambda: (HTTPStatus.OK, {"designs": [p.name for p in designs_of(project)]}))
         if path == "/projects/printer":
             project = parse_qs(urlsplit(self.path).query).get("project", [""])[0]
             return self.guarded(lambda: (HTTPStatus.OK, project_printer(project)))
@@ -297,9 +380,18 @@ class Handler(BaseHTTPRequestHandler):
         if not self.host_ok():
             return
         path = urlsplit(self.path).path
-        routes = {"/catalogue": self.post_catalogue, "/projects/printer": self.post_printer, "/runs": self.post_run, "/projects": self.post_project,
+        routes = {"/proposals": self.post_proposal, "/catalogue": self.post_catalogue, "/projects/printer": self.post_printer, "/runs": self.post_run, "/projects": self.post_project,
                   "/projects/versions": self.post_version, "/projects/rollback": self.post_rollback,
                   "/projects/version-artifacts": self.post_version_artifacts}
+        proposal_match = re.fullmatch(r"/proposals/([0-9a-f]{32})/(reject|accept|interrupt|resume)", path)
+        if proposal_match:
+            ident, action = proposal_match.groups()
+            if action == "reject":
+                routes[path] = lambda body: self.reject_proposal(ident)
+            elif action == "accept":
+                routes[path] = lambda body: self.accept_proposal(ident, body)
+            else:
+                routes[path] = lambda body: self.control_agent(ident, action)
         if path not in routes:
             return self.reply(HTTPStatus.NOT_FOUND, {"error": "no such endpoint"})
         if self.headers.get("Content-Type", "").split(";")[0].strip() != "application/json":
@@ -327,6 +419,115 @@ class Handler(BaseHTTPRequestHandler):
         with run.changed:
             run.changed.wait_for(lambda: run.status in TERMINAL)
         return HTTPStatus.OK
+
+    @staticmethod
+    def proposal_summary(proposal):
+        session = proposal["session"]
+        with session.changed:
+            previews = {side: [f"/proposals/{session.id}/preview/{side}/{i}" for i in range(len(parts))]
+                        for side, parts in session.previews.items()}
+            dimensions = {side: [part["bbox"]["size"] for part in parts]
+                          for side, parts in session.previews.items()}
+            return {"id": session.id, "state": session.state, "error": session.error,
+                    "changes": proposal["changes"], "previews": previews, "preview_dimensions": dimensions}
+
+    def post_proposal(self, body):
+        project = require_versioned(body["project"])
+        ident = uuid.uuid4().hex
+        folder = Path(self.engine.artifacts.name) / ("proposal-" + ident)
+        draft = folder / "project"
+        def prepare(project):
+            if unsaved(project):
+                raise Conflict("save project changes before proposing an edit")
+            shutil.copytree(project, draft, ignore=shutil.ignore_patterns(".git", ".magic", "outputs", "__pycache__"))
+            return head(project)
+        base = self.engine.change(project, prepare)
+        try:
+            agent = ParameterEditAgent() if "parameter" in body else self.engine.agent
+            proposal = agent.start(draft, body.get("brief"), body.get("selection"), body["parameter"] if "parameter" in body else body["message"])
+        except Exception:
+            shutil.rmtree(folder, ignore_errors=True)
+            raise
+        proposal.update({"id": ident, "project": str(project), "state": "pending", "base": base, "agent": agent})
+        def build(side, cancel):
+            if side == "after":
+                (draft / proposal["file"]).write_text(proposal["source"])
+            out = folder / side
+            shutil.rmtree(out, ignore_errors=True)
+            out.mkdir(parents=True)
+            while not self.engine.execution.acquire(timeout=0.2):
+                if cancel.is_set():
+                    return {"ok": False, "interrupted": True}
+            try:
+                return run_worker(draft / proposal["file"], out, cancel_event=cancel)
+            finally:
+                self.engine.execution.release()
+        proposal["session"] = ProposalSession(ident, build, lambda: proposal["agent"].stream_events(proposal))
+        with self.engine.lock:
+            self.engine.proposals[ident] = proposal
+        proposal["session"].start()
+        return HTTPStatus.ACCEPTED, self.proposal_summary(proposal)
+
+    def control_agent(self, ident, action):
+        with self.engine.lock:
+            proposal = self.engine.proposals.get(ident)
+            if not proposal or proposal["state"] != "pending":
+                raise ProjectError("no pending session")
+            session = proposal["session"]
+            if action == "resume":
+                if session.state != "interrupted":
+                    raise ValueError("session is not interrupted")
+                proposal["agent"].resume(proposal)
+                session.resume()
+            else:
+                session.interrupt()
+                proposal["agent"].interrupt(proposal)
+            return HTTPStatus.OK, {"id": ident, "state": session.state}
+
+    def reject_proposal(self, ident):
+        with self.engine.lock:
+            proposal = self.engine.proposals.get(ident)
+            if not proposal or proposal["state"] != "pending":
+                raise ProjectError("no pending proposal")
+            proposal["state"] = "rejected"
+            proposal["session"].reject()
+            proposal["agent"].interrupt(proposal)
+            return HTTPStatus.OK, {"id": ident, "state": "rejected"}
+
+    def accept_proposal(self, ident, body):
+        proposal = self.engine.proposals.get(ident)
+        if not proposal or proposal["state"] != "pending" or proposal["session"].state != "ready":
+            raise ProjectError("no ready proposal")
+        options = self.run_options(body)
+        if options[0] is not None and options[0] <= 0 or options[1] <= 0:
+            raise ProjectError("samples and timeout must be positive")
+        tree = ast.parse(proposal["source"])
+        params = next(node.value for node in tree.body if isinstance(node, ast.Assign)
+                      and any(isinstance(target, ast.Name) and target.id == "PARAMS" for target in node.targets))
+        plan_samples(ast.literal_eval(params), options[0])
+        def accept(project):
+            if proposal["state"] != "pending" or proposal["session"].state != "ready":
+                raise Conflict("proposal is no longer ready")
+            if head(project) != proposal["base"] or unsaved(project):
+                raise Conflict("project changed since this proposal; make a new proposal")
+            target = project / proposal["file"]
+            original = target.read_text()
+            brief_edit = accepted_brief_edit(project, proposal["file"], proposal["changes"])
+            try:
+                target.write_text(proposal["source"])
+                if brief_edit:
+                    brief_edit[0].write_text(brief_edit[2])
+                version = save_version(project, "Accepted proposed change")
+            except Exception:
+                target.write_text(original)
+                if brief_edit:
+                    brief_edit[0].write_text(brief_edit[1])
+                raise
+            proposal["state"] = "accepted"
+            return version, self.engine.queue(project, *options)
+        version, run = self.engine.change(proposal["project"], accept)
+        status = self.finished(run, body.get("wait"))
+        return status, {"version": version, "run": run.summary()}
 
     def post_printer(self, body):
         project = Path(body["project"]).expanduser().resolve()
@@ -414,13 +615,15 @@ def make_server(port=PORT, engine=None):
     return server
 
 
-def serve(port=PORT):
-    server = make_server(port)
+def serve(port=PORT, agent="claude"):
+    from .claude_agent import ClaudeCodeAgent
+    server = make_server(port, Engine(agent=ClaudeCodeAgent() if agent == "claude" else ScriptedFakeAgent()))
     print(f"Magic CAD engine API on http://{HOST}:{server.server_address[1]}  (Ctrl-C stops)")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         pass
     finally:
+        server.RequestHandlerClass.engine.close()
         server.server_close()
     return 0

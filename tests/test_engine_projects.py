@@ -124,13 +124,36 @@ def test_versions_and_rollback(api, tmp):
     check("versions of a non-project are refused", status == 400, body.get("error", ""))
 
 
+def test_rollback_with_non_ascii_paths(api, tmp):
+    """Git quotes non-ASCII paths by default; the version store must still see real file names."""
+    folder = tmp / "unicode_paths"
+    design = folder / "designs" / "good_two_parts.py"
+    status, _ = api.json("POST", "/projects", {"folder": str(folder), "from_design": str(TWO_PARTS)})
+    check("unicode: create 201", status == 201, str(status))
+    (folder / "briefs").mkdir(exist_ok=True)
+    (folder / "briefs" / "café.yaml").write_text("note: unicode name\n")
+    status, _ = api.json("POST", "/projects/versions", {"project": str(folder), "message": "Brief"})
+    check("unicode: save with a non-ASCII file", status == 201, str(status))
+    design.write_text(design.read_text().replace('"size": (20.0,', '"size": (24.0,'))
+    api.json("POST", "/projects/versions", {"project": str(folder), "message": "Bigger"})
+    (folder / "naïve.txt").write_text("unsaved\n")
+    status, body = api.json("POST", "/projects/rollback", {"project": str(folder), "version": "2"})
+    check("unicode: unsaved non-ASCII file is named plainly", status == 409 and "naïve.txt" in body.get("error", ""), body.get("error", ""))
+    (folder / "naïve.txt").unlink()
+    status, body = api.json("POST", "/projects/rollback", {"project": str(folder), "version": "1", "wait": True})
+    check("unicode: rollback past a non-ASCII file succeeds", status in (200, 201, 202), f"{status} {body.get('error', '')}")
+    check("unicode: the non-ASCII file is gone in version 1", not (folder / "briefs" / "café.yaml").exists())
+    status, body = api.json("POST", "/projects/rollback", {"project": str(folder), "version": "2", "wait": True})
+    check("unicode: rollback restores the non-ASCII file", status in (200, 201, 202) and (folder / "briefs" / "café.yaml").is_file(), f"{status} {body.get('error', '')}")
+
+
 def main():
     server = make_server(port=0)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     api = Client(server.server_address[1])
     try:
         with tempfile.TemporaryDirectory(prefix="engine_projects_") as tmp:
-            for test in (test_versions_and_rollback, test_create_from_wall_bracket):
+            for test in (test_versions_and_rollback, test_create_from_wall_bracket, test_rollback_with_non_ascii_paths):
                 print(f"--- {test.__name__}")
                 test(api, Path(tmp))
     finally:
