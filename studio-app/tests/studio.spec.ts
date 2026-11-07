@@ -188,17 +188,27 @@ test('reviews a curved cable clip proposal', async ({ page, request }) => {
 
 test('bounded parameter controls preview and accept a saved edit', async ({ page, request }) => {
   const folder = process.env.MAGIC_TEST_PROJECT! + '/parameter-panel';
-  const source = decodeURIComponent(new URL('../../tests/fixtures/good_two_parts.py', import.meta.url).pathname);
+  // Units and intent come only from the PARAMS-line comments: this fixture has no brief.
+  const source = decodeURIComponent(new URL('../../tests/fixtures/commented_params.py', import.meta.url).pathname);
   expect((await request.post('/api/projects', {data:{folder, from_design:source}})).ok()).toBeTruthy();
+  const proposalPosts: string[] = [];
+  page.on('request', r => { if (r.method() === 'POST' && r.url().endsWith('/api/proposals')) proposalPosts.push(r.url()); });
   await page.goto('/');
   await page.getByLabel('Project folder').fill(folder);
   await page.getByRole('button', {name:'Open project'}).click();
   await page.getByRole('button', {name:'Settings', exact:true}).click();
-  const size = page.getByRole('spinbutton', {name:'size', exact:true});
+  const panel = page.getByRole('region', {name:'Design parameters'});
+  const size = panel.getByRole('spinbutton', {name:'size', exact:true});
+  const gap = panel.getByRole('spinbutton', {name:'gap', exact:true});
+  await expect(panel.getByRole('spinbutton')).toHaveCount(2);
   await expect(size).toHaveValue('20');
   await expect(size).toHaveAttribute('min', '10');
   await expect(size).toHaveAttribute('max', '30');
-  await expect(page.getByRole('spinbutton', {name:'gap', exact:true})).toHaveValue('1');
+  await expect(size).toHaveAccessibleDescription('Block edge length 10 to 30 mm');
+  await expect(panel.getByText('Block edge length', {exact:true})).toBeVisible();
+  await expect(gap).toHaveValue('1');
+  await expect(gap).toHaveAccessibleDescription('Clearance between the blocks 0.5 to 2 mm');
+  await expect(panel.getByText('Clearance between the blocks', {exact:true})).toBeVisible();
   await page.screenshot({path: test.info().outputPath('magic-parameter-inspector-desktop.png')});
   await page.setViewportSize({width:390,height:844});
   await expect(size).toBeVisible();
@@ -206,21 +216,41 @@ test('bounded parameter controls preview and accept a saved edit', async ({ page
   await page.waitForTimeout(1000);
   await page.screenshot({path: test.info().outputPath('magic-parameter-inspector-mobile.png')});
   await page.setViewportSize({width:1280,height:720});
+  const review = panel.getByRole('button', {name:'Review size', exact:true});
+  await size.fill('');
+  await expect(review).toBeDisabled();
+  await size.press('Enter');
+  for (const outside of ['31', '9.5']) {
+    await size.fill(outside);
+    await expect(review).toBeDisabled();
+    await expect(size).toHaveAttribute('aria-invalid', 'true');
+    await size.press('Enter');
+  }
+  await expect(size).toHaveAccessibleDescription(/Enter a value from 10 to 30 mm/);
+  await panel.getByRole('button', {name:'Revert to 20 mm'}).click();
+  await expect(size).toHaveValue('20');
+  await expect(review).toBeDisabled();
   await size.fill('31');
-  await page.getByRole('button', {name:'Review size', exact:true}).click();
+  await page.screenshot({path: test.info().outputPath('magic-parameter-out-of-range.png')});
   await expect(page.getByRole('region', {name:'Proposed edit'})).toHaveCount(0);
+  expect(proposalPosts).toEqual([]);
   await size.fill('24');
-  await page.getByRole('button', {name:'Review size', exact:true}).click();
+  await expect(size).not.toHaveAttribute('aria-invalid', 'true');
+  await review.click();
   await expect(page.getByText('size: 20 → 24').first()).toBeVisible({timeout:120000});
+  expect(proposalPosts).toHaveLength(1);
   await page.getByRole('button', {name:'Accept change'}).click();
   await expect(page.getByRole('heading', {name:'Version 2'})).toBeVisible({timeout:180000});
   await expect(size).toHaveValue('24');
-  await expect(size).toHaveAttribute('step', 'any');
+  await expect(size).toHaveAttribute('step', '1');
+  await expect(gap).toHaveAttribute('step', '0.1');
   await expect(page.getByText('Ready to print', {exact:true})).toBeVisible();
   await size.fill('24.5');
-  await page.getByRole('button', {name:'Review size', exact:true}).click();
+  await review.click();
   await expect(page.getByText('size: 24 → 24.5').first()).toBeVisible({timeout:120000});
   await page.getByRole('button', {name:'Reject change'}).click();
+  // A discarded draft does not linger as if it were the saved value.
+  await expect(size).toHaveValue('24');
 });
 
 test('Watermelon-adapted command search runs real Studio actions', async ({ page }) => {

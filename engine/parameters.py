@@ -1,6 +1,9 @@
 """Read PARAMS and prepare bounded edits without executing project code."""
 import ast
+import io
 import math
+import re
+import tokenize
 from pathlib import Path
 
 import yaml
@@ -37,8 +40,40 @@ def _read(project, name):
     return design, source, node, values
 
 
+_LINE_UNIT = re.compile(r'(?:^|[,;:])\s*(?P<unit>mm|deg|count|ratio)\s*(?P<sep>[,;:]|$)')
+_HEADER_UNIT = re.compile(r'\bmm\b')
+_HEADER_LEGEND = re.compile(r'\([^)]*\bdefault\b[^)]*\)')
+
+
+def _comment_metadata(source, node):
+    """Unit and intent from the house-style comments inside the PARAMS literal."""
+    comments = {}
+    for token in tokenize.generate_tokens(io.StringIO(source).readline):
+        if token.start[0] > node.end_lineno:
+            break
+        if token.type == tokenize.COMMENT and token.start[0] >= node.lineno:
+            comments[token.start[0]] = token.string.lstrip('#').strip()
+    first = node.keys[0].lineno if node.keys else node.end_lineno
+    header = _HEADER_LEGEND.sub('', ' '.join(text for line, text in comments.items() if line < first))
+    default_unit = 'mm' if _HEADER_UNIT.search(header) else None
+    # A comment shared by entries on one line describes none of them in particular.
+    ends = [value.end_lineno for value in node.values]
+    metadata = {}
+    for key, value in zip(node.keys, node.values):
+        line = next((n for n in (value.end_lineno, key.lineno) if n in comments and ends.count(n) <= 1), None)
+        text, unit = comments.get(line, ''), default_unit
+        # A unit word stands alone between separators: "deg", "mm, object width",
+        # "tab width, deg", "lean, deg; clamped", "ratio: rib length / leg length".
+        if found := _LINE_UNIT.search(text):
+            unit = found.group('unit')
+            text = (text[:found.start()] + found.group('sep') + text[found.end():]).strip(' ,;:')
+        metadata[key.value] = {'unit': unit, 'intent': text[:1].upper() + text[1:]}
+    return metadata
+
+
 def parameters_of(project, design):
-    design, _, _, values = _read(project, design)
+    design, source, node, values = _read(project, design)
+    comments = _comment_metadata(source, node)
     brief_path = Path(project) / 'briefs' / f'{design.stem}.yaml'
     metadata = {}
     if brief_path.is_file():
@@ -51,9 +86,13 @@ def parameters_of(project, design):
                 raise ValueError('parameter units and intent must be text')
         except (yaml.YAMLError, AttributeError, ValueError) as error:
             raise ProjectError(f'invalid parameter brief: {error}') from error
+    def declared(name, field):
+        """The brief's declaration wins, even an explicit null; otherwise the code comment."""
+        brief = metadata.get(name, {})
+        return brief[field] if field in brief else comments[name][field]
     return [{'name': name, 'value': spec[0], 'min': spec[1], 'max': spec[2],
-             'unit': metadata.get(name, {}).get('unit'),
-             'intent': metadata.get(name, {}).get('intent', ''),
+             'unit': declared(name, 'unit'),
+             'intent': declared(name, 'intent') or '',
              'integer': type(spec[0]) is int} for name, spec in values.items()]
 
 
