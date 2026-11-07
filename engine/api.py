@@ -45,7 +45,8 @@ from urllib.parse import parse_qs, unquote, urlsplit
 
 from .catalogue import BUILTIN, add_component, list_components, project_path
 from .printers import PROFILE, project_printer, select_printer
-from .projects import ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, run_project
+from .projects import (ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, project_parts_list,
+                       run_project, verdict_artifacts)
 from .versions import (Conflict, create_project, list_versions, require_versioned,
                        restore_version, save_version, find_version, rebuild_version_artifacts, git)
 
@@ -134,8 +135,7 @@ class Engine:
             try:
                 _, run.verdict = run_project(run.project, run.emit, run.samples, run.timeout, run.slice)
                 snapshot = Path(self.artifacts.name) / run.id
-                for relative in ["verdict.json", *(path for design in run.verdict["designs"]
-                                                   for path in design["artifacts"])]:
+                for relative in ["verdict.json", *verdict_artifacts(run.verdict)]:
                     source = artifact_path(run.project, relative)
                     if source is None:
                         raise ProjectError(f"missing run artifact: {relative}")
@@ -199,6 +199,9 @@ class Handler(BaseHTTPRequestHandler):
             project = parse_qs(urlsplit(self.path).query).get("project", [""])[0]
             return self.guarded(lambda: (HTTPStatus.OK, {"project": project,
                                                          "versions": list_versions(project)}))
+        if path == "/projects/parts-list":
+            query = parse_qs(urlsplit(self.path).query)
+            return self.guarded(lambda: self.parts_list(query))
         if path == "/projects/version-details":
             query = parse_qs(urlsplit(self.path).query)
             return self.guarded(lambda: self.version_details(query))
@@ -224,6 +227,21 @@ class Handler(BaseHTTPRequestHandler):
         shared_source, custom_source = source(BUILTIN), source(custom)
         return HTTPStatus.OK, {"components": [{**item, "_catalogue_file": shared_source if i < builtin_count else custom_source}
                                                for i, item in enumerate(components)]}
+
+    def parts_list(self, query):
+        document = project_parts_list(query.get("project", [""])[0])
+        if query.get("format", ["json"])[0] != "csv":
+            return HTTPStatus.OK, document
+        from assembly.parts_list import to_csv
+        data = to_csv(document).encode()
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", ARTIFACT_TYPES[".csv"])
+        self.send_header("Content-Disposition", 'attachment; filename="parts_list.csv"')
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(data)
+        return None
 
     def version_details(self, query):
         project = require_versioned(query.get("project", [""])[0])
@@ -279,8 +297,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self.host_ok():
             return
         path = urlsplit(self.path).path
-        routes = {"/catalogue": self.post_catalogue, "/projects/printer": self.post_printer,
-                  "/runs": self.post_run, "/projects": self.post_project,
+        routes = {"/catalogue": self.post_catalogue, "/projects/printer": self.post_printer, "/runs": self.post_run, "/projects": self.post_project,
                   "/projects/versions": self.post_version, "/projects/rollback": self.post_rollback,
                   "/projects/version-artifacts": self.post_version_artifacts}
         if path not in routes:

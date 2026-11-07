@@ -40,6 +40,16 @@ Results land in `runs/wall_bracket/`: `report.md`, `report.json`, `bracket.stl`,
   engine API has the same operations under `/projects`. Versions live in a repository inside
   the project folder; `outputs/` is rebuilt by the gates, not versioned.
   `tests/test_engine_projects.py` (under 1 min) tests them through the API.
+- `assembly <file> [--project folder]` runs the assembly gate on an assembly file: collisions
+  between parts, fastener fit (clearance hole, screw length against insert or substrate) and a
+  derived parts list and assembly order that name every instance exactly once. A project folder
+  with an `assembly.py` runs it after its designs, as gate `6 Assembly`, and passes only if it
+  does. See `assembly/README.md`; `assembly/test_assembly.py` (under 15 s) and
+  `tests/test_assembly_api.py` (about 1 min) test it.
+  The parts list is derived from the same assembly file: a run writes
+  `outputs/_assembly/parts_list.csv` and `.json`, and `GET /projects/parts-list?project=<folder>`
+  (`&format=csv` to download) builds it from the assembly file as it is now; Mission Control
+  shows it. `tests/test_parts_list_api.py` (about 1 min) tests it.
 - Projects default to the Elegoo Centauri Carbon 2 with PLA. The Studio material selector
   changes the setting used by future runs; save a version to retain that selection in the
   timeline. The engine exposes `GET /projects/printer?project=<folder>` and

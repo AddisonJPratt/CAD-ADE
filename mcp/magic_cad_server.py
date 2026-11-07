@@ -274,9 +274,8 @@ def search_parts(query, parts):
     hit = lambda text: needle in str(text).lower()
     matches = []
     for category, entries in parts.items():
-        if not isinstance(entries, dict):    # _notes
-            if hit(category) or hit(entries):
-                matches.append({"category": category, "name": None, "entry": entries})
+        # Underscore keys (_notes, _dimension_provenance, ...) are file metadata, not categories.
+        if category.startswith("_") or not isinstance(entries, dict):
             continue
         for name, entry in entries.items():
             if name.startswith("_"):    # a category's own note (e.g. fits._source), not a part
