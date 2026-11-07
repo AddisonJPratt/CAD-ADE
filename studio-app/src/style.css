@@ -253,3 +253,13 @@ header .mode-nav{display:flex;gap:4px;align-self:stretch;align-items:center}head
 .app aside .composer-send:disabled{background:var(--hover);color:var(--muted);cursor:not-allowed}
 .app aside .composer-note{margin:2px 2px 0}
 @media(max-width:760px){.app aside .composer-send{min-height:40px}.app aside .composer-footer small{display:none}.app aside .composer-footer{justify-content:flex-end}}
+/* Parameter rows: a visible field edge, an unsaved-draft state with revert, and in-row errors. */
+.app .parameter-control input{border-color:color-mix(in srgb,var(--muted) 70%,transparent)}
+.app .parameter-panel form[data-dirty] .parameter-control input{border-color:var(--value-ink)}
+.app .parameter-control input[aria-invalid=true],.app .parameter-panel form[data-dirty] .parameter-control input[aria-invalid=true]{border-color:var(--palette-8)}.app.dark .parameter-control input[aria-invalid=true],.app.dark .parameter-panel form[data-dirty] .parameter-control input[aria-invalid=true]{border-color:var(--palette-29)}
+.app .parameter-control button:not(:disabled){color:var(--value-ink);box-shadow:inset 0 0 0 1px currentColor;border-radius:2px}
+.app .parameter-panel .parameter-feedback{grid-column:1/-1;grid-row:4;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px}
+.app aside .parameter-panel small.parameter-problem{margin:0;font-size:.6875rem;line-height:1.35;color:var(--palette-8)}.app.dark aside .parameter-panel small.parameter-problem{color:var(--palette-29)}
+.app .parameter-panel .parameter-feedback:has(:not(:empty)){margin-top:4px}
+.app .parameter-panel .parameter-revert{padding:0;min-height:24px;border:0;background:none;font-size:.6875rem;color:var(--value-ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+@media(max-width:760px){.app .parameter-panel form{grid-template-columns:minmax(0,1fr) 160px}.app .parameter-control input{height:44px;min-height:44px}.app .parameter-control button{width:44px;height:44px;min-height:44px}.app .parameter-panel .parameter-revert{min-height:44px}}

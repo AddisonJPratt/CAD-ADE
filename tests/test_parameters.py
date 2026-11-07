@@ -110,3 +110,104 @@ class ParameterApiTest(unittest.TestCase):
         self.assertEqual(after['params']['cable_dia']['value'],8)
         self.assertEqual(after['params']['cable_dia']['min'],3)
         self.assertEqual(after['params']['cable_dia']['max'],10)
+
+
+class CommentMetadataTest(unittest.TestCase):
+    """Without brief metadata, the house-style PARAMS comments declare unit and intent."""
+
+    def design(self, params_block):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        project = Path(self.tmp.name)
+        (project / 'designs').mkdir()
+        (project / 'designs/part.py').write_text(params_block + '\n\ndef build(**k):\n    pass\n')
+        return project
+
+    def test_header_unit_and_inline_intent(self):
+        from engine.parameters import parameters_of
+        project = self.design(
+            'PARAMS = {\n'
+            '    # name: (default, min, max)    all mm\n'
+            '    "outer_x": (80.0, 50.0, 150.0),      # outside length (hard dimension)\n'
+            '    "wall": (2.0, 1.2, 3.2),             # wall and floor thickness\n'
+            '}')
+        self.assertEqual([(p['name'], p['unit'], p['intent']) for p in parameters_of(project, 'part.py')], [
+            ('outer_x', 'mm', 'Outside length (hard dimension)'),
+            ('wall', 'mm', 'Wall and floor thickness'),
+        ])
+
+    def test_per_line_units_override_header_default(self):
+        from engine.parameters import parameters_of
+        project = self.design(
+            'PARAMS = {\n'
+            '    # name: (default, min, max)    mm unless noted\n'
+            '    "lip_arc": (50.0, 30.0, 70.0),       # angular width of each tab, deg\n'
+            '    "teeth": (20, 18, 36),               # pinion teeth, count\n'
+            '    "pressure_angle": (20.0, 20.0, 25.0),   # deg\n'
+            '    "mouth_ratio": (0.85, 0.75, 0.9),    # mouth gap / pipe diameter, ratio\n'
+            '    "hub": (50.0, 36.0, 60.0),           # hub outside diameter\n'
+            '    "bare": (1.0, 0.5, 2.0),\n'
+            '}')
+        self.assertEqual([(p['name'], p['unit'], p['intent']) for p in parameters_of(project, 'part.py')], [
+            ('lip_arc', 'deg', 'Angular width of each tab'),
+            ('teeth', 'count', 'Pinion teeth'),
+            ('pressure_angle', 'deg', ''),
+            ('mouth_ratio', 'ratio', 'Mouth gap / pipe diameter'),
+            ('hub', 'mm', 'Hub outside diameter'),
+            ('bare', 'mm', ''),
+        ])
+
+    def test_leading_unit_without_header(self):
+        from engine.parameters import parameters_of
+        project = self.design(
+            "PARAMS = {\n"
+            "    'obj_w': (90.0, 60.0, 120.0),   # mm, object width\n"
+            "    'clearance': (0.25, 0.1, 0.7),  # mm, per side\n"
+            "    'plain': (3.0, 2.4, 4.0),       # plate thickness\n"
+            "}")
+        self.assertEqual([(p['name'], p['unit'], p['intent']) for p in parameters_of(project, 'part.py')], [
+            ('obj_w', 'mm', 'Object width'),
+            ('clearance', 'mm', 'Per side'),
+            ('plain', None, 'Plate thickness'),
+        ])
+
+    def test_unit_between_other_separators(self):
+        from engine.parameters import parameters_of
+        project = self.design(
+            'PARAMS = {\n'
+            '    # name: (default, min, max)    mm unless noted\n'
+            '    "taper_deg": (1.5, 0.5, 1.5),   # envelope lean, deg; clamped on tall pots\n'
+            '    "reach": (0.6, 0.4, 0.8),       # ratio: rib length / free leg length\n'
+            '    "tip_t": (2.4, 1.6, 3.2),       # tip thickness, thin enough to slide under a door\n'
+            '}')
+        self.assertEqual([(p['name'], p['unit'], p['intent']) for p in parameters_of(project, 'part.py')], [
+            ('taper_deg', 'deg', 'Envelope lean; clamped on tall pots'),
+            ('reach', 'ratio', 'Rib length / free leg length'),
+            ('tip_t', 'mm', 'Tip thickness, thin enough to slide under a door'),
+        ])
+
+    def test_ambiguous_and_wrapped_comments(self):
+        from engine.parameters import parameters_of
+        project = self.design(
+            'PARAMS = {\n'
+            '    # name: (default, min, max)    mm unless noted (angles in deg)\n'
+            '    "a": (1.0, 0.5, 2.0), "b": (3.0, 1.0, 5.0),  # deg\n'
+            '    "hole_spacing": (  # wall screw spacing\n'
+            '        70.0, 60.0, 90.0),\n'
+            '}')
+        self.assertEqual([(p['name'], p['unit'], p['intent']) for p in parameters_of(project, 'part.py')], [
+            ('a', 'mm', ''),
+            ('b', 'mm', ''),
+            ('hole_spacing', 'mm', 'Wall screw spacing'),
+        ])
+
+    def test_brief_can_declare_a_parameter_unitless(self):
+        from engine.parameters import parameters_of
+        project = self.design(
+            'PARAMS = {\n'
+            '    # name: (default, min, max)    all mm\n'
+            '    "split": (0.5, 0.3, 0.7),   # bay share\n'
+            '}')
+        (project / 'briefs').mkdir()
+        (project / 'briefs/part.yaml').write_text('params:\n  split: {value: 0.5, min: 0.3, max: 0.7, unit: null}\n')
+        self.assertEqual([(p['unit'], p['intent']) for p in parameters_of(project, 'part.py')], [(None, 'Bay share')])

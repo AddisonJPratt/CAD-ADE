@@ -12,7 +12,8 @@ open issue status alone is not evidence that code is missing.
 - Claude Code chat proposals (bounded single-parameter M0), plus an explicit scripted test runtime, before/after preview, interrupt/resume, reject, accept,
   live gate progress, saved version and previous/current verdict comparison (#7).
 - Bounded parameter controls create structured proposals through the same lifecycle
-  (#10). Values/ranges come from literal PARAMS; units/intent from brief metadata.
+  (#10). Values/ranges come from literal PARAMS; units/intent from brief metadata,
+  falling back to the house-style comment on each PARAMS line. Out-of-range drafts are blocked inline.
   Missing units are identified explicitly. Parameter editing does not use an LLM.
 
 ## Next functional work
