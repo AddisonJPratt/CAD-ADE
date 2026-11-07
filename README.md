@@ -102,6 +102,16 @@ tabs can read high, and features between planes can be missed. It is reported, a
 `library/`: `counterbored_hole`, `heatset_boss`, `snap_cantilever`, plus
 `standard_parts.json`. Each docstring states its valid range.
 
+`library/engineering.py` applies engineering features to a selected face or edge (a
+build123d `Face`/`Edge`, or a point near it): `edge_break`, `shell`, `rib`, `gusset`,
+`lightening_cutouts`, `insert_boss`, `thread`, `print_draft`. Call one by name with
+`propose(name, shape, **params)`. Each has bounded parameters, takes its sizes from
+`standard_parts.json` (`heatset_inserts`, `fits`, `print_rules`), and returns a
+`FeatureProposal`: the new solid, the derived sizes and where each came from, and its
+unsupported overhang before and after. A feature that adds unsupported overhang raises
+`FeatureError` unless `allow_supports=True`. `review_flags()` names default-everything
+edge breaks for the reviewer. There is one fixture per feature in `tests/fixtures/features/`.
+
 ## Flagged assumptions and blockers
 
 - **Overhang definition.** The brief says "% of downward faces >45° from straight down".

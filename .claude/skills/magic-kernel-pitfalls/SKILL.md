@@ -16,6 +16,15 @@ Every item below cost real debugging time. Match the symptom, apply the fix.
   does this; any ad-hoc check must too.
 - Build pins/frustums as **one convex hull**, not an intersection of primitives, to avoid
   the near-coincident-vertex trap.
+- **Meshing a shape's faces one at a time poisons its later STL export.** OCC caches each
+  face's triangulation on the shape; per-face meshes don't share edge points, and
+  `export_stl` reuses them, so a curved part (a thread) reloads with ~1000 open edges.
+  Planar parts hide it. → Any analysis that calls `face.tessellate()` runs on
+  `copy.deepcopy(shape)` (see `library/engineering.py: unsupported_area`).
+- Helical threads: one `sweep(profile, Helix(...), is_frenet=True)` is valid, fast and
+  sliver-free; bd_warehouse `Thread` leaves horizontal slivers at segment joints and its
+  `fade` ends slope at exactly 45°. Keep profile corners off the core surface (run the
+  flanks on into the core) or the union leaves coincident-edge slivers.
 
 ## build123d 0.13 specifics
 
