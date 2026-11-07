@@ -65,5 +65,23 @@ class CatalogueAPI(unittest.TestCase):
             component['id'] = '../outside'
             self.assertEqual(request('POST', '/catalogue', {'project': folder, 'component': component})[0], 400)
 
+    def test_adding_a_part_saves_it_as_a_version(self):
+        """A user-measured part must not leave a versioned project with unsaved changes,
+        which would block rollback and proposals; other unsaved edits stay unsaved."""
+        from engine.catalogue import add_component
+        from engine.versions import create_project, list_versions, unsaved
+        root = Path(__file__).resolve().parent
+        with tempfile.TemporaryDirectory() as folder:
+            project = create_project(Path(folder) / 'p', root / 'fixtures' / 'good_two_parts.py')
+            design = next((project / 'designs').glob('*.py'))
+            design.write_text(design.read_text() + '\n# unsaved edit\n')
+            add_component(str(project), {'id': 'my-board', 'name': 'My board',
+                                         'dimensions': {'length': 31.2, 'width': 20.0, 'height': 4.0}})
+            self.assertEqual(unsaved(project), [f'designs/{design.name}'])
+            latest = list_versions(project)[0]
+            self.assertEqual(latest['number'], 2)
+            self.assertIn('My board', latest['message'])
+
+
 if __name__ == '__main__':
     unittest.main()
