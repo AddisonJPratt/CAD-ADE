@@ -6,6 +6,19 @@
     "press": 0.1,
     "print_in_place": 0.35
   },
+  "print_rules": {
+    "_source": "Mirrors the CLAUDE.md printer block and the harness overhang gate. Engineering features (library/engineering.py) derive their bounds from these.",
+    "_intent": {
+      "nozzle": "nozzle diameter; the smallest wall is min_wall_perimeters of these",
+      "min_wall_perimeters": "two perimeters is the thinnest wall that prints solid",
+      "self_supporting_deg": "slope from vertical for every printed slope; 1 deg inside the 45 deg gate so float noise cannot tip it into the support bucket",
+      "overhang_tolerance_mm2": "unsupported area a feature may add before it is refused: tessellation noise and sub-nozzle slivers such as a faded thread tip, not a design allowance"
+    },
+    "nozzle": 0.4,
+    "min_wall_perimeters": 2,
+    "self_supporting_deg": 44.0,
+    "overhang_tolerance_mm2": 0.25
+  },
   "brief_constants": {
     "_source": "Values an eval brief pins without declaring them as params, so the design can't take them from PARAMS.",
     "phone_stand": {
