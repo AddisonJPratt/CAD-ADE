@@ -41,10 +41,11 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
 
+from .catalogue import BUILTIN, add_component, list_components, project_path
 from .printers import PROFILE, project_printer, select_printer
 from .projects import ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, run_project
 from .versions import (Conflict, create_project, list_versions, require_versioned,
-                       restore_version, save_version, find_version, rebuild_version_artifacts)
+                       restore_version, save_version, find_version, rebuild_version_artifacts, git)
 
 HOST = "127.0.0.1"
 PORT = 8766  # the plain-JS UI server keeps 8765
@@ -184,6 +185,9 @@ class Handler(BaseHTTPRequestHandler):
         path = urlsplit(self.path).path
         if path == "/health":
             return self.reply(HTTPStatus.OK, {"engine": "magic-cad", "api": API_VERSION})
+        if path == "/catalogue":
+            project = parse_qs(urlsplit(self.path).query).get("project", [""])[0]
+            return self.guarded(lambda: self.catalogue(project))
         if path == "/runs":
             return self.reply(HTTPStatus.OK, {"runs": [r.summary() for r in self.engine.all()]})
         if path == "/projects/printer":
@@ -193,6 +197,9 @@ class Handler(BaseHTTPRequestHandler):
             project = parse_qs(urlsplit(self.path).query).get("project", [""])[0]
             return self.guarded(lambda: (HTTPStatus.OK, {"project": project,
                                                          "versions": list_versions(project)}))
+        if path == "/projects/version-details":
+            query = parse_qs(urlsplit(self.path).query)
+            return self.guarded(lambda: self.version_details(query))
         if path == "/projects/version-artifacts":
             query = parse_qs(urlsplit(self.path).query)
             return self.guarded(lambda: self.version_artifact(query))
@@ -205,6 +212,29 @@ class Handler(BaseHTTPRequestHandler):
         if match.group(3):
             return self.artifact(run, unquote(match.group(3)))
         return self.reply(HTTPStatus.OK, run.summary())
+
+    def catalogue(self, project):
+        components = list_components(project)
+        builtin_count = len(json.loads(BUILTIN.read_text()))
+        custom = project_path(project)
+        def source(path):
+            return {"path": str(path), "modified": path.stat().st_mtime} if path.is_file() else None
+        shared_source, custom_source = source(BUILTIN), source(custom)
+        return HTTPStatus.OK, {"components": [{**item, "_catalogue_file": shared_source if i < builtin_count else custom_source}
+                                               for i, item in enumerate(components)]}
+
+    def version_details(self, query):
+        project = require_versioned(query.get("project", [""])[0])
+        version = find_version(project, query.get("version", [""])[0])
+        version_id = version["id"]
+        paths = git(project, "ls-tree", "-r", "-z", "--name-only", version_id).split("\0")
+        def files(prefix, suffixes):
+            return [{"name": path, "content": git(project, "show", f"{version_id}:{path}")}
+                    for path in paths if path.startswith(prefix) and path.endswith(suffixes)]
+        report_path = project / ".magic" / "verdicts" / f"{version_id}.json"
+        report = json.loads(report_path.read_text()) if report_path.is_file() else None
+        return HTTPStatus.OK, {"briefs": files("briefs/", (".yaml", ".yml")),
+                               "designs": files("designs/", (".py",)), "report": report}
 
     def version_artifact(self, query):
         project = require_versioned(query.get("project", [""])[0])
@@ -247,7 +277,8 @@ class Handler(BaseHTTPRequestHandler):
         if not self.host_ok():
             return
         path = urlsplit(self.path).path
-        routes = {"/projects/printer": self.post_printer, "/runs": self.post_run, "/projects": self.post_project,
+        routes = {"/catalogue": self.post_catalogue, "/projects/printer": self.post_printer,
+                  "/runs": self.post_run, "/projects": self.post_project,
                   "/projects/versions": self.post_version, "/projects/rollback": self.post_rollback,
                   "/projects/version-artifacts": self.post_version_artifacts}
         if path not in routes:
@@ -287,6 +318,10 @@ class Handler(BaseHTTPRequestHandler):
     def post_version_artifacts(self, body):
         version = rebuild_version_artifacts(body["project"], body["version"])
         return HTTPStatus.OK, {"version": version}
+
+    def post_catalogue(self, body):
+        with self.engine.lock:
+            return HTTPStatus.CREATED, {"component": add_component(body["project"], body["component"])}
 
     def post_run(self, body):
         run = self.engine.submit(body["project"], *self.run_options(body))

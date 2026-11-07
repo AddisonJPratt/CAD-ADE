@@ -25,15 +25,18 @@ def sweep_lines(sweep):
 
 def to_markdown(report):
     out = [f"# Magic CAD report: {report['design']}", "",
-           f"**Overall: {'PASS' if report['pass'] else 'FAIL'}**  ",
+           f"**Overall: {'PASS' if report['pass'] else 'FAIL'}** ({report.get('verification', 'unknown')})  ",
            f"Command: `{report['command']}`  ", f"Brief: `{report['brief'] or 'none'}`  ",
            f"Parameters: `{json.dumps(report.get('params', {}))}`", "",
            "## Checks", "", "| Gate | Status | Detail |", "|---|---|---|"]
     for gate in report["gates"]:
         out.append(f"| {gate['name']} | {gate['status']} | {gate['detail']} |")
+    out += ["", "## Evidence", ""]
+    for claim in report.get("claims", []):
+        out.append(f"- {claim['claim']}: {claim['tier']} ({claim['status']}) — {claim['detail']}")
     geo = report.get("geometry")
     if geo and geo["dimensions"]:
-        out += ["", "## Measured vs spec (reloaded STEP, ±0.1 mm)", "",
+        out += ["", "## Measured vs spec (computed; reloaded STEP, ±0.1 mm)", "",
                 "| Dimension | Spec | Measured | Delta | Result |", "|---|---|---|---|---|"]
         for row in geo["dimensions"]:
             out.append(f"| {row['name']} | {fmt(float(row['spec']))} | {fmt(row['measured'])} | "
@@ -41,7 +44,7 @@ def to_markdown(report):
     for part, data in (report.get("printability") or {}).items():
         m = data["metrics"]
         feature = m.get("min_feature", {})
-        out += ["", f"## Printability: {part} (reloaded STL)", "",
+        out += ["", f"## Printability: {part} (computed; reloaded STL)", "",
                 f"- Watertight: {m['watertight']}; components: {m['components']}; faces: {m['faces']}",
                 f"- Extents: {' x '.join(fmt(e, 2) for e in m['extents'])} mm; fits build volume: {m['fits_bed']}",
                 f"- Brief overhang metric (downward faces >45° from straight down): {m['overhang_brief_pct']:.2f} %",
@@ -53,7 +56,7 @@ def to_markdown(report):
     for row in report.get("overlaps") or []:
         out.append(f"- Overlap {row['a']} / {row['b']}: {row['volume']:.3f} mm³")
     if report.get("sweep"):
-        out += ["", "## Parameter sweep", ""] + sweep_lines(report["sweep"])
+        out += ["", "## Parameter sweep (computed)", ""] + sweep_lines(report["sweep"])
     assumptions = report.get("assumptions") or []
     if assumptions:
         out += ["", "## Assumptions surfaced", ""] + [f"- {a}" for a in assumptions]

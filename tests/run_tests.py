@@ -42,7 +42,7 @@ def test_database():
     check("db NEMA17 / gridfinity", db["motor_mounts"]["NEMA17"]["hole_spacing"] == 31
           and db["grids"]["gridfinity"]["pitch"] == 42)
     check("db 2020 slot", db["extrusions"]["2020"]["slot_width"] == 6)
-    check("db sizes", set(db["screws"]) == {"M3", "M4", "M5"} and set(db["heatset_inserts"]) == {"M3", "M4"})
+    check("db sizes", set(db["screws"]) == {"M2.5", "M3", "M4", "M5"} and set(db["heatset_inserts"]) == {"M2.5", "M3", "M4"})
 
 
 def test_counterbored_hole():
@@ -135,6 +135,17 @@ def test_harness():
     check("too few --samples is refused", code == 2, f"exit {code}")
     expect_harness("--no-sweep is opt-in and says so|--no-sweep: parametric behaviour not verified",
                    "only_default", 0, "--no-sweep")
+    with tempfile.TemporaryDirectory() as tmp:
+        code = magic("check", "tests/fixtures/only_default.py", "--no-sweep", "--out", tmp)
+        import json
+        report = json.loads((Path(tmp) / "report.json").read_text())
+        check("unswept check is labelled draft", code == 0 and report["verification"] == "draft"
+              and "(draft)" in (Path(tmp) / "report.md").read_text())
+    with tempfile.TemporaryDirectory() as tmp:
+        other = Path(tmp) / "my-model.3mf"
+        other.write_bytes(b"user data")
+        code = magic("run", "tests/fixtures/hardcoded.py", "--out", tmp)
+        check("failed run preserves unrelated 3MF files", code == 1 and other.read_bytes() == b"user data")
     with tempfile.TemporaryDirectory() as tmp:
         code = magic("run", "tests/fixtures/only_default.py", "--no-sweep", "--out", tmp)
         check("run --no-sweep is refused, no unswept exports", code == 2 and not list(Path(tmp).iterdir()), f"exit {code}")
