@@ -40,7 +40,8 @@ from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
 
 from .catalogue import BUILTIN, add_component, list_components, project_path
-from .projects import ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, run_project
+from .projects import (ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, run_project,
+                       verdict_artifacts)
 from .versions import (Conflict, create_project, list_versions, require_versioned,
                        restore_version, save_version, find_version, rebuild_version_artifacts, git)
 
@@ -129,8 +130,7 @@ class Engine:
             try:
                 _, run.verdict = run_project(run.project, run.emit, run.samples, run.timeout)
                 snapshot = Path(self.artifacts.name) / run.id
-                for relative in ["verdict.json", *(path for design in run.verdict["designs"]
-                                                   for path in design["artifacts"])]:
+                for relative in ["verdict.json", *verdict_artifacts(run.verdict)]:
                     source = artifact_path(run.project, relative)
                     if source is None:
                         raise ProjectError(f"missing run artifact: {relative}")
