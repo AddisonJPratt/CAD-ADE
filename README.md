@@ -52,6 +52,11 @@ Results land in `runs/wall_bracket/`: `report.md`, `report.json`, `bracket.stl`,
   `outputs/_assembly/parts_list.csv` and `.json`, and `GET /projects/parts-list?project=<folder>`
   (`&format=csv` to download) builds it from the assembly file as it is now; Mission Control
   shows it. `tests/test_parts_list_api.py` (about 1 min) tests it.
+- Projects default to the Elegoo Centauri Carbon 2 with PLA. The Studio material selector
+  changes the setting used by future runs; save a version to retain that selection in the
+  timeline. The engine exposes `GET /projects/printer?project=<folder>` and
+  `POST /projects/printer` with `project` and `material` (`PLA` or `PETG`). Both
+  materials use uncalibrated starting fit clearances until print evidence is available.
 - `--brief` defaults to `briefs/<design stem>.yaml` if present. Without a brief, hard
   dimensions are not checked, and the report says so.
 - `--samples N` caps sweep runs. N must cover default + min and max of every param, so
@@ -103,6 +108,16 @@ tabs can read high, and features between planes can be missed. It is reported, a
 
 `library/`: `counterbored_hole`, `heatset_boss`, `snap_cantilever`, plus
 `standard_parts.json`. Each docstring states its valid range.
+
+`library/engineering.py` applies engineering features to a selected face or edge (a
+build123d `Face`/`Edge`, or a point near it): `edge_break`, `shell`, `rib`, `gusset`,
+`lightening_cutouts`, `insert_boss`, `thread`, `print_draft`. Call one by name with
+`propose(name, shape, **params)`. Each has bounded parameters, takes its sizes from
+`standard_parts.json` (`heatset_inserts`, `fits`, `print_rules`), and returns a
+`FeatureProposal`: the new solid, the derived sizes and where each came from, and its
+unsupported overhang before and after. A feature that adds unsupported overhang raises
+`FeatureError` unless `allow_supports=True`. `review_flags()` names default-everything
+edge breaks for the reviewer. There is one fixture per feature in `tests/fixtures/features/`.
 
 ## Flagged assumptions and blockers
 

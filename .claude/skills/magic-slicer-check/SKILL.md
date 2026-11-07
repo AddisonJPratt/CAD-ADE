@@ -38,6 +38,11 @@ never seen G-code. This skill closes that gap with a real slicer.
 
 ## Current status on this machine
 
-As of the Phase 1 build, **no slicer is installed** and nothing in this project has ever
-been sliced. The first run of this skill includes installing/checking a slicer CLI and
-recording which one and its version here.
+**ElegooSlicer 1.5.2.2** (`/Applications/ElegooSlicer.app`) is the project slicer, wired
+into the engine as `engine/slicer.py`: `run_project(project, slice=True)` or
+`POST /runs {"slice": true}` slices each passing design with the Centauri Carbon 2
+0.4 nozzle machine, the 0.20mm Standard process and the project's PLA/PETG filament
+(preset paths in `library/printer_profiles.py`). It writes `outputs/<part>/<part>.3mf`,
+adds a `Slice` claim, and upgrades the printability claims to `slicer-checked`.
+Supports follow the brief's `allow_supports`. The engine slices and exports only; it never
+sends a print job. Use it in place of steps 1–4 above; the judging in step 5 still applies.

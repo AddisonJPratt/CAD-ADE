@@ -8,11 +8,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def run_worker(design, out_dir, params=None, timeout=180, cancel_event=None):
+def run_worker(design, out_dir, params=None, timeout=180, fits=None, cancel_event=None):
     """Return the worker's result dict; ok=False with a traceback on any failure."""
     out_dir = Path(out_dir)
     cmd = [sys.executable, "-m", "harness.worker", str(Path(design).resolve()), str(out_dir),
-           json.dumps(params or {})]
+           json.dumps(params or {}), json.dumps(fits)]
     started = time.time()
     try:
         if cancel_event is None:

@@ -11,8 +11,9 @@ Both are area shares of all downward-facing area, bed contact included.
 import numpy as np
 import trimesh
 from scipy import ndimage
+from library.printer_profiles import PROFILE
 
-BED_X = BED_Y = 250.0            # mm, from CLAUDE.md printer block
+DEFAULT_BUILD_VOLUME = tuple(PROFILE["build_volume_mm"])
 OVERHANG_LIMIT_PCT = 15.0
 VERTICAL_EPS = np.sin(np.radians(0.5))  # nearer vertical than 0.5 deg = vertical (float noise)
 BED_Z_TOL = 0.01                 # mm
@@ -111,7 +112,7 @@ def min_feature(mesh, slices=8, max_pixels=500):
     return {"mm": float(best), "resolution_mm": 2 * pixel, "where": where}
 
 
-def check_stl(path, allow_supports=False, sections=True):
+def check_stl(path, allow_supports=False, sections=True, build_volume=DEFAULT_BUILD_VOLUME):
     """Reload an STL from disk and return {pass, problems, metrics}."""
     mesh = trimesh.load_mesh(path)
     extents = mesh.extents
@@ -120,7 +121,7 @@ def check_stl(path, allow_supports=False, sections=True):
                "components": int(mesh.body_count), "faces": len(mesh.faces),
                "mesh_volume": float(mesh.volume), "extents": [float(e) for e in extents],
                "inertia": [float(i) for i in np.diag(mesh.moment_inertia)],
-               "fits_bed": bool(extents[0] <= BED_X and extents[1] <= BED_Y),
+               "fits_bed": bool(all(extents[i] <= build_volume[i] for i in range(3))),
                "allow_supports": allow_supports, **overhang_metrics(mesh)}
     problems = []
     if not metrics["watertight"] or not metrics["winding_consistent"]:
@@ -128,7 +129,7 @@ def check_stl(path, allow_supports=False, sections=True):
     if metrics["components"] != 1:
         problems.append(f"{metrics['components']} mesh components")
     if not metrics["fits_bed"]:
-        problems.append(f"XY footprint {extents[0]:.1f}x{extents[1]:.1f} exceeds bed")
+        problems.append(f"size {extents[0]:.1f}x{extents[1]:.1f}x{extents[2]:.1f} exceeds bed or build height ({build_volume[0]:g}x{build_volume[1]:g}x{build_volume[2]:g} mm)")
     if metrics["bed_contact_mm2"] < MIN_BED_CONTACT:
         problems.append(f"only {metrics['bed_contact_mm2']:.2f} mm^2 on the bed")
     if not allow_supports:

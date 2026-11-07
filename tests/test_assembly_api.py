@@ -6,6 +6,7 @@
 The project is the lid-and-base fixture (tests/fixtures/assembly_stack): two designs that pass
 the five gates on their own, joined by an M3 screw into a heat-set insert.
 """
+import json
 import shutil
 import sys
 import tempfile
@@ -15,6 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from assembly.manifest import validate  # noqa: E402
 from engine.api import make_server  # noqa: E402
 from test_engine_api import Client, check, results  # noqa: E402  (same client and tally)
 
@@ -58,6 +60,14 @@ def test_passing_assembly(api, tmp):
           and finished[0]["status"] == "PASS", str(finished))
     status, _, data = api.request("GET", f"/runs/{done['id']}/artifacts/{entry['report']}")
     check("the assembly report downloads as a run artifact", status == 200 and b'"Fasteners"' in data, str(status))
+    check("the run lists the assembly manifest and one mesh per instance",
+          {"_assembly/assembly.json", "_assembly/meshes/base.stl", "_assembly/meshes/lid.stl",
+           "_assembly/meshes/insert.stl", "_assembly/meshes/screw.stl"} <= set(entry["artifacts"]), str(entry["artifacts"]))
+    status, _, data = api.request("GET", f"/runs/{done['id']}/artifacts/_assembly/assembly.json")
+    manifest = json.loads(data) if status == 200 else {}
+    check("the manifest downloads and validates", status == 200 and validate(manifest), str(status))
+    status, _, data = api.request("GET", f"/runs/{done['id']}/artifacts/_assembly/{manifest['instances'][0]['mesh']}")
+    check("its meshes download through the same artifact route", status == 200 and len(data) > 100, str(status))
     check("claims mark the assembly as computed, not physically tested",
           any(c["tier"] == "computed" for c in entry["claims"])
           and any(c["tier"] == "needs physical test" for c in entry["claims"]))

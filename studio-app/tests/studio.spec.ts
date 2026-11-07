@@ -6,6 +6,11 @@ test('opens a project and inspects an older version', async ({ page }) => {
   await page.getByRole('button', { name: 'Open project' }).click();
   await expect(page.getByRole('heading', { name: 'Version 3' })).toBeVisible();
   await expect(page.getByText('Not ready to print', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await expect(page.getByLabel('Material')).toHaveValue('PLA');
+  await page.getByLabel('Material').selectOption('PETG');
+  await expect(page.getByText('Material set to PETG for future checks.')).toBeVisible();
+  await page.getByLabel('Material').selectOption('PLA');
   await page.getByRole('button', { name: 'Versions', exact: true }).click();
   const currentModel = page.waitForResponse(r => r.url().includes('version-artifacts') && r.url().includes('path=') && r.ok());
   await page.getByRole('button', { name: /Version 2/ }).click();

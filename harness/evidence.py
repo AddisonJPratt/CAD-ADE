@@ -26,3 +26,38 @@ def claims_for_report(report):
     claims.append({"claim": "Physical fit and performance", "tier": "needs physical test",
                    "status": "NOT TESTED", "detail": "No physical print result recorded."})
     return claims
+
+
+SLICER_BACKED = ("3 Printability", "Printability metrics: ")
+SLICER_MISSING = ("ElegooSlicer is not installed: not sliced. Install ElegooSlicer, or set "
+                  "MAGIC_ELEGOO_SLICER to its executable.")
+
+
+def duration(seconds):
+    hours, rest = divmod(int(seconds), 3600)
+    minutes, secs = divmod(rest, 60)
+    return f"{hours}h {minutes}m" if hours else f"{minutes}m {secs}s"
+
+
+def apply_slice(claims, result):
+    """Claims after a slicer check. A clean slice upgrades the printability claims it backs to
+    slicer-checked; a failed or missing slice upgrades nothing and says why in a Slice claim.
+    result None means no slicer; result["ran"] False means the slicer could not be set up."""
+    if result is None or not result.get("ran", True):
+        reason = "; ".join(result["problems"]) if result else SLICER_MISSING
+        return [*claims, {"claim": "Slice", "tier": "computed", "status": "NOT RUN", "detail": reason}]
+    setup = (f"{result['slicer']}, {result['printer']}, {result['process'].split(' @')[0]} process, "
+             f"{result['material']} ({result['filament']})")
+    if not result["ok"]:
+        return [*claims, {"claim": "Slice", "tier": "slicer-checked", "status": "FAIL",
+                          "detail": f"{setup}: " + "; ".join(result["problems"]) + "."}]
+    supports = ("no supports" if not result["support_used"] else
+                f"supports used ({result['support_filament_mm']:.0f} mm of filament)")
+    layers = f", {result['layers']} layers" if result.get("layers") else ""
+    found = (f"{duration(result['print_seconds'])} print time, {result['filament_m']:.2f} m / "
+             f"{result['filament_g']:.2f} g filament, {supports}{layers}")
+    upgraded = [{**c, "tier": "slicer-checked", "detail": f"{c['detail'].rstrip('. ')}. Sliced cleanly: {found}."}
+                if c["tier"] == "computed" and c["status"] == "PASS" and c["claim"].startswith(SLICER_BACKED)
+                else c for c in claims]
+    return [*upgraded, {"claim": "Slice", "tier": "slicer-checked", "status": "PASS",
+                        "detail": f"{setup}: {found}. 3MF: {result['three_mf']}."}]

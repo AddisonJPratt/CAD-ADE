@@ -2,11 +2,11 @@
 
 Designs are parametric build123d Python; the harness (`magic.py`) verifies them. Keep this file short.
 
-## Printer: EDIT ME (placeholder values, not my measured printer)
-- Bed: 250 x 250 mm
-- Nozzle: 0.4 mm
-- Material: PLA
+## Printer: Elegoo Centauri Carbon 2
+- Build volume: 256 x 256 x 256 mm; nozzle: 0.4 mm; single colour.
+- PLA and PETG are selectable per project. Fit clearances are uncalibrated starting values.
 - Supports: off by preference. Design around them; a brief must allow them explicitly.
+- The canonical profile and material settings are in `library/printer_profiles.py`.
 
 ## Clearances: starting values, not yet calibrated on a real print
 | Fit | Per-side clearance (mm) |

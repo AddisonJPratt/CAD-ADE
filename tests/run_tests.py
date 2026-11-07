@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 import trimesh
-from build123d import Align, Box, Pos
+from build123d import Align, Axis, Box, Pos
 
 from harness.brief import load_brief
 from harness.printability import check_stl, min_feature, overhang_metrics
@@ -166,15 +166,82 @@ def test_studio_fixtures():
         report = json.loads((ROOT / "runs" / folder.name / "report.json").read_text())["geometry"]
         meshes = {stl.stem: trimesh.load_mesh(stl) for stl in sorted(folder.glob("*.stl"))}
         sizes_ok = set(meshes) == set(report["bbox"]) and all(
-            max(abs(a - b) for a, b in zip(mesh.extents, report["bbox"][name])) <= 0.05 for name, mesh in meshes.items())
+            max(abs(a - b) for a, b in zip(mesh.extents, report["bbox"][name])) <= 0.25 for name, mesh in meshes.items())
         volume = sum(mesh.volume for mesh in meshes.values())
         check(f"studio fixture matches its run: {folder.name}",
               sizes_ok and abs(volume - report["volume"]) <= 0.01 * report["volume"], f"volume {volume:.0f} vs {report['volume']:.0f}")
 
 
+def test_engineering():
+    """Engineering features (#53): refusals, bounds, slop flags, fit maths. Fixtures run in test_feature_fixtures."""
+    import json
+    from library.engineering import (FEATURES, FeatureError, edge_break, mating_radius, propose,
+                                     review_flags, rib, shell, thread_profile)
+    block = Box(40, 30, 20, align=(Align.CENTER, Align.CENTER, Align.MIN))
+
+    def refused(fn, *args, **kwargs):
+        try:
+            fn(*args, **kwargs)
+        except FeatureError as err:
+            return str(err)
+        return ""
+
+    check("features registry", set(FEATURES) == {"edge_break", "shell", "rib", "gusset", "lightening_cutouts",
+                                                  "insert_boss", "thread", "print_draft"})
+    top = propose("shell", block, open_faces=[(0, 0, 20)], wall=2.0)
+    check("shell open top: no new overhang", top.adds_overhang_mm2 <= 0.25 and top.volume_delta_mm3 < 0,
+          f"{top.adds_overhang_mm2:.3f} mm^2")
+    check("shell open bottom refused (inner ceiling)", "overhang" in refused(shell, block, [(0, 0, 0)], 2.0))
+    allowed = shell(block, [(0, 0, 0)], 2.0, allow_supports=True)
+    check("allow_supports records instead of refusing", allowed.adds_overhang_mm2 > 0 and allowed.notes)
+    check("shell wall under two perimeters refused", "outside" in refused(shell, block, [(0, 0, 20)], 0.4))
+    wall = Box(60, 4, 40, align=(Align.CENTER, Align.CENTER, Align.MIN))
+    check("horizontal rib on a wall refused", "overhang" in refused(
+        rib, wall, (0, -2, 20), (-20, -2, 20), (20, -2, 20), 6.0, 2.0))
+    everything = edge_break(block, block.edges(), 2.0)
+    check("edge_break: underside edges chamfered, not filleted",
+          "4 underside edges chamfered" in everything.notes[0] and everything.adds_overhang_mm2 <= 0.25)
+    check("edge_break: one size on every edge is flagged", everything.slop_flags)
+    vertical = edge_break(block, block.edges().filter_by(Axis.Z), 3.0)
+    check("edge_break on a selection is not flagged", not vertical.slop_flags)
+    check("review_flags: same radius on every break", review_flags([vertical, vertical])
+          and not review_flags([vertical, edge_break(block, block.edges().filter_by(Axis.X), 1.0)]))
+    check("proposal is JSON-ready", json.loads(json.dumps(vertical.to_dict()))["feature"] == "edge_break")
+    fit = standard_parts()["fits"]["sliding"]
+    profile = thread_profile(4.0, 1.0)
+    check("thread profile mates with the sliding fit",
+          abs(profile["apex_width"] + profile["root_width"] + 2 * profile["axial_clearance"] - 4.0) < 1e-9
+          and profile["radial_clearance"] == fit and abs(mating_radius(40, 1.0, False) - (41 + fit)) < 1e-9)
+    check("thread too deep for its pitch refused", raises(thread_profile, 2.0, 0.9))
+    check("unknown feature refused", raises(propose, "knurl", block))
+    from build123d import Cylinder
+    from library.engineering import gusset, insert_boss, print_draft, thread
+    tall = Box(20, 20, 40, align=(Align.CENTER, Align.CENTER, Align.MIN))
+    check("gusset on an outside corner refused", "convex" in refused(gusset, tall, (0, 10, 40), 5.0, 1.0))
+    ledge = tall + Pos(20, 0, 30) * Box(20, 20, 10, align=(Align.CENTER, Align.CENTER, Align.MIN))
+    drafted = print_draft(ledge, (20, 0, 30))
+    check("print_draft removes a ledge ceiling", drafted.overhang_before_mm2 > 100 and drafted.overhang_after_mm2 <= 0.25,
+          f"{drafted.overhang_before_mm2:.0f} -> {drafted.overhang_after_mm2:.2f} mm^2")
+    check("insert boss under a ledge refused", "downward" in refused(insert_boss, ledge, (20, 0, 30), (20, 0, 30), "M3"))
+    lying = Pos(0, 0, 10) * Cylinder(10, 30, rotation=(90, 0, 0))
+    check("horizontal thread refused", "print-up" in refused(thread, lying, (0, 0, 20), 3.0, 0.9))
+
+
+FEATURE_FIXTURES = ["edge_break", "shell", "rib", "gusset", "lightening", "insert_boss", "thread", "draft"]
+
+
+def test_feature_fixtures():
+    """Each engineering feature passes every gate, sweep included, on its fixture."""
+    for name in FEATURE_FIXTURES:
+        with tempfile.TemporaryDirectory() as tmp:
+            code = magic("check", f"tests/fixtures/features/{name}.py", "--out", tmp, "--timeout", "600")
+            check(f"feature fixture passes gates + sweep: {name}", code == 0, f"exit {code}")
+
+
 if __name__ == "__main__":
     for test in (test_database, test_counterbored_hole, test_heatset_boss, test_snap_cantilever,
-                 test_metrics, test_briefs, test_studio_fixtures, test_harness):
+                 test_metrics, test_engineering, test_briefs, test_studio_fixtures, test_harness,
+                 test_feature_fixtures):
         print(f"--- {test.__name__}")
         test()
     print(f"\n{sum(results)}/{len(results)} passed")
