@@ -5,16 +5,20 @@ test('opens a project and inspects an older version', async ({ page }) => {
   await page.getByLabel('Project folder').fill(process.env.MAGIC_TEST_PROJECT!);
   await page.getByRole('button', { name: 'Open project' }).click();
   await expect(page.getByRole('heading', { name: 'Version 3' })).toBeVisible();
-  await expect(page.getByText('Checks failed', { exact: true })).toBeVisible();
+  await expect(page.getByText('Not ready to print', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Versions', exact: true }).click();
   const currentModel = page.waitForResponse(r => r.url().includes('version-artifacts') && r.url().includes('path=') && r.ok());
   await page.getByRole('button', { name: /Version 2/ }).click();
   const currentBytes = await (await currentModel).body();
   await expect(page.getByRole('heading', { name: 'Version 2' })).toBeVisible();
-  await expect(page.getByText('All checks passed', { exact: true })).toBeVisible();
+  await expect(page.getByText('Ready to print', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Checks', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Computed checks' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Needs a physical test' })).toBeVisible();
   await expect(page.getByLabel('3D model').locator('canvas')).toBeVisible();
+  await page.getByRole('button', { name: 'Versions', exact: true }).click();
   await page.getByRole('button', { name: /Version 1/ }).click();
+  await page.getByRole('button', { name: 'Close details' }).click();
   await expect(page.getByRole('button', { name: 'Rebuild model' })).toBeVisible();
   const oldModel = page.waitForResponse(r => r.url().includes('version-artifacts') && r.url().includes('path=') && r.ok());
   await page.getByRole('button', { name: 'Rebuild model' }).click();
@@ -22,9 +26,11 @@ test('opens a project and inspects an older version', async ({ page }) => {
   const oldBytes = await response.body();
   expect(oldBytes.length).toBeGreaterThan(100);
   expect(oldBytes.equals(currentBytes)).toBe(false);
+  await page.getByRole('button', { name: 'Versions', exact: true }).click();
   await expect(page.getByRole('button', { name: /Version 3/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Close details' }).click();
   await expect(page.getByRole('heading', { name: 'Version 1' })).toBeVisible();
-  await expect(page.getByText('All checks passed', { exact: true })).toBeVisible();
+  await expect(page.getByText('Ready to print', { exact: true })).toBeVisible();
   await expect(page.getByLabel('3D model').locator('canvas')).toBeVisible();
   await page.waitForTimeout(3000);
   const canvas = page.getByLabel('3D model').locator('canvas');
@@ -89,6 +95,8 @@ test('fake agent previews, rejects and accepts a change', async ({ page, request
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.getByRole('button', { name: 'Reject change' }).click();
   await expect(page.getByText('Proposed change ready to review')).toHaveCount(0);
+  // The composer clears after sending, so ask again.
+  await page.getByLabel('Change request').fill('size 26');
   await page.getByRole('button', { name: 'Propose change' }).click();
   await expect(page.getByText('size: 24 → 26').first()).toBeVisible({ timeout: 120000 });
   await page.getByRole('button', { name: 'Accept change' }).click();
@@ -105,7 +113,9 @@ test('reviews a curved cable clip proposal', async ({ page, request }) => {
   await page.goto('/');
   await page.getByLabel('Project folder').fill(folder);
   await page.getByRole('button', {name: 'Open project'}).click();
+  await page.getByRole('button', {name: 'Settings', exact: true}).click();
   await expect(page.getByRole('spinbutton', {name:'cable_dia', exact:true})).toHaveValue('6');
+  await page.getByRole('button', {name: 'Close details'}).click();
   const rebuilt = page.waitForResponse(response => response.request().method() === 'POST' && response.url().includes('/projects/version-artifacts'), {timeout:120000});
   await page.getByRole('button', {name:'Rebuild model', exact:true}).click();
   expect((await rebuilt).ok()).toBeTruthy();
@@ -150,13 +160,11 @@ test('reviews a curved cable clip proposal', async ({ page, request }) => {
   await page.screenshot({path: test.info().outputPath('magic-viewport-tools-light.png')});
   await page.getByRole('button',{name:'Use dark theme',exact:true}).click();
   await page.setViewportSize({width:390,height:844});
-  await page.getByRole('button',{name:'Toggle inspector',exact:true}).click();
   await page.getByRole('button',{name:'Viewport display settings',exact:true}).click();
   await expect(display).toBeVisible();
   await page.mouse.move(380,800);
   await page.screenshot({path: test.info().outputPath('magic-viewport-display-mobile.png')});
   await page.keyboard.press('Escape');
-  await page.getByRole('button',{name:'Toggle inspector',exact:true}).click();
   await page.setViewportSize({width:1280,height:720});
   await page.screenshot({path: test.info().outputPath('magic-parameter-cable-inspector.png')});
   await page.getByLabel('Change request').fill('cable_dia 8');
@@ -188,6 +196,7 @@ test('bounded parameter controls preview and accept a saved edit', async ({ page
   await page.goto('/');
   await page.getByLabel('Project folder').fill(folder);
   await page.getByRole('button', {name:'Open project'}).click();
+  await page.getByRole('button', {name:'Settings', exact:true}).click();
   const panel = page.getByRole('region', {name:'Design parameters'});
   const size = panel.getByRole('spinbutton', {name:'size', exact:true});
   const gap = panel.getByRole('spinbutton', {name:'gap', exact:true});
@@ -231,11 +240,11 @@ test('bounded parameter controls preview and accept a saved edit', async ({ page
   await expect(page.getByText('size: 20 → 24').first()).toBeVisible({timeout:120000});
   expect(proposalPosts).toHaveLength(1);
   await page.getByRole('button', {name:'Accept change'}).click();
-  await expect(page.getByRole('heading', {name:'Version 2', exact:true})).toBeVisible({timeout:180000});
+  await expect(page.getByRole('heading', {name:'Version 2'})).toBeVisible({timeout:180000});
   await expect(size).toHaveValue('24');
   await expect(size).toHaveAttribute('step', '1');
   await expect(gap).toHaveAttribute('step', '0.1');
-  await expect(page.getByText('All checks passed', {exact:true})).toBeVisible();
+  await expect(page.getByText('Ready to print', {exact:true})).toBeVisible();
   await size.fill('24.5');
   await review.click();
   await expect(page.getByText('size: 24 → 24.5').first()).toBeVisible({timeout:120000});
@@ -248,7 +257,9 @@ test('Watermelon-adapted command search runs real Studio actions', async ({ page
   await page.goto('/');
   await page.getByLabel('Project folder').fill(process.env.MAGIC_TEST_PROJECT!);
   await page.getByRole('button', {name:'Open project'}).click();
+  await page.getByRole('button', {name:'Versions', exact:true}).click();
   await page.getByRole('button', {name:/Version 2/}).click();
+  await page.getByRole('button', {name:'Close details'}).click();
   const canvas = page.getByLabel('3D model').locator('canvas');
   await expect(canvas).toBeVisible();
   await page.waitForTimeout(1500);
@@ -280,10 +291,28 @@ test('Watermelon-adapted command search runs real Studio actions', async ({ page
   await expect(page.getByRole('button', {name:'Use dark theme'})).toBeVisible();
 });
 
+test('the header shows the Magic box brand and the favicon is served', async ({ page, request }) => {
+  await page.goto('/');
+  const brand = page.getByRole('link', {name:'Magic CAD Studio'});
+  const mark = brand.locator('svg.brand-mark'), wordmark = brand.locator('svg.brand-wordmark');
+  await expect(mark).toBeVisible();
+  await expect(wordmark).toBeVisible();
+  await expect(mark).toHaveAttribute('data-surface', 'dark');
+  await page.getByRole('button', {name:'Use light theme'}).click();
+  await expect(mark).toHaveAttribute('data-surface', 'light');
+  const favicon = await page.locator('link[rel="icon"][type="image/svg+xml"]').getAttribute('href');
+  expect(favicon).toBe('/favicon.svg');
+  for (const icon of [favicon!, '/favicon-32.png', '/apple-touch-icon.png']) expect((await request.get(icon)).ok()).toBe(true);
+  await page.setViewportSize({width:390, height:844});
+  await expect(wordmark).toBeHidden();
+  await expect(mark).toBeVisible();
+});
+
 test('modes preserve the project and selected version, and Mission Control shows saved sources', async ({ page }) => {
   await page.goto('/');
   await page.getByLabel('Project folder').fill(process.env.MAGIC_TEST_PROJECT!);
   await page.getByRole('button', { name: 'Open project' }).click();
+  await page.getByRole('button', { name: 'Versions', exact: true }).click();
   await page.getByRole('button', { name: /Version 2/ }).click();
   await page.getByRole('button', { name: 'Mission Control' }).click();
   await expect(page.getByRole('heading', { name: 'Mission Control' })).toBeVisible();
@@ -344,4 +373,18 @@ test('mission control shows the parts list derived from the assembly', async ({ 
   const csv = page.getByRole('link', { name: 'Download CSV' });
   await expect(csv).toHaveAttribute('href', /format=csv/);
   expect(new URL(await csv.getAttribute('href')!, page.url()).searchParams.get('project')).toBe(process.env.MAGIC_TEST_PROJECT);
+});
+
+// Last: choosing a material writes printer.json, an unsaved project change that would block rollbacks and proposals in earlier tests.
+test('the Settings drawer shows the project printer and changes the material for future checks', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel('Project folder').fill(process.env.MAGIC_TEST_PROJECT!);
+  await page.getByRole('button', { name: 'Open project' }).click();
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await expect(page.getByText('Elegoo Centauri Carbon 2')).toBeVisible();
+  await expect(page.getByLabel('Material')).toHaveValue('PLA');
+  await page.getByLabel('Material').selectOption('PETG');
+  await expect(page.getByText('Material set to PETG for future checks.')).toBeVisible();
+  await page.getByLabel('Material').selectOption('PLA');
+  await expect(page.getByText('Material set to PLA for future checks.')).toBeVisible();
 });

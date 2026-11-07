@@ -225,7 +225,7 @@ html,body{overflow-x:clip}
 :root{--icon-sky:#d2b48a;--icon-sky-light:#f4e7d2;--icon-sky-deep:#8a6c48;--icon-mint:#36d3b3;--icon-mint-light:#b0f5df;--icon-mint-deep:#117f78;--icon-amber:#f0b94d;--icon-amber-light:#ffe6a3;--icon-amber-deep:#ae6b20;--icon-violet:#b69af3;--icon-violet-light:#e5d9ff;--icon-violet-deep:#7752b2;--icon-neutral:#aaa294;--icon-neutral-light:#ebe5da;--icon-neutral-deep:#6b6253;--icon-glint:#fffaf2;--icon-shadow:rgba(10,8,5,.25);--icon-day-line:#3b3328}
 .cad-icon{--icon-hue:var(--icon-neutral);--icon-light:var(--icon-neutral-light);--icon-deep:var(--icon-neutral-deep);--icon-line:var(--icon-light);flex-shrink:0;overflow:visible}
 .icon-sky{--icon-hue:var(--icon-sky);--icon-light:var(--icon-sky-light);--icon-deep:var(--icon-sky-deep)}.icon-mint{--icon-hue:var(--icon-mint);--icon-light:var(--icon-mint-light);--icon-deep:var(--icon-mint-deep)}.icon-amber{--icon-hue:var(--icon-amber);--icon-light:var(--icon-amber-light);--icon-deep:var(--icon-amber-deep)}.icon-violet{--icon-hue:var(--icon-violet);--icon-light:var(--icon-violet-light);--icon-deep:var(--icon-violet-deep)}
-.icon-glass-body{filter:drop-shadow(0 1px 1px var(--icon-shadow))}.icon-detail [fill=currentColor]{fill:var(--icon-hue);fill-opacity:.22}.app:not(.dark) .cad-icon{--icon-line:var(--icon-day-line)}
+.icon-glass-body{filter:drop-shadow(0 1.2px 1.2px var(--icon-shadow))}.glass-clear{fill:var(--icon-hue);fill-opacity:.1}.icon-detail [fill=currentColor]{fill:var(--icon-hue);fill-opacity:.22}.app:not(.dark) .cad-icon{--icon-line:var(--icon-day-line)}
 button:disabled .cad-icon{filter:grayscale(1);--icon-line:var(--muted);--icon-hue:var(--muted);--icon-light:var(--muted);--icon-deep:var(--surface);cursor:not-allowed}.icon-material{--icon-line:currentColor}.app .icon-material{filter:none}.app .icon-material [fill=currentColor]{fill:currentColor}
 @media(prefers-contrast:more){.app:not(.dark) .cad-icon,.app.dark .cad-icon{--icon-line:currentColor}.icon-glass-body{filter:none;opacity:.5}}
 header .mode-nav{display:flex;gap:4px;align-self:stretch;align-items:center}header .mode-nav button{border:0;border-radius:0;padding:10px 12px}header .mode-nav button[aria-current=page]{border-bottom:2px solid currentColor}.workspace[hidden]{display:none}.expert,.make-mode{padding:40px max(24px,calc((100vw - 1120px)/2));min-height:calc(100vh - 68px)}.expert{background:#161411;color:#ece9e1}.expert h1,.make-mode h1{margin-bottom:12px}.version-context{overflow-wrap:anywhere;color:#aaa396}.expert section{border-top:1px solid #34302a;padding:28px 0}.expert h2{font-size:1.0625rem}.expert h3{font-size:.875rem;font-weight:500}.expert pre{font: .8125rem/1.5 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:32rem;overflow:auto}.expert p{line-height:1.5}.make-mode .version-context{color:#58544d}@media(max-width:760px){header .mode-nav{order:9;width:100%;justify-content:space-between}header .mode-nav button{min-height:44px;padding:8px}.expert,.make-mode{padding:24px 16px}}
@@ -263,4 +263,350 @@ header .mode-nav{display:flex;gap:4px;align-self:stretch;align-items:center}head
 .app .parameter-panel .parameter-feedback:has(:not(:empty)){margin-top:4px}
 .app .parameter-panel .parameter-revert{padding:0;min-height:24px;border:0;background:none;font-size:.6875rem;color:var(--value-ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 @media(max-width:760px){.app .parameter-panel form{grid-template-columns:minmax(0,1fr) 160px}.app .parameter-control input{height:44px;min-height:44px}.app .parameter-control button{width:44px;height:44px;min-height:44px}.app .parameter-panel .parameter-revert{min-height:44px}}
+
+/* ===== Conversation desk (Nov 7): the conversation is the workbench, the model answers it. =====
+   Flush panes, no floating cards, compact 28px controls. Scoped to .app.desk so legacy rules stay inert. */
+.app.desk{--d-bench:#efece6;--d-panel:#f7f5f1;--d-raise:#e8e3da;--d-line:#ddd7cc;--d-line-2:#c9c1b4;--d-ink:#262320;--d-ink-2:#4a443c;--d-ink-3:#6b6458;--d-accent:#b24c1b;--d-accent-ink:#fff8f2;--d-accent-soft:rgba(178,76,27,.12);--d-ok:#3f7a4c;--d-bad:#b0452a;--d-wait:#8a7a5c;--d-shadow:rgba(40,30,20,.14);
+  display:flex;flex-direction:column;height:100svh;overflow:hidden;background:var(--d-bench);color:var(--d-ink);font-size:13px}
+.app.desk.dark{--d-bench:#141311;--d-panel:#1a1917;--d-raise:#25231f;--d-line:#2b2824;--d-line-2:#3b362f;--d-ink:#ece6dc;--d-ink-2:#c4baa9;--d-ink-3:#9c9385;--d-accent:#e57b46;--d-accent-ink:#1b0e06;--d-accent-soft:rgba(229,123,70,.14);--d-ok:#8fbf98;--d-bad:#ea8c70;--d-wait:#b8aa8c;--d-shadow:rgba(0,0,0,.4)}
+.app.desk ::selection{background:var(--d-accent-soft);color:var(--d-ink)}
+.app.desk :focus-visible{outline:2px solid var(--d-accent);outline-offset:2px}
+
+/* Shell */
+.app.desk .app-header{height:44px;min-height:44px;display:flex;align-items:center;gap:14px;padding:0 12px 0 14px;background:var(--d-panel);border-bottom:1px solid var(--d-line)}
+.app.desk .brand{gap:8px;color:var(--d-ink)}.app.desk .brand-mark{width:22px;height:22px;flex:none}.app.desk .brand-wordmark{width:100px;height:9.5px;flex:none}
+.app.desk .project-name{display:block;color:var(--d-ink-3);font-size:12.5px;max-width:22ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.app.desk header .mode-nav{display:flex;gap:2px;margin-left:10px;padding:2px;background:var(--d-bench);border:1px solid var(--d-line);border-radius:8px;align-self:center}
+.app.desk header .mode-nav button{min-height:26px;height:26px;padding:0 11px;border:0;border-radius:6px;background:transparent;color:var(--d-ink-3);font-size:12px;box-shadow:none}
+.app.desk header .mode-nav button:hover{color:var(--d-ink)}
+.app.desk header .mode-nav button[aria-current=page]{background:var(--d-raise);color:var(--d-ink);box-shadow:none;border:0}
+.app.desk .save-state{display:block;margin-left:auto;color:var(--d-ink-3);font-size:12px;white-space:nowrap}
+.app.desk .command-trigger{min-height:28px;height:28px;padding:0 9px;border-radius:7px;font-size:12px}
+.app.desk .theme-button{width:28px;height:28px;padding:4px;border-radius:7px;background:transparent}
+.app.desk .theme-button:hover{background:var(--d-raise)}
+.app.desk .app-status{height:24px;min-height:24px;padding:0 14px;background:var(--d-panel);border-top:1px solid var(--d-line);color:var(--d-ink-3);font-size:11px}
+
+/* Buttons: one language everywhere in the desk */
+.app.desk .quiet-button,.app.desk .keep-button,.app.desk .primary-button,.app.desk .stage-actions summary{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:28px;min-height:28px;padding:0 10px;border-radius:7px;font-size:12.5px;line-height:1;white-space:nowrap;cursor:pointer;transition:background-color .12s ease-out,color .12s ease-out,border-color .12s ease-out}
+.app.desk .quiet-button{border:1px solid transparent;background:transparent;color:var(--d-ink-2)}
+.app.desk .quiet-button:hover:not(:disabled){background:var(--d-raise);color:var(--d-ink)}
+.app.desk .quiet-button.strong{border-color:var(--d-line-2);color:var(--d-ink)}
+.app.desk .quiet-button[aria-pressed=true]{background:var(--d-raise);color:var(--d-ink);border-color:var(--d-line-2)}
+.app.desk .keep-button{border:0;background:var(--d-accent);color:var(--d-accent-ink);font-weight:650;padding:0 12px 0 10px}
+.app.desk .keep-button:hover:not(:disabled){background:color-mix(in srgb,var(--d-accent) 88%,var(--d-ink))}
+.app.desk .primary-button{border:0;background:var(--d-ink);color:var(--d-panel);font-weight:600;padding:0 12px}
+.app.desk .primary-button:hover:not(:disabled){background:color-mix(in srgb,var(--d-ink) 86%,var(--d-panel))}
+.app.desk :is(.quiet-button,.keep-button,.primary-button):disabled{opacity:1;background:transparent;color:var(--d-ink-3);border-color:var(--d-line);cursor:not-allowed}
+.app.desk :is(.quiet-button,.keep-button,.primary-button,.composer-send,.stage-actions summary) svg{width:14px;height:14px;flex:none}
+.app.desk :is(.keep-button,.primary-button,.composer-send) svg :is(path,line,polyline,circle,rect,polygon){stroke:currentColor;fill:none;filter:none}
+.app.desk :is(.keep-button,.primary-button,.composer-send) svg .icon-glass-body{display:none}
+.app.desk .icon-button{display:grid;place-items:center;width:28px;height:28px;padding:0;border:0;border-radius:7px;background:transparent;color:var(--d-ink-3)}
+.app.desk .icon-button:hover{background:var(--d-raise);color:var(--d-ink)}
+.app.desk .icon-button svg{width:16px;height:16px}
+
+/* Workspace grid */
+.app.desk .desk-workspace{flex:1;min-height:0;display:grid;grid-template-columns:var(--column,400px) 6px minmax(0,1fr) 52px;position:relative}
+.app.desk .desk-workspace[hidden]{display:none}
+
+/* Conversation column */
+.app.desk .conversation{display:grid;grid-template-rows:auto minmax(0,1fr) auto;min-height:0;background:var(--d-panel);border-right:1px solid var(--d-line)}
+.app.desk .conversation:has(> .project-open){grid-template-rows:auto}
+.app.desk .project-open{display:grid;gap:8px;padding:28px 22px;align-content:start}
+.app.desk .project-open h1{font-size:16px;font-weight:650;margin:0}
+.app.desk .project-open p{margin:0 0 10px;color:var(--d-ink-2);line-height:1.5}
+.app.desk .project-open label{font-size:12px;font-weight:600;margin:0;color:var(--d-ink-2)}
+.app.desk .project-open .open{display:flex;gap:6px}
+.app.desk .project-open input{flex:1;min-width:0;height:30px;padding:0 10px;border:1px solid var(--d-line-2);border-radius:7px;background:var(--d-bench);color:var(--d-ink);font-size:12.5px}
+.app.desk .project-open .primary-button{height:30px}
+
+/* Verdict: plain words first, evidence one tap away */
+.app.desk .verdict-card{padding:16px 20px 14px;border-bottom:1px solid var(--d-line)}
+.app.desk .verdict-card h1{display:flex;align-items:baseline;gap:8px;margin:0;font-size:16px;font-weight:650;line-height:1.3}
+.app.desk .verdict-card h1::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--d-wait);flex:none;transform:translateY(-1px)}
+.app.desk .verdict-card.ready h1::before{background:var(--d-ok)}.app.desk .verdict-card.blocked h1::before{background:var(--d-bad)}
+.app.desk .verdict-version{font-size:12px;font-weight:500;color:var(--d-ink-3);order:2}
+.app.desk .verdict-card>p{margin:6px 0 0;color:var(--d-ink-2);line-height:1.5;font-size:12.5px;max-width:52ch}
+.app.desk .verdict-checks{margin-top:10px}
+.app.desk .verdict-checks summary{display:flex;justify-content:space-between;gap:8px;cursor:pointer;font-size:12px;font-weight:600;color:var(--d-ink-2);list-style:none;padding:4px 0}
+.app.desk .verdict-checks summary::-webkit-details-marker{display:none}
+.app.desk .verdict-checks summary span{font-weight:400;color:var(--d-ink-3);margin-left:auto}
+.app.desk .verdict-checks summary::after{content:"";width:6px;height:6px;border-right:1.5px solid var(--d-ink-3);border-bottom:1.5px solid var(--d-ink-3);transform:rotate(45deg);margin:4px 2px 0 0}
+.app.desk .verdict-checks[open] summary::after{transform:rotate(225deg);margin-top:7px}
+.app.desk .verdict-checks ul{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:5px}
+.app.desk .verdict-checks li{display:flex;gap:9px;align-items:baseline;font-size:12.5px;color:var(--d-ink-2);line-height:1.4}
+.app.desk .verdict-checks li.fail{color:var(--d-ink)}.app.desk .verdict-checks li.untested{color:var(--d-ink-3)}
+.app.desk .mark{display:inline-block;width:7px;height:7px;border-radius:50%;flex:none;background:var(--d-wait);transform:translateY(-1px)}
+.app.desk .mark.pass{background:var(--d-ok)}.app.desk .mark.fail{background:var(--d-bad)}.app.desk .mark.pending{background:transparent;box-shadow:inset 0 0 0 1.5px var(--d-wait)}
+.app.desk .verdict-actions{display:flex;flex-wrap:wrap;gap:4px;margin:10px 0 0 -10px}
+
+/* Thread */
+.app.desk .thread{overflow:auto;padding:16px 20px 8px;display:flex;flex-direction:column;gap:14px;scrollbar-width:thin}
+.app.desk .turn{max-width:100%}
+.app.desk .turn p{margin:0;line-height:1.5}
+.app.desk .turn .who{display:block;font-size:11.5px;font-weight:600;color:var(--d-ink-3);margin-bottom:3px}
+.app.desk .turn.you{align-self:flex-end;max-width:86%;background:var(--d-raise);border-radius:12px 12px 3px 12px;padding:8px 12px}
+.app.desk .turn.error p{color:var(--d-bad)}
+.app.desk .turn-chips{list-style:none;padding:0;margin:6px 0 0;display:flex;flex-wrap:wrap;gap:4px}
+.app.desk .turn-chips li{font-size:11.5px;padding:2px 8px;border-radius:999px;border:1px solid var(--d-line-2);color:var(--d-ink-2)}
+.app.desk .gate-progress{font-size:12px;color:var(--d-ink-3);display:grid;gap:2px;line-height:1.45}
+.app.desk .turn.working .quiet-button{margin:6px 0 0 -10px}
+.app.desk .review{border-top:1px solid var(--d-line);border-bottom:1px solid var(--d-line);padding:12px 0}
+.app.desk .review h3{margin:0 0 8px;font-size:13px;font-weight:600}
+.app.desk .review-diff{display:grid;gap:4px;padding:8px 10px;border-radius:8px;background:var(--d-bench);border:1px solid var(--d-line)}
+.app.desk .review-part{font-size:11.5px;color:var(--d-ink-3)}
+.app.desk .review-diff strong{font-weight:500;font-variant-numeric:tabular-nums;font-size:13px}
+.app.desk .review-diff del{color:var(--d-ink-3);text-decoration-thickness:1px}
+.app.desk .review-diff ins{text-decoration:none;color:var(--d-ink);font-weight:650}
+.app.desk .review-note{margin:8px 0 0;font-size:12px;color:var(--d-ink-3);line-height:1.45}
+.app.desk .review-actions{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:10px}
+.app.desk .review-actions .compare{margin-left:auto}
+
+/* Composer (re-scoped from the inspector) */
+.app.desk .composer-form{padding:8px 14px 14px;display:grid;gap:6px;grid-template-columns:minmax(0,1fr)}
+.app.desk .part-picker{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--d-ink-3)}
+.app.desk .part-picker select,.app.desk .parameter-design select{height:26px;border-radius:6px;border:1px solid var(--d-line-2);background:var(--d-bench);color:var(--d-ink);padding:0 6px;font-size:12px}
+.app.desk .composer{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;min-width:0;padding:10px 8px 8px 12px;background:var(--d-bench);border:1px solid var(--d-line-2);border-radius:11px;transition:border-color .15s ease-out,box-shadow .15s ease-out}
+.app.desk .composer:focus-within{border-color:var(--d-ink-3);box-shadow:0 0 0 3px var(--d-accent-soft)}
+.app.desk .composer textarea{display:block;width:100%;min-height:40px;max-height:180px;resize:none;field-sizing:content;margin:0;padding:0 4px 0 0;border:0;background:transparent;color:var(--d-ink);font:inherit;font-size:13px;line-height:1.5;outline:none}
+.app.desk .composer textarea::placeholder{color:var(--d-ink-3);opacity:1}
+.app.desk .composer-footer{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.app.desk .composer-footer small{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px;color:var(--d-ink-3)}
+.app.desk .composer-send{display:inline-flex;flex:none;align-items:center;gap:6px;height:28px;min-height:28px;padding:0 9px 0 12px;border:0;border-radius:7px;background:var(--d-ink);color:var(--d-panel);font-size:12.5px;font-weight:600}
+.app.desk .composer-send:hover:not(:disabled){background:color-mix(in srgb,var(--d-ink) 86%,var(--d-panel))}
+.app.desk .composer-send:disabled{background:var(--d-raise);color:var(--d-ink-3);cursor:not-allowed}
+.app.desk .composer-note,.app.desk .composer-form .error{margin:0 2px;font-size:12px;color:var(--d-ink-3)}
+.app.desk .composer-form .error,.app.desk .project-open .error{color:var(--d-bad)}
+.app.desk .pick-chips{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px}
+.app.desk .pick-chips li{display:inline-flex;align-items:center;gap:2px;height:24px;padding:0 2px 0 9px;border-radius:999px;background:var(--d-accent-soft);color:var(--d-ink);font-size:12px;border:1px solid color-mix(in srgb,var(--d-accent) 40%,transparent)}
+.app.desk .pick-chips button{display:grid;place-items:center;width:20px;height:20px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--d-ink-2)}
+.app.desk .pick-chips button:hover{background:var(--d-raise)}
+.app.desk .pick-chips svg{width:12px;height:12px}
+
+/* Resizer */
+.app.desk .column-resizer{cursor:col-resize;position:relative;background:transparent;z-index:3;margin:0 -3px}
+.app.desk .column-resizer::after{content:"";position:absolute;top:0;bottom:0;left:50%;width:2px;transform:translateX(-50%);background:transparent;transition:background-color .12s ease-out}
+.app.desk .column-resizer:hover::after,.app.desk .column-resizer:focus-visible::after,body.resizing .app.desk .column-resizer::after{background:var(--d-accent)}
+.app.desk .column-resizer:focus-visible{outline:none}
+body.resizing{cursor:col-resize;user-select:none}
+
+/* Stage */
+.app.desk .stage{position:relative;min-height:0;height:auto;inset:auto;width:auto;background:var(--d-bench)}
+.app.desk .stage.selecting canvas{cursor:crosshair}
+.app.desk .viewport-tools{position:absolute;left:12px;top:50%;bottom:auto;transform:translateY(-50%);z-index:4;display:block}
+.app.desk .viewport-rail{background:var(--d-panel);border:1px solid var(--d-line);border-radius:10px;box-shadow:0 4px 14px var(--d-shadow);backdrop-filter:none}
+.app.desk .viewport-rail button{width:34px;height:34px}
+.app.desk .viewport-rail button[aria-pressed=true]{background:var(--d-raise)}
+.app.desk .stage-bar{position:absolute;top:12px;left:12px;right:12px;z-index:4;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;pointer-events:none}
+.app.desk .stage-bar>*{pointer-events:auto}
+.app.desk .body-chips{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.app.desk .body-chip{display:inline-flex;align-items:center;gap:5px;height:26px;min-height:26px;padding:0 10px 0 7px;border-radius:999px;border:1px solid var(--d-line);background:var(--d-panel);color:var(--d-ink);font-size:12px}
+.app.desk .body-chip svg{width:14px;height:14px}
+.app.desk .body-chip[aria-pressed=false]{color:var(--d-ink-3)}
+.app.desk .body-chip.static{padding:0 10px}
+.app.desk .chip-label{font-size:11.5px;color:var(--d-ink-3);padding:0 6px}
+.app.desk .stage-actions{display:flex;gap:4px;align-items:center}
+.app.desk .stage-actions .quiet-button,.app.desk .stage-actions summary{background:var(--d-panel);border:1px solid var(--d-line);color:var(--d-ink)}
+.app.desk .stage-actions .quiet-button[aria-pressed=true]{background:var(--d-raise);border-color:var(--d-line-2)}
+.app.desk .stage-actions summary{list-style:none}
+.app.desk .stage-actions summary::-webkit-details-marker{display:none}
+.app.desk .export-menu{position:relative}
+.app.desk .export-menu>div{position:absolute;right:0;top:32px;min-width:160px;display:grid;padding:4px;border-radius:9px;background:var(--d-panel);border:1px solid var(--d-line);box-shadow:0 8px 24px var(--d-shadow)}
+.app.desk .export-menu a{padding:6px 8px;border-radius:6px;color:var(--d-ink);text-decoration:none;font-size:12.5px}
+.app.desk .export-menu a:hover{background:var(--d-raise)}
+.app.desk .select-hint{position:absolute;top:48px;left:50%;transform:translateX(-50%);z-index:4;margin:0;padding:5px 10px;border-radius:999px;background:var(--d-panel);border:1px solid var(--d-line);font-size:12px;color:var(--d-ink-2);white-space:nowrap}
+.app.desk .views{left:50%;transform:translateX(-50%);bottom:14px;background:var(--d-panel);border:1px solid var(--d-line);border-radius:10px;box-shadow:0 4px 14px var(--d-shadow);backdrop-filter:none;padding:3px}
+.app.desk .views button,.app.desk .camera-more summary{min-height:30px;height:auto;font-size:11px;color:var(--d-ink-2)}
+.app.desk .views button[aria-pressed=true]{background:var(--d-raise);color:var(--d-ink)}
+.app.desk .hint{display:block;left:50%;transform:translateX(-50%);bottom:62px;color:var(--d-ink-3);font-size:11px;white-space:nowrap}
+.app.desk .empty{color:var(--d-ink-3);font-size:15px;padding:0 48px;text-align:center}
+.app.desk .loading{background:var(--d-panel);border:1px solid var(--d-line);border-radius:999px;padding:5px 12px;font-size:12px;left:50%;top:48px;transform:translateX(-50%)}
+.app.desk .comparison-stage.single .mobile-comparison-switch{display:flex}
+.app.desk .comparison-stage.single .comparison-models{grid-template-columns:minmax(0,1fr)}
+.app.desk .comparison-stage.single .comparison-models figure{grid-area:1/1}
+.app.desk .comparison-stage.single .comparison-models[data-mobile-side=before] figure:nth-child(2),.app.desk .comparison-stage.single .comparison-models[data-mobile-side=after] figure:first-child{visibility:hidden}
+
+/* Drawer rail and drawer: details live one tap away, flush to the right edge */
+.app.desk .drawer-rail{display:flex;flex-direction:column;align-items:stretch;gap:2px;padding:8px 4px;background:var(--d-panel);border-left:1px solid var(--d-line);z-index:5}
+.app.desk .drawer-rail button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 0 6px;border:0;border-radius:8px;background:transparent;color:var(--d-ink-3);font-size:10.5px;min-height:0}
+.app.desk .drawer-rail button svg{width:18px;height:18px}
+.app.desk .drawer-rail button:hover:not(:disabled){background:var(--d-raise);color:var(--d-ink)}
+.app.desk .drawer-rail button[aria-pressed=true]{background:var(--d-raise);color:var(--d-ink)}
+.app.desk .drawer-rail button:disabled{opacity:.45;cursor:not-allowed}
+.app.desk .drawer{position:absolute;top:0;bottom:0;right:52px;width:min(380px,calc(100% - 52px));z-index:6;overflow:auto;padding:12px 18px 24px;background:var(--d-panel);border-left:1px solid var(--d-line);box-shadow:-10px 0 28px var(--d-shadow);color:var(--d-ink)}
+.app.desk .drawer[hidden]{display:none}
+.app.desk .drawer-heading{display:flex;align-items:center;justify-content:space-between;margin:0 -6px 8px 0}
+.app.desk .drawer-heading h2{margin:0;font-size:14px;font-weight:650}
+.app.desk .drawer-note{margin:0 0 12px;font-size:12px;color:var(--d-ink-3)}
+.app.desk .drawer .evidence h2{font-size:12px;font-weight:650;color:var(--d-ink-2);margin:16px 0 4px}
+.app.desk .drawer .evidence li{border-top:1px solid var(--d-line);padding:7px 0;font-size:12.5px;color:var(--d-ink)}
+.app.desk .drawer .evidence small{color:var(--d-ink-3)}
+.app.desk #version-list{list-style:none;margin:0;padding:0}
+.app.desk #version-list button{display:grid;gap:2px;width:100%;padding:9px 10px;border:0;border-radius:8px;background:transparent;color:var(--d-ink);text-align:left;font-size:12.5px;min-height:0}
+.app.desk #version-list button:hover{background:var(--d-raise)}
+.app.desk #version-list button[aria-current]{background:var(--d-raise)}
+.app.desk #version-list button>span{display:flex;align-items:center;gap:8px;font-weight:600}
+.app.desk #version-list small,.app.desk #version-list time{color:var(--d-ink-3);font-size:11.5px}
+
+/* Narrow: column collapses under the model; drawer becomes a sheet */
+@media(max-width:1100px){.app.desk .desk-workspace{grid-template-columns:min(var(--column,400px),44vw) 6px minmax(0,1fr) 52px}}
+@media(max-width:760px){
+  .app.desk{height:auto;min-height:100svh;overflow:auto}
+  .app.desk .app-header{gap:8px;padding:0 8px}.app.desk .project-name,.app.desk .save-state{display:none}.app.desk header .mode-nav{margin-left:auto}
+  .app.desk header .mode-nav button{padding:0 8px;min-height:32px;height:32px}
+  .app.desk .desk-workspace{display:flex;flex-direction:column}
+  .app.desk .stage{order:1;height:52svh;flex:none}
+  .app.desk .drawer-rail{order:2;flex-direction:row;justify-content:center;border-left:0;border-top:1px solid var(--d-line);border-bottom:1px solid var(--d-line);padding:4px}
+  .app.desk .drawer-rail button{flex-direction:row;gap:6px;padding:0 12px;min-height:40px;font-size:12px}
+  .app.desk .conversation{order:3;border-right:0}
+  .app.desk .column-resizer{display:none}
+  .app.desk .drawer{position:fixed;top:auto;left:0;right:0;bottom:0;width:auto;max-height:72svh;border-left:0;border-top:1px solid var(--d-line);border-radius:14px 14px 0 0}
+  .app.desk .viewport-tools{top:auto;bottom:60px;transform:none;display:block}
+  .app.desk .hint{display:none}
+  .app.desk :is(.quiet-button,.keep-button,.primary-button,.composer-send){min-height:40px;height:40px}
+  .app.desk .composer-footer small{display:none}.app.desk .composer-footer{justify-content:flex-end}
+}
+@media(prefers-reduced-motion:reduce){.app.desk *{transition:none!important}}
+
+.app.desk .project-switch{position:relative}
+.app.desk .project-switch summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px;height:28px;padding:0 8px;border-radius:7px;color:var(--d-ink-2);font-size:12.5px;max-width:24ch;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app.desk .project-switch summary::-webkit-details-marker{display:none}
+.app.desk .project-switch summary::after{content:"";width:5px;height:5px;border-right:1.5px solid var(--d-ink-3);border-bottom:1.5px solid var(--d-ink-3);transform:rotate(45deg) translateY(-2px);flex:none}
+.app.desk .project-switch summary:hover{background:var(--d-raise);color:var(--d-ink)}
+.app.desk .project-open.compact{position:absolute;top:34px;left:0;z-index:20;width:420px;padding:12px;border-radius:10px;background:var(--d-panel);border:1px solid var(--d-line);box-shadow:0 10px 30px var(--d-shadow)}
+@media(max-width:760px){.app.desk .project-switch summary{max-width:12ch}.app.desk .project-open.compact{width:calc(100vw - 16px);left:-40px}}
+@media(max-width:760px){.app.desk .brand-wordmark{display:none}.app.desk header .mode-nav{min-width:0;flex:0 1 auto;overflow-x:auto;scrollbar-width:none}.app.desk header .mode-nav button{padding:0 8px;font-size:11.5px}}
+/* Project folder: the action sits inside the field, small and quiet */
+.app.desk .open-field{position:relative;display:flex;align-items:center}
+.app.desk .open-field input{flex:1;min-width:0;height:32px;padding:0 74px 0 10px;border:1px solid var(--d-line-2);border-radius:8px;background:var(--d-bench);color:var(--d-ink);font-size:12.5px;font-family:var(--font-2,ui-monospace),monospace;letter-spacing:-.01em}
+.app.desk .open-field input::placeholder{color:var(--d-ink-3);opacity:1}
+.app.desk .open-field input:focus-visible{outline:none;border-color:var(--d-ink-3);box-shadow:0 0 0 3px var(--d-accent-soft)}
+.app.desk .open-field input[aria-invalid=true]{border-color:var(--d-bad)}
+.app.desk .open-button{position:absolute;right:4px;top:50%;transform:translateY(-50%);display:inline-flex;align-items:center;gap:4px;height:24px;min-height:24px;padding:0 6px 0 9px;border:0;border-radius:6px;background:var(--d-raise);color:var(--d-ink);font-size:12px;font-weight:600;line-height:1}
+.app.desk .open-button:hover:not(:disabled){background:var(--d-line-2)}
+.app.desk .open-button:disabled{color:var(--d-ink-3);cursor:not-allowed}
+.app.desk .open-button svg{width:13px;height:13px}
+.app.desk .open-button svg :is(path,line,polyline,circle,rect,polygon){stroke:currentColor;fill:none;filter:none}
+.app.desk .open-button svg .icon-glass-body{display:none}
+.app.desk .field-hint{margin:2px 2px 0;font-size:12px;color:var(--d-bad)}
+@media(max-width:760px){.app.desk .open-field input{height:40px}.app.desk .open-button{height:32px;min-height:32px}}
+
+/* ===== Distill pass (Watermelon references: Button 8, ButtonGroup 12, Contextual AI Bar,
+   Onboarding Checklist, Vertical Tooltip Navbar). Fewer boxes: one tray instead of many
+   bordered buttons, no floating shadows over the model, xs controls in dense places. ===== */
+.app.desk .tray{display:inline-flex;align-items:center;gap:0;padding:2px;border-radius:8px;background:color-mix(in srgb,var(--d-raise) 45%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--d-line-2) 70%,transparent)}
+.app.desk .tray-button,.app.desk .tray>details>summary{display:inline-flex;align-items:center;gap:5px;height:24px;min-height:24px;padding:0 9px;border:0;border-radius:6px;background:transparent;color:var(--d-ink-3);font-size:12px;line-height:1;white-space:nowrap;cursor:pointer;list-style:none;box-shadow:none;transition:color .12s ease-out,background-color .12s ease-out}
+.app.desk .tray>details>summary::-webkit-details-marker{display:none}
+.app.desk .tray-button:hover:not(:disabled),.app.desk .tray>details>summary:hover{color:var(--d-ink)}
+.app.desk .tray-button[aria-pressed=true]{background:var(--d-panel);color:var(--d-ink);box-shadow:0 0 0 1px var(--d-line)}
+.app.desk .tray-button:disabled{color:color-mix(in srgb,var(--d-ink-3) 60%,transparent);cursor:not-allowed}
+.app.desk :is(.tray-button,.tray>details>summary) svg{width:13px;height:13px}
+.app.desk .tray+.tray,.app.desk .keep-button+.tray{margin-left:4px}
+
+/* Viewport overlays sit flush on the model: no cards, no shadows */
+.app.desk .stage-actions.tray{background:color-mix(in srgb,var(--d-bench) 70%,transparent)}
+.app.desk .stage-actions .quiet-button,.app.desk .stage-actions summary{background:transparent;border:0}
+.app.desk .body-toggle{display:inline-flex;align-items:center;gap:5px;height:24px;min-height:24px;padding:0 7px;border:0;border-radius:6px;background:transparent;color:var(--d-ink-2);font-size:12px;box-shadow:none}
+.app.desk .body-toggle:hover{color:var(--d-ink);background:color-mix(in srgb,var(--d-raise) 60%,transparent)}
+.app.desk .body-toggle[aria-pressed=false]{color:var(--d-ink-3)}
+.app.desk .body-toggle svg{width:13px;height:13px}
+.app.desk .body-toggle.static{color:var(--d-ink-2);cursor:default}
+.app.desk .viewport-rail{background:color-mix(in srgb,var(--d-bench) 70%,transparent);border:0;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--d-line-2) 70%,transparent);border-radius:9px;padding:2px}
+.app.desk .viewport-rail button{width:30px;height:30px;border-radius:7px}
+.app.desk .views{background:color-mix(in srgb,var(--d-bench) 70%,transparent);border:0;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--d-line-2) 70%,transparent);border-radius:9px;padding:2px}
+.app.desk .views button,.app.desk .camera-more summary{min-height:26px;height:26px;padding:0 8px;flex-direction:row;gap:5px;font-size:11.5px}
+.app.desk .views button svg{width:14px;height:14px}
+.app.desk .select-hint{background:transparent;border:0;padding:0;top:44px;color:var(--d-ink-2);text-shadow:0 1px 2px var(--d-bench)}
+.app.desk .hint{bottom:48px}
+
+/* Review: the change reads as one line, actions are Keep + one tray */
+.app.desk .review{border:0;padding:4px 0 0}
+.app.desk .review-diff{background:transparent;border:0;padding:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
+.app.desk .review-diff strong{font-size:14px}
+.app.desk .review-part{width:100%}
+.app.desk .review-actions .keep-button{height:26px;min-height:26px;font-size:12px;padding:0 11px 0 9px}
+
+/* Composer holds the selection tools: pointing at the model is part of asking */
+.app.desk .composer-tools{display:flex;align-items:center;gap:2px;min-width:0}
+.app.desk .composer-tool{display:grid;place-items:center;width:26px;height:26px;min-height:26px;padding:0;border:0;border-radius:6px;background:transparent;color:var(--d-ink-3)}
+.app.desk .composer-tool svg{width:15px;height:15px}
+.app.desk .composer-tool:hover:not(:disabled){color:var(--d-ink);background:var(--d-raise)}
+.app.desk .composer-tool[aria-pressed=true]{color:var(--d-accent);background:var(--d-accent-soft)}
+.app.desk .composer-tool:disabled{opacity:.4;cursor:not-allowed}
+.app.desk .composer-tools small{margin-left:6px;font-size:11.5px;color:var(--d-ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Verdict: a tick meter instead of a boxed count */
+.app.desk .verdict-checks summary{align-items:center}
+.app.desk .ticks{display:inline-flex;gap:3px;margin-left:auto}
+.app.desk .ticks i{display:block;width:3px;height:12px;border-radius:2px;background:var(--d-line-2)}
+.app.desk .ticks i.pass{background:var(--d-ok)}.app.desk .ticks i.fail{background:var(--d-bad)}
+.app.desk .verdict-checks summary .tick-count{margin-left:8px}
+
+/* Drawer rail: icons only, label on hover/focus */
+.app.desk .desk-workspace{grid-template-columns:var(--column,400px) 6px minmax(0,1fr) 44px}
+.app.desk .drawer{right:44px;width:min(380px,calc(100% - 44px))}
+.app.desk .drawer-rail{padding:8px 5px;gap:4px}
+.app.desk .drawer-rail button{position:relative;padding:0;height:34px;border-radius:8px;justify-content:center}
+.app.desk .drawer-rail .rail-label{position:absolute;right:calc(100% + 8px);top:50%;transform:translateY(-50%);padding:4px 8px;border-radius:6px;background:var(--d-ink);color:var(--d-panel);font-size:11.5px;white-space:nowrap;pointer-events:none;opacity:0;clip-path:inset(0 0 0 100% round 6px);transition:opacity .12s ease-out,clip-path .16s ease-out}
+.app.desk .drawer-rail button:hover .rail-label,.app.desk .drawer-rail button:focus-visible .rail-label{opacity:1;clip-path:inset(0 0 0 0 round 6px)}
+@media(max-width:1100px){.app.desk .desk-workspace{grid-template-columns:min(var(--column,400px),44vw) 6px minmax(0,1fr) 44px}}
+@media(max-width:760px){.app.desk .drawer-rail .rail-label{position:static;opacity:1;clip-path:none;background:transparent;color:inherit;padding:0;transform:none}.app.desk .drawer-rail button{height:40px;padding:0 12px;flex-direction:row;gap:6px}.app.desk .composer-tools small{display:none}.app.desk .composer-tool{width:36px;height:36px}}
+.app.desk .views button,.app.desk .camera-more summary{background:transparent;border:0;box-shadow:none;border-radius:6px}
+.app.desk .views button:hover:not(:disabled),.app.desk .camera-more summary:hover{color:var(--d-ink)}
+.app.desk .views button[aria-pressed=true]{background:var(--d-panel);box-shadow:0 0 0 1px var(--d-line);color:var(--d-ink)}
+.app.desk .comparison-controls{background:color-mix(in srgb,var(--d-bench) 70%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--d-line-2) 70%,transparent);border:0;border-radius:9px;padding:2px}
+.app.desk .comparison-controls button,.app.desk .comparison-more summary{background:transparent;border:0;min-height:26px;height:26px;font-size:11.5px;color:var(--d-ink-3)}
+.app.desk .comparison-controls button[aria-pressed=true]{background:var(--d-panel);box-shadow:0 0 0 1px var(--d-line);color:var(--d-ink)}
+.app.desk .model-measurements summary,.app.desk .mobile-comparison-switch{background:color-mix(in srgb,var(--d-bench) 70%,transparent);border:0;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--d-line-2) 70%,transparent)}
+
+/* Polish (Nov 7): no glowing dots, no lit glass icons in the desk chrome. Icons are plain
+   single-colour line drawings that take their colour from the control; state is said in words. */
+.app.desk .viewport-rail button{display:grid;place-items:center;width:30px;height:30px;padding:0;color:var(--d-ink-3)}
+.app.desk .viewport-rail button svg{width:18px;height:18px;display:block}
+.app.desk .viewport-rail button:hover:not(:disabled),.app.desk .viewport-rail button[aria-pressed=true]{color:var(--d-ink);background:var(--d-panel);box-shadow:0 0 0 1px var(--d-line)}
+.app.desk .viewport-rail .rail-divider{display:block;height:1px;margin:3px 6px;background:var(--d-line-2)}
+.app.desk .drawer-rail button svg,.app.desk .theme-button svg{display:block}
+.app.desk .verdict-card h1::before{content:none}
+.app.desk .verdict-card.blocked .verdict-headline{color:var(--d-bad)}
+.app.desk .verdict-checks li{gap:7px}
+.app.desk .glyph{display:grid;place-items:center;width:14px;height:14px;flex:none;transform:translateY(2px);color:var(--d-ink-3)}
+.app.desk .glyph svg{width:13px;height:13px}
+.app.desk .verdict-checks li.pass .glyph{color:var(--d-ok)}
+.app.desk .verdict-checks li.fail .glyph{color:var(--d-bad)}
+.app.desk .version-state{font-style:normal;font-weight:400;font-size:11.5px;color:var(--d-ink-3)}
+.app.desk .version-state.fail{color:var(--d-bad)}
+.app.desk .composer-send{width:28px;height:28px;min-height:28px;padding:0;justify-content:center;border-radius:8px}
+.app.desk .composer-send svg{width:15px;height:15px}
+@media(max-width:760px){.app.desk .composer-send{width:40px;height:40px;min-height:40px}}
+.app.desk header .mode-nav button{flex:none}
+.app.desk .verdict-checks summary .tick-count{margin-left:auto}
+
+/* Pointing at the model (Nov 7): select on the model, circle areas, act beside the selection. */
+.app.desk .stage canvas{cursor:default}
+.app.desk .lasso-layer{position:absolute;inset:0;z-index:5;width:100%;height:100%;cursor:crosshair;touch-action:none}
+.app.desk .lasso-layer path{fill:color-mix(in srgb,var(--d-accent) 12%,transparent);stroke:var(--d-accent);stroke-width:1.5;stroke-dasharray:5 4;stroke-linejoin:round}
+.app.desk .select-hint{top:42px;font-size:11.5px;color:var(--d-ink-3)}
+.app.desk .selection-bar{display:flex;align-items:center;gap:1px;padding:2px;margin:10px 0 0 10px;border-radius:9px;background:color-mix(in srgb,var(--d-panel) 92%,transparent);box-shadow:inset 0 0 0 1px var(--d-line-2),0 6px 18px var(--d-shadow);white-space:nowrap;font:12px/1 Seravek,"Segoe UI",sans-serif;color:var(--d-ink)}
+.app.desk .selection-name{padding:0 8px 0 7px;color:var(--d-ink-3);font-size:11.5px;max-width:22ch;overflow:hidden;text-overflow:ellipsis}
+.app.desk .selection-bar>button,.app.desk .note-form button{display:inline-flex;align-items:center;gap:4px;height:24px;min-height:24px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--d-ink-2);font-size:12px;cursor:pointer}
+.app.desk .selection-bar>button:hover:not(:disabled){color:var(--d-ink);background:var(--d-raise)}
+.app.desk .selection-bar>button[aria-pressed=true]{color:var(--d-ink);background:var(--d-raise)}
+.app.desk .selection-bar>button:disabled{color:color-mix(in srgb,var(--d-ink-3) 55%,transparent);cursor:not-allowed}
+.app.desk .selection-bar svg{width:14px;height:14px}
+.app.desk .selection-clear{width:24px;padding:0!important;justify-content:center}
+.app.desk .note-form{display:flex;align-items:center;gap:4px}
+.app.desk .note-form input{width:200px;height:24px;padding:0 8px;border:0;border-radius:6px;background:var(--d-bench);color:var(--d-ink);font:inherit;font-size:12px;outline:none;box-shadow:inset 0 0 0 1px var(--d-line-2)}
+.app.desk .note-form input:focus{box-shadow:inset 0 0 0 1px var(--d-ink-3),0 0 0 3px var(--d-accent-soft)}
+.app.desk .note-form button{color:var(--d-ink);background:var(--d-raise)}
+.app.desk .dimension-label{height:22px;padding:0 8px;border:0;border-radius:6px;background:var(--d-ink);color:var(--d-panel);font:600 12px/22px Seravek,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;cursor:text;box-shadow:0 4px 12px var(--d-shadow)}
+.app.desk .dimension-label:hover{background:color-mix(in srgb,var(--d-ink) 86%,var(--d-accent))}
+.app.desk .dimension-edit{display:flex;align-items:center;gap:4px;padding:2px 6px 2px 2px;border-radius:7px;background:var(--d-panel);box-shadow:inset 0 0 0 1px var(--d-accent),0 4px 12px var(--d-shadow);font:12px Seravek,"Segoe UI",sans-serif;color:var(--d-ink-3)}
+.app.desk .dimension-edit input{width:64px;height:22px;border:0;border-radius:5px;padding:0 6px;background:var(--d-bench);color:var(--d-ink);font:600 12px Seravek,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums;outline:none;text-align:right}
+@media(max-width:760px){.app.desk .selection-name{display:none}.app.desk .selection-bar>button{height:34px;min-height:34px}}
+.app.desk .selection-bar{margin:0;transform:translate(-50%,16px)}
 .expert .parts-list-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px}.expert .parts-list-head h2{margin:0}.expert a{color:#ece9e1;text-underline-offset:3px}.expert a:focus-visible{outline:2px solid #ece9e1;outline-offset:3px}.expert .download{font-size:.875rem;font-weight:600}.expert .parts-list>p{color:#a7b2bd;max-width:68ch}.expert code{font:.8125rem/1.4 ui-monospace,monospace;overflow-wrap:anywhere}.expert table{width:100%;border-collapse:collapse;margin-top:20px;font-variant-numeric:tabular-nums}.expert thead th{font-size:.75rem;font-weight:600;color:#a7b2bd;text-align:left;padding:0 12px 8px 0;border-bottom:1px solid #2b3641}.expert tbody td{padding:12px 12px 12px 0;border-bottom:1px solid #2b3641;vertical-align:top}.expert .group th{text-align:left;font-size:.8125rem;font-weight:600;padding:20px 0 8px;border-bottom:1px solid #2b3641}.expert .qty{width:4.5rem;text-align:right;padding-right:24px}.expert td.qty{font-size:1.0625rem}.expert .item{display:block;font-weight:500}.expert .spec{display:block;margin-top:4px;color:#a7b2bd;font-size:.8125rem;line-height:1.45;max-width:68ch}.expert .source{width:16rem;color:#a7b2bd}@media(max-width:760px){.expert thead{display:none}.expert table,.expert tbody,.expert tr,.expert td,.expert .group th{display:block;width:auto}.expert tbody tr:not(.group){display:grid;grid-template-columns:3rem minmax(0,1fr);gap:4px 12px;padding:12px 0;border-bottom:1px solid #2b3641}.expert tbody td{border:0;padding:0}.expert .qty{width:auto;text-align:left;padding:0}.expert td.source{grid-column:2;width:auto}}
+/* The Open action must sit above its field, or the input swallows the click. */
+.app.desk .open-field input{position:relative;z-index:0}
+.app.desk .open-button{z-index:1}
+.printer-settings{border-bottom:1px solid #d2cec7;margin:0 0 24px;padding-bottom:16px}.printer-settings p{line-height:1.45}.printer-settings small,.printer-note{color:#58544d;font-size:.78rem}.printer-settings select{font:inherit;width:100%;padding:9px;border:1px solid #77716a;border-radius:4px;background:#fff;color:#1d1b18}.printer-settings select:focus-visible{outline:2px solid #1d1b18;outline-offset:3px}
+.app .printer-settings{border-top:1px solid var(--line);margin-top:20px;padding-top:16px}.app .printer-settings h3{font-size:.8125rem;font-weight:600;margin:0 0 6px}.app .printer-settings p{line-height:1.45;margin:0 0 10px}.app .printer-settings small,.app .printer-note{color:var(--muted);font-size:.75rem}.app .printer-settings label{display:block;font-size:.7rem;margin-bottom:4px}.app .printer-settings select{width:100%;padding:8px}.app .printer-settings .error:empty,.app .printer-note:empty{display:none}
+.app.desk .printer-settings{border-color:var(--d-line-2)}.app.desk .printer-settings small,.app.desk .printer-note{color:var(--d-ink-3);font-size:12px}.app.desk .printer-settings select{height:26px;border-radius:6px;border:1px solid var(--d-line-2);background:var(--d-bench);color:var(--d-ink);padding:0 6px;font-size:12px}

@@ -36,6 +36,8 @@ be labelled that way.
 ## Slop tells (name them when you see them)
 
 - Default-everything fillets: same radius everywhere, applied because filleting is easy.
+  If the design used `library/engineering.py` features, read each `FeatureProposal`'s
+  `slop_flags` and run `review_flags(proposals)`: a flagged uniform edge break is this tell.
 - Frame-with-a-shell: open structure dressed up as a closed object.
 - Detail-free surfaces on a part whose real counterpart has seams, panels, or texture.
 - Library features used unchecked (a boss, hole, or snap whose numbers were never read).

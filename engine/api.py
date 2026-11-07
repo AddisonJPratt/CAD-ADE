@@ -3,8 +3,10 @@
     .venv/bin/python magic.py serve [--port 8766]
 
     GET  /health                         engine identity
-    POST /runs                           {"project": "/abs/folder", "samples"?, "timeout"?, "wait"?}
-                                         202 with the queued run; with "wait": true, 200 once it is done
+    POST /runs                           {"project": "/abs/folder", "samples"?, "timeout"?, "wait"?, "slice"?}
+                                         202 with the queued run; with "wait": true, 200 once it is done.
+                                         "slice": true also slices passing designs with ElegooSlicer
+                                         (engine/slicer.py) and keeps a 3MF; it never sends a print job
     GET  /runs                           every run since the engine started, newest first
     GET  /runs/<id>                      status (queued | running | done | error) and, when done, the verdict
     GET  /runs/<id>/events               Server-Sent Events: the whole history, then live events,
@@ -15,6 +17,8 @@
     POST /proposals                      {"project", "selection":{"design"}, "parameter":{"name","value"}}
                                          explicit parameter edit, held for acceptance like a chat edit
     POST /projects                       {"folder", "from_design"}: a new project as version 1 (201)
+    GET  /projects/printer?project=...   current printer and material
+    POST /projects/printer               {"project", "material", "printer"?}: select project settings
     GET  /projects/versions?project=...  the version timeline, newest first, with each version's verdict
     POST /projects/versions              {"project", "message"}: save the current files as a version (201)
     POST /projects/rollback              {"project", "version", "wait"?}: restore a version's files as a
@@ -50,6 +54,7 @@ from .proposal_session import ProposalSession
 from .agents import ScriptedFakeAgent, ParameterEditAgent
 from .catalogue import BUILTIN, add_component, list_components, project_path
 from .parameters import parameters_of, accepted_brief_edit
+from .printers import PROFILE, project_printer, select_printer
 from .projects import (ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, project_parts_list,
                        run_project, verdict_artifacts)
 from .versions import (Conflict, create_project, list_versions, require_versioned,
@@ -63,9 +68,9 @@ RUN_PATH = re.compile(r"^/runs/([0-9a-f]{32})(/events|/artifacts/(.+))?$")
 
 
 class Run:
-    def __init__(self, project, samples, timeout):
+    def __init__(self, project, samples, timeout, slice=False):
         self.id = uuid.uuid4().hex
-        self.project, self.samples, self.timeout = project, samples, timeout
+        self.project, self.samples, self.timeout, self.slice = project, samples, timeout, slice
         self.status, self.verdict, self.error = "queued", None, None
         self.created = datetime.now(timezone.utc).isoformat(timespec="seconds")
         self.events = []
@@ -84,7 +89,7 @@ class Run:
 
     def summary(self):
         return {"id": self.id, "project": str(self.project), "status": self.status,
-                "created": self.created, "events": len(self.events), "verdict": self.verdict,
+                "created": self.created, "slice": self.slice, "events": len(self.events), "verdict": self.verdict,
                 "error": self.error, "links": {"self": f"/runs/{self.id}",
                                                "events": f"/runs/{self.id}/events",
                                                "artifacts": f"/runs/{self.id}/artifacts/"}}
@@ -114,14 +119,14 @@ class Engine:
             proposal['session'].reject()
             proposal['agent'].interrupt(proposal)
 
-    def submit(self, project, samples=None, timeout=180):
+    def submit(self, project, samples=None, timeout=180, slice=False):
         project = Path(project).expanduser().resolve()
         designs_of(project)  # refuse a non-project before it is queued
         with self.lock:
-            return self.queue(project, samples, timeout)
+            return self.queue(project, samples, timeout, slice)
 
-    def queue(self, project, samples, timeout):  # caller holds self.lock
-        run = Run(project, samples, timeout)
+    def queue(self, project, samples, timeout, slice=False):  # caller holds self.lock
+        run = Run(project, samples, timeout, slice)
         self.runs[run.id] = run
         run.emit({"type": "queued", "project": str(project)})
         self.pending.put(run)
@@ -138,10 +143,10 @@ class Engine:
     def save(self, project, message):
         return self.change(project, lambda p: save_version(p, message))
 
-    def rollback(self, project, version, samples=None, timeout=180):
+    def rollback(self, project, version, samples=None, timeout=180, slice=False):
         def act(p):
             new, target = restore_version(p, version)
-            return new, target, self.queue(p, samples, timeout)
+            return new, target, self.queue(p, samples, timeout, slice)
         return self.change(project, act)
 
     def work(self):
@@ -150,7 +155,7 @@ class Engine:
             run.set_status("running")
             try:
                 with self.execution:
-                    _, run.verdict = run_project(run.project, run.emit, run.samples, run.timeout)
+                    _, run.verdict = run_project(run.project, run.emit, run.samples, run.timeout, run.slice)
                 snapshot = Path(self.artifacts.name) / run.id
                 for relative in ["verdict.json", *verdict_artifacts(run.verdict)]:
                     source = artifact_path(run.project, relative)
@@ -270,6 +275,9 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/projects/designs":
             project = parse_qs(urlsplit(self.path).query).get("project", [""])[0]
             return self.guarded(lambda: (HTTPStatus.OK, {"designs": [p.name for p in designs_of(project)]}))
+        if path == "/projects/printer":
+            project = parse_qs(urlsplit(self.path).query).get("project", [""])[0]
+            return self.guarded(lambda: (HTTPStatus.OK, project_printer(project)))
         if path == "/projects/versions":
             project = parse_qs(urlsplit(self.path).query).get("project", [""])[0]
             return self.guarded(lambda: (HTTPStatus.OK, {"project": project,
@@ -372,7 +380,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self.host_ok():
             return
         path = urlsplit(self.path).path
-        routes = {"/proposals": self.post_proposal, "/catalogue": self.post_catalogue, "/runs": self.post_run, "/projects": self.post_project,
+        routes = {"/proposals": self.post_proposal, "/catalogue": self.post_catalogue, "/projects/printer": self.post_printer, "/runs": self.post_run, "/projects": self.post_project,
                   "/projects/versions": self.post_version, "/projects/rollback": self.post_rollback,
                   "/projects/version-artifacts": self.post_version_artifacts}
         proposal_match = re.fullmatch(r"/proposals/([0-9a-f]{32})/(reject|accept|interrupt|resume)", path)
@@ -399,7 +407,10 @@ class Handler(BaseHTTPRequestHandler):
     @staticmethod
     def run_options(body):
         samples = body.get("samples")
-        return (int(samples) if samples is not None else None), int(body.get("timeout", 180))
+        slice = body.get("slice", False)
+        if not isinstance(slice, bool):
+            raise ValueError("slice must be true or false")
+        return (int(samples) if samples is not None else None), int(body.get("timeout", 180)), slice
 
     @staticmethod
     def finished(run, wait):
@@ -517,6 +528,15 @@ class Handler(BaseHTTPRequestHandler):
         version, run = self.engine.change(proposal["project"], accept)
         status = self.finished(run, body.get("wait"))
         return status, {"version": version, "run": run.summary()}
+
+    def post_printer(self, body):
+        project = Path(body["project"]).expanduser().resolve()
+        designs_of(project)
+        with self.engine.lock:
+            if any(r.project == project and r.status not in TERMINAL for r in self.engine.runs.values()):
+                raise Busy(f"{project} has a run in progress; try again when it finishes")
+            result = select_printer(project, body.get("printer", PROFILE["id"]), body["material"])
+        return HTTPStatus.OK, result
 
     def post_version_artifacts(self, body):
         version = rebuild_version_artifacts(body["project"], body["version"])

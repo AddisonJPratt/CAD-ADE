@@ -13,7 +13,7 @@ import os
 
 from .execute import run_worker
 from .geometry import check_geometry
-from .printability import check_stl
+from .printability import check_stl, DEFAULT_BUILD_VOLUME
 
 COMBOS_DEFAULT = 6
 SAMPLES_LIMIT = 64
@@ -68,16 +68,16 @@ def same_shape(a, b):
                                     for x, y in zip(a, b))
 
 
-def run_sample(design, brief, label, params, timeout, allow_supports):
+def run_sample(design, brief, label, params, timeout, allow_supports, build_volume, fits):
     with tempfile.TemporaryDirectory(prefix="magic_sweep_") as tmp:
-        result = run_worker(design, Path(tmp), params, timeout)
+        result = run_worker(design, Path(tmp), params, timeout, fits)
         row = {"label": label, "params": params, "seconds": result.get("seconds")}
         if not result["ok"]:
             problem = result["traceback"].strip().splitlines()[-1]
             row.update({"pass": False, "problems": [problem], "printable": None})
             return row, None
         geo = check_geometry(result, brief)
-        printed = [check_stl(p["stl"], allow_supports, sections=False) for p in result["parts"]]
+        printed = [check_stl(p["stl"], allow_supports, sections=False, build_volume=build_volume) for p in result["parts"]]
         row.update({"pass": geo["pass"], "problems": geo["problems"],
                     "volume": geo["volume"], "bbox": geo["bbox"],
                     "printable": all(p["pass"] for p in printed),
@@ -86,12 +86,12 @@ def run_sample(design, brief, label, params, timeout, allow_supports):
         return row, fingerprint(result, printed)
 
 
-def run_sweep(design, declared, brief=None, samples=None, timeout=180):
+def run_sweep(design, declared, brief=None, samples=None, timeout=180, build_volume=DEFAULT_BUILD_VOLUME, fits=None):
     """Run all samples in parallel subprocesses and return the sweep result dict."""
     plan = plan_samples(declared, samples)
     allow = bool(brief and brief["allow_supports"])
     with ThreadPoolExecutor(max_workers=os.cpu_count() or 2) as pool:
-        done = list(pool.map(lambda s: run_sample(design, brief, s[0], s[1], timeout, allow), plan))
+        done = list(pool.map(lambda s: run_sample(design, brief, s[0], s[1], timeout, allow, build_volume, fits), plan))
     rows = [row for row, _ in done]
     prints = {row["label"]: fp for row, fp in done}
     dead = []

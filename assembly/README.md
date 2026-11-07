@@ -47,6 +47,29 @@ A project folder with an `assembly.py` runs the gate after its designs (`magic.p
 or POST `/runs` on the engine API); its verdict carries an `assembly` entry, gate
 `6 Assembly`, and passes only if the assembly does. The report is `outputs/_assembly/report.json`.
 
+## Assembly manifest
+
+Next to its report, the gate writes the **assembly manifest**, `assembly.json`
+(schema `manifest.schema.json`), plus `meshes/<id>.stl` for each instance in that instance's
+local frame. It's written for every assembly that builds, pass or fail. Studio, the parts list
+and the instructions read only this file (ADR 0001):
+
+- the instances, each with a parent in the tree and a transform (position plus quaternion
+  `[x, y, z, w]`, in the assembly frame)
+- the joints derived from `fasten` / `press`: `fastener` and `press` (prismatic along the
+  hardware axis), and `clamp` (a part screwed onto another part through an insert)
+- the explode offsets, derived by the rule in `manifest.py`'s docstring
+- the steps, each with its joints, tool and hardware callout
+- the parts list, provenance hashes and disclaimer
+
+`tests/fixtures/assembly_manifest/holder_clip.json` is the holder's manifest, committed so
+Studio can be built without running CAD. If a design or the rule changes, the fixture test
+fails. Review the diff, then refresh it:
+
+```
+XDG_CACHE_HOME=/tmp/cad-ade-cache .venv/bin/python -m assembly.manifest --refresh-fixture
+```
+
 ## Illustrative demo
 
 `demo.get_demo(project_root)` is one **illustrative, read-only example**, not a general
@@ -74,7 +97,7 @@ review of placements and updating the snapshot; do not just replace the hashes.
 Run tests from the project root:
 
 ```
-XDG_CACHE_HOME=/tmp/cad-ade-cache .venv/bin/python -m unittest assembly.test_demo assembly.test_assembly -v
+XDG_CACHE_HOME=/tmp/cad-ade-cache .venv/bin/python -m unittest assembly.test_demo assembly.test_assembly assembly.test_manifest -v
 .venv/bin/python tests/test_assembly_api.py
 ```
 
