@@ -46,6 +46,10 @@ Results land in `runs/wall_bracket/`: `report.md`, `report.json`, `bracket.stl`,
   with an `assembly.py` runs it after its designs, as gate `6 Assembly`, and passes only if it
   does. See `assembly/README.md`; `assembly/test_assembly.py` (under 15 s) and
   `tests/test_assembly_api.py` (about 1 min) test it.
+  The parts list is derived from the same assembly file: a run writes
+  `outputs/_assembly/parts_list.csv` and `.json`, and `GET /projects/parts-list?project=<folder>`
+  (`&format=csv` to download) builds it from the assembly file as it is now; Mission Control
+  shows it. `tests/test_parts_list_api.py` (about 1 min) tests it.
 - `--brief` defaults to `briefs/<design stem>.yaml` if present. Without a brief, hard
   dimensions are not checked, and the report says so.
 - `--samples N` caps sweep runs. N must cover default + min and max of every param, so

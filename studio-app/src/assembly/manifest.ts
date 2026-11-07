@@ -45,6 +45,7 @@ export interface Step {
 export interface BomRow {
   name: string;
   category: 'Printed part' | 'Hardware' | 'Purchased component';
+  specification: string;
   source: string;
   part_ids: string[];
   quantity: number;
@@ -77,7 +78,7 @@ export const INSTANCE_KEYS = ['id', 'name', 'kind', 'source', 'parent', 'transfo
 export const JOINT_KEYS = ['id', 'type', 'role', 'parent', 'child', 'origin', 'axis', 'rest', 'range'] as const satisfies readonly (keyof Joint)[];
 export const EXPLODE_KEYS = ['instance', 'direction', 'distance', 'offset'] as const satisfies readonly (keyof ExplodeRow)[];
 export const STEP_KEYS = ['number', 'text', 'part_ids', 'joints', 'tool', 'callout'] as const satisfies readonly (keyof Step)[];
-export const BOM_KEYS = ['name', 'category', 'source', 'part_ids', 'quantity'] as const satisfies readonly (keyof BomRow)[];
+export const BOM_KEYS = ['name', 'category', 'specification', 'source', 'part_ids', 'quantity'] as const satisfies readonly (keyof BomRow)[];
 
 // A key added to an interface but not to its list fails to compile here.
 type Covers<T, L extends readonly unknown[]> = [Exclude<keyof T, L[number]>] extends [never] ? true : never;

@@ -40,8 +40,8 @@ from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
 
 from .catalogue import BUILTIN, add_component, list_components, project_path
-from .projects import (ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, run_project,
-                       verdict_artifacts)
+from .projects import (ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, project_parts_list,
+                       run_project, verdict_artifacts)
 from .versions import (Conflict, create_project, list_versions, require_versioned,
                        restore_version, save_version, find_version, rebuild_version_artifacts, git)
 
@@ -191,6 +191,9 @@ class Handler(BaseHTTPRequestHandler):
             project = parse_qs(urlsplit(self.path).query).get("project", [""])[0]
             return self.guarded(lambda: (HTTPStatus.OK, {"project": project,
                                                          "versions": list_versions(project)}))
+        if path == "/projects/parts-list":
+            query = parse_qs(urlsplit(self.path).query)
+            return self.guarded(lambda: self.parts_list(query))
         if path == "/projects/version-details":
             query = parse_qs(urlsplit(self.path).query)
             return self.guarded(lambda: self.version_details(query))
@@ -216,6 +219,21 @@ class Handler(BaseHTTPRequestHandler):
         shared_source, custom_source = source(BUILTIN), source(custom)
         return HTTPStatus.OK, {"components": [{**item, "_catalogue_file": shared_source if i < builtin_count else custom_source}
                                                for i, item in enumerate(components)]}
+
+    def parts_list(self, query):
+        document = project_parts_list(query.get("project", [""])[0])
+        if query.get("format", ["json"])[0] != "csv":
+            return HTTPStatus.OK, document
+        from assembly.parts_list import to_csv
+        data = to_csv(document).encode()
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", ARTIFACT_TYPES[".csv"])
+        self.send_header("Content-Disposition", 'attachment; filename="parts_list.csv"')
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(data)
+        return None
 
     def version_details(self, query):
         project = require_versioned(query.get("project", [""])[0])

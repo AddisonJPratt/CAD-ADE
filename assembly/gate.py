@@ -15,6 +15,7 @@ Fastener rules (starting values, not calibrated on a real print):
 - into the substrate (a wall, not modelled): the screw reaches past the clamped part, and no
   further than max_depth when the assembly states one.
 """
+import hashlib
 import importlib.util
 import json
 import math
@@ -71,23 +72,34 @@ def lower(name):
 
 def derive(asm):
     """Parts list and assembly order, derived from the assembly; never written by hand."""
+    from library import standard_parts
     groups = OrderedDict()
     for inst in asm.instances.values():
         spec = inst.spec
         if inst.kind == 'printed':
             key = ('printed', spec['design'], spec['part'], json.dumps(spec['params'], sort_keys=True))
-            row = {'name': inst.name, 'category': 'Printed part', 'source': spec['design']}
+            row = {'name': inst.name, 'category': 'Printed part', 'source': spec['design'],
+                   'specification': 'FDM print; ' + ', '.join(f'{k} {v:g}' if isinstance(v, (int, float)) else f'{k} {v}'
+                                                             for k, v in spec['params'].items())}
         elif inst.kind == 'component':
             key = ('component', spec['catalogue_id'])
-            row = {'name': inst.name, 'category': 'Purchased component', 'source': spec['catalogue_id']}
+            dims = spec['dimensions']
+            row = {'name': inst.name, 'category': 'Purchased component', 'source': spec['source'] or spec['catalogue_id'],
+                   'specification': f"{dims['width']:g} x {dims['length']:g} x {dims['height']:g} mm outline; "
+                                    f"catalogue {spec['catalogue_id']}; dimensions "
+                                    + ', '.join(sorted(set(spec['provenance'].values())))}
         elif spec['type'] == 'screw':
             key = ('screw', spec['size'], spec['length'])
             row = {'name': f"{spec['size']} socket-head screw, {spec['length']:g} mm", 'category': 'Hardware',
-                   'source': 'library/standard_parts.json'}
+                   'source': 'library/standard_parts.json',
+                   'specification': f"ISO 4762 socket head cap screw, {spec['size']}, {spec['length']:g} mm under the head"}
         else:
             key = ('insert', spec['size'])
+            data = standard_parts()['heatset_inserts'][spec['size']]
             row = {'name': f"{spec['size']} heat-set insert", 'category': 'Hardware',
-                   'source': 'library/standard_parts.json'}
+                   'source': 'library/standard_parts.json',
+                   'specification': f"Tapered brass heat-set insert, {spec['size']}, "
+                                    f"{data['insert_od']:g} mm OD x {data['insert_length']:g} mm"}
         groups.setdefault(key, {**row, 'part_ids': []})['part_ids'].append(inst.id)
     bom = [{**row, 'quantity': len(row['part_ids'])} for row in groups.values()]
 
@@ -193,6 +205,13 @@ def fastener(asm, connection):
     return row
 
 
+def source_hash(path):
+    try:
+        return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    except OSError:
+        return None
+
+
 def load_assembly(path):
     sys.path.insert(0, str(ROOT))
     spec = importlib.util.spec_from_file_location('magic_assembly', path)
@@ -201,16 +220,20 @@ def load_assembly(path):
     return module
 
 
-def evaluate(path, project, overrides=None, out=None):
+def evaluate(path, project, overrides=None, parts_only=False, out=None):
     """Build the assembly in this process and run every check. Returns the report dict.
 
-    With `out`, an assembly that builds also writes its manifest (assembly.json) and per-instance
-    meshes there, pass or fail, and the report names it under 'manifest'.
+    parts_only skips collisions and fasteners: for showing the parts list of the assembly
+    file as it is now, which needs the instances but not the geometry checks.
+    With `out` (and not parts_only), an assembly that builds also writes its manifest
+    (assembly.json) and per-instance meshes there, pass or fail, and the report names it
+    under 'manifest'.
     """
     from harness.lint import lint_design
     from .model import Assembly
     path, project = Path(path), Path(project)
-    report = {'assembly': path.name, 'project': str(project.resolve()), 'pass': False, 'checks': [],
+    report = {'assembly': path.name, 'project': str(project.resolve()), 'source_sha256': source_hash(path),
+              'pass': False, 'checks': [],
               'params': {}, 'instances': [], 'connections': [], 'collisions': [], 'fasteners': [],
               'bom': [], 'steps': []}
     add = lambda name, ok, detail: report['checks'].append(
@@ -240,6 +263,10 @@ def evaluate(path, project, overrides=None, out=None):
     kinds = {k: sum(i.kind == k for i in asm.instances.values()) for k in ('printed', 'hardware', 'component')}
     add('Assembly file', True, f"{kinds['printed']} printed, {kinds['hardware']} hardware, "
                                f"{kinds['component']} purchased; {len(asm.connections)} joints")
+
+    if parts_only:
+        report['bom'], report['steps'] = derive(asm)
+        return finish(report)
 
     report['collisions'] = rows = collisions(asm)
     bad = [r for r in rows if not r['pass']]
@@ -297,25 +324,45 @@ def finish(report):
 
 
 def run_gate(path, project, out, overrides=None, timeout=180):
-    """Evaluate in a subprocess; write and return <out>/report.json. A crash or timeout is a FAIL."""
+    """Evaluate in a subprocess; write and return <out>/report.json. A crash or timeout is a FAIL.
+
+    The parts list derived from the same evaluation is written beside it as parts_list.csv
+    and parts_list.json.
+    """
+    from .parts_list import write
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
     target = out / 'report.json'
-    target.unlink(missing_ok=True)
-    (out / 'assembly.json').unlink(missing_ok=True)   # a crash must not leave a stale manifest behind
+    for stale in ('report.json', 'parts_list.csv', 'parts_list.json', 'assembly.json'):
+        (out / stale).unlink(missing_ok=True)   # a crash must not leave a stale manifest behind
     shutil.rmtree(out / 'meshes', ignore_errors=True)
+    report = _subprocess(path, project, target, overrides, timeout)
+    if report['bom']:
+        write(report, out)
+    return report
+
+
+def _subprocess(path, project, target, overrides, timeout, parts_only=False):
     command = [sys.executable, '-m', 'assembly.gate', str(Path(path).resolve()), str(Path(project).resolve()),
-               str(target.resolve()), json.dumps(overrides or {})]
+               str(Path(target).resolve()), json.dumps(overrides or {})] + (['--parts-only'] if parts_only else [])
     try:
         done = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, timeout=timeout)
-        failure = None if target.is_file() else (done.stderr.strip().splitlines() or ['no report written'])[-1]
+        failure = None if Path(target).is_file() else (done.stderr.strip().splitlines() or ['no report written'])[-1]
     except subprocess.TimeoutExpired:
         failure = f'timed out after {timeout} s'
     if failure:
-        report = finish({'assembly': Path(path).name, 'project': str(project), 'pass': False,
+        report = finish({'assembly': Path(path).name, 'project': str(project), 'source_sha256': source_hash(path),
+                         'pass': False, 'bom': [], 'steps': [],
                          'checks': [{'name': 'Assembly file', 'status': 'FAIL', 'detail': failure}]})
-        target.write_text(json.dumps(report, indent=2))
-    return json.loads(target.read_text())
+        Path(target).write_text(json.dumps(report, indent=2))
+    return json.loads(Path(target).read_text())
+
+
+def evaluate_parts(path, project, timeout=180):
+    """The assembly file as it is now, evaluated in a subprocess without the geometry checks."""
+    import tempfile
+    with tempfile.TemporaryDirectory(prefix='magic_parts_') as tmp:
+        return _subprocess(path, project, Path(tmp) / 'report.json', None, timeout, parts_only=True)
 
 
 def main():
@@ -323,7 +370,9 @@ def main():
     if (Path(project) / 'library' / '__init__.py').is_file():
         sys.path.insert(0, str(Path(project).resolve()))  # the project's own library, as its designs see it
     overrides = json.loads(sys.argv[4]) if len(sys.argv) > 4 else {}
-    report = evaluate(path, project, overrides, out=Path(target).parent)
+    parts_only = '--parts-only' in sys.argv[5:]
+    report = evaluate(path, project, overrides, parts_only=parts_only,
+                      out=None if parts_only else Path(target).parent)
     Path(target).write_text(json.dumps(report, indent=2))
     return 0 if report['pass'] else 1
 

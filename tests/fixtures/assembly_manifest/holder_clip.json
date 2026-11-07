@@ -198,6 +198,7 @@
       "name": "Wall clip",
       "category": "Printed part",
       "source": "designs/holder_clip.py",
+      "specification": "FDM print; barrel_dia 38, clearance 0.25, clip_height 32, wall 2.4",
       "part_ids": [
         "clip"
       ],
@@ -207,6 +208,7 @@
       "name": "M3 socket-head screw, 12 mm",
       "category": "Hardware",
       "source": "library/standard_parts.json",
+      "specification": "ISO 4762 socket head cap screw, M3, 12 mm under the head",
       "part_ids": [
         "screw_1",
         "screw_2"
