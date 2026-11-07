@@ -5,6 +5,7 @@
   python magic.py sweep <design.py> [--brief brief.yaml] [--out dir] [--samples N]
   python magic.py check <design.py> [--brief brief.yaml] [--out dir] [--samples N] [--no-sweep]
   python magic.py evals [--quick] [--out dir] [--timeout S]
+  python magic.py assembly <assembly.py> [--project folder] [--out dir]   the assembly gate
   python magic.py project <folder> [--samples N] [--timeout S]   every design in a project folder
   python magic.py serve [--port 8766]                             the local engine API
   python magic.py new <folder> --from <design stem or .py>        a project folder, version 1
@@ -24,6 +25,8 @@ def main():
     if sys.argv[1:2] == ["evals"]:   # takes no design, so it has its own arguments
         from evals.run_evals import main as run_evals
         return run_evals(sys.argv[2:])
+    if sys.argv[1:2] == ["assembly"]:
+        return assembly_command(sys.argv[2:])
     if sys.argv[1:2] in (["project"], ["serve"], ["new"], ["versions"], ["save"], ["rollback"]):
         return engine_command(sys.argv[1], sys.argv[2:])
     parser = argparse.ArgumentParser(description=__doc__,
@@ -53,6 +56,25 @@ def main():
         print(f"{gate['status']:8} {gate['name']:15} {gate['detail']}")
     print("OVERALL", "PASS" if report["pass"] else "FAIL")
     return code
+
+
+def assembly_command(argv):
+    from pathlib import Path
+    from assembly.gate import run_gate
+    parser = argparse.ArgumentParser(prog="magic.py assembly")
+    parser.add_argument("file", help="an assembly file, e.g. <project>/assembly.py")
+    parser.add_argument("--project", help="folder whose designs/ the assembly uses; default the file's folder")
+    parser.add_argument("--out", help="report folder; default runs/<file stem>-assembly")
+    parser.add_argument("--timeout", type=int, default=180)
+    args = parser.parse_args(argv)
+    path = Path(args.file)
+    project = Path(args.project) if args.project else path.resolve().parent
+    out = Path(args.out) if args.out else Path("runs") / f"{path.stem}-assembly"
+    report = run_gate(path, project, out, timeout=args.timeout)
+    for check in report["checks"]:
+        print(f"{check['status']:8} {check['name']:15} {check['detail']}")
+    print("OVERALL", "PASS" if report["pass"] else "FAIL")
+    return 0 if report["pass"] else 1
 
 
 def print_versions(rows):

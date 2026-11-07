@@ -164,8 +164,14 @@ def verdict_of(project, version_id):
     if not path.is_file():
         return None
     verdict = json.loads(path.read_text())
-    return {"pass": verdict["pass"], "finished": verdict.get("finished"),
-            "designs": [{"design": d["design"], "pass": d["pass"], "claims": d.get("claims", [])} for d in verdict["designs"]]}
+    summary = {"pass": verdict["pass"], "finished": verdict.get("finished"),
+               "designs": [{"design": d["design"], "pass": d["pass"], "claims": d.get("claims", [])}
+                           for d in verdict["designs"]]}
+    if verdict.get("assembly"):
+        entry = verdict["assembly"]
+        summary["assembly"] = {"assembly": entry["assembly"], "pass": entry["pass"],
+                               "checks": entry["checks"], "claims": entry["claims"]}
+    return summary
 
 
 def record_verdict(project, verdict):
@@ -180,12 +186,12 @@ def record_verdict(project, verdict):
     if snapshot.exists():
         shutil.rmtree(snapshot)
     snapshot.mkdir(parents=True)
-    for design in verdict["designs"]:
-        for relative in design["artifacts"]:
-            source = Path(project) / OUTPUTS / relative
-            destination = snapshot / relative
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(source, destination)
+    from .projects import verdict_artifacts
+    for relative in verdict_artifacts(verdict):
+        source = Path(project) / OUTPUTS / relative
+        destination = snapshot / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, destination)
     (folder / f"{version_id}.json").write_text(json.dumps(verdict, indent=2))
     return version_id
 
@@ -211,8 +217,9 @@ def rebuild_version_artifacts(project, ref):
         if stored.exists():
             old = json.loads(stored.read_text())
             def evidence(data):
-                return [(d["design"], d["pass"], [(g["name"], g["status"]) for g in d["gates"]])
-                        for d in data["designs"]]
+                entries = data["designs"] + ([data["assembly"]] if data.get("assembly") else [])
+                return [(d.get("design", d.get("assembly")), d["pass"],
+                         [(g["name"], g["status"]) for g in d["gates"]]) for d in entries]
             if evidence(old) != evidence(verdict):
                 raise VersionError("the rebuilt version's checks differ from its saved verdict; no model was saved")
         snapshot = project / STATE / "artifacts" / version["id"] / OUTPUTS

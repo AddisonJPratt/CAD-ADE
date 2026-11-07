@@ -40,6 +40,12 @@ Results land in `runs/wall_bracket/`: `report.md`, `report.json`, `bracket.stl`,
   engine API has the same operations under `/projects`. Versions live in a repository inside
   the project folder; `outputs/` is rebuilt by the gates, not versioned.
   `tests/test_engine_projects.py` (under 1 min) tests them through the API.
+- `assembly <file> [--project folder]` runs the assembly gate on an assembly file: collisions
+  between parts, fastener fit (clearance hole, screw length against insert or substrate) and a
+  derived parts list and assembly order that name every instance exactly once. A project folder
+  with an `assembly.py` runs it after its designs, as gate `6 Assembly`, and passes only if it
+  does. See `assembly/README.md`; `assembly/test_assembly.py` (under 15 s) and
+  `tests/test_assembly_api.py` (about 1 min) test it.
 - `--brief` defaults to `briefs/<design stem>.yaml` if present. Without a brief, hard
   dimensions are not checked, and the report says so.
 - `--samples N` caps sweep runs. N must cover default + min and max of every param, so
