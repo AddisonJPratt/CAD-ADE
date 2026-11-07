@@ -55,3 +55,52 @@ mint, amber and violet role palettes. Same-hue SVG gradients are confined to the
 glyphs, an explicit exception to the previous blanket no-gradient direction.
 Light theme uses dark precision strokes; disabled icons lose chroma and use muted
 ink. Material previews retain actual finish colors rather than the tool palette.
+
+November 7 palette direction (owner): warm graphite replaces the cool steel/ice cast.
+This supersedes the November 6 "steel secondary copy and ice-tinted values" wording.
+Dark chrome is stone-toned graphite (bench #151412, docks #201e1b), text runs ink
+#ece6dc / label #c4baa9 / stone secondary #aca395 / cream values #f0e2c8, and the grid is
+warm (#36322c, sections #4d473e). Light theme keeps its warm bench with dark brown-ink
+text (#2f2a23, muted #5e564b, ≥5.8:1). The icons keep their colored optical-glass finish,
+but the sky role became warm stone and the neutral role warm grey; mint, amber and violet stay.
+Orange stays the single accent for applying work. Material finishes (alloy, porcelain,
+graphite) are model colors and were deliberately not retinted. Dark-mode error text uses
+#ffa47d (8.8:1); #983300 failed at 2.19:1.
+
+November 7 icon refinement (owner chose "richer glass" over disciplined glass and
+quiet line): every view glyph is drawn on one true isometric cube (30° edges,
+9.5-unit sides). Front, top and side colour the named face as the gem and leave the rest
+clear. Hue now carries meaning: stone = camera views, mint = navigation, violet = display,
+amber = workspace. Tool glyphs are faceted glass with a body gradient, a lit facet,
+a shadow facet, a hard-edged reflection band and a soft offset shadow under 1.4-unit
+precision linework. Interface chrome (search, close, check, arrow, eye) stays plain line.
+
+November 7 layout direction (owner): Conversation desk replaces floating Browser/Inspector cards.
+Studio is assistant-led: a resizable conversation column on the left (drag or arrow keys,
+320 to 640 px, remembered per browser) holds the plain-language verdict, the thread and the
+composer; the model fills the rest. Checks, versions and settings (parameters) live in a
+drawer opened from a slim rail on the right edge. Bodies are chips on the viewport. No bento or
+card panels; controls are 28 px on desktop and 40 px or more on touch. The assistant is named
+"Drafter" (constant ASSISTANT in main.tsx). Verdicts read as "Ready to print", "Not ready to
+print" or "Not checked yet", with each gate translated into maker language and the untested
+real print always listed. Studio never shows .py filenames; Mission Control (the expert view)
+still does. Selection tools (body, face, point) highlight in the accent colour and ride into
+the next request as chips; they are sent as positions and directions until the harness
+exports face names. Keep (orange) stays the single accent for applying work.
+
+November 7 polish (owner): no glowing status dots or coloured meters; state is said in words or
+small check/cross line glyphs. The owner's custom optical-glass icon family stays everywhere in the
+chrome (rail, drawer rail, trays, composer tools, body toggles); only icons inside solid filled
+buttons (Keep, Propose, Open) render as plain strokes, where glass on a solid fill is unreadable.
+Controls follow Watermelon's dense patterns: 24 px buttons grouped in one ringed tray
+(ButtonGroup 12) instead of separate bordered boxes, selection tools inside the composer
+(Contextual AI Bar), an icon-only drawer rail with hover labels (Vertical Tooltip Navbar).
+Propose is a 28 px arrow button; no native validation bubbles anywhere.
+
+November 7 selection model (owner): pointing happens on the model, not in the chat. Hover
+pre-highlights the face under the cursor; click selects it (outlined in the accent), double-click
+selects the whole body, Shift adds, a click on empty space clears, Escape clears. "Circle an area"
+on the viewport rail draws a lasso that is laid onto the surface as a loop. A compact action bar
+sits under the selection: Ask, Measure (with two selections), Note, Keep as is (shown in sage, sent
+as "keep unchanged"). Measurements appear as a dimension on the model; clicking the number and
+typing a new value writes the request. The composer only shows what is attached (chips).

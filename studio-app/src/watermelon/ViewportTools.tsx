@@ -4,6 +4,7 @@ import { useId } from 'react';
 import { Icon } from '../icons';
 import { ToolHint } from './ToolHint';
 
+export type ToolMode = 'orbit'|'pan'|'lasso';
 export type ViewStyle = { material:'alloy'|'porcelain'|'graphite'; light:number; grid:boolean };
 export const DEFAULT_VIEW:ViewStyle = {material:'alloy',light:100,grid:true};
 export const MATERIALS = {
@@ -12,7 +13,7 @@ export const MATERIALS = {
   graphite:{label:'Graphite',color:'#586575',metalness:.38,roughness:.32}
 } as const;
 export function ViewportTools({ready,mode,onMode,onAction,style,onStyle,wireframe,onWireframe}:{
-  ready:boolean;mode:'orbit'|'pan';onMode:(mode:'orbit'|'pan')=>void;onAction:(name:string)=>void;
+  ready:boolean;mode:ToolMode;onMode:(mode:ToolMode)=>void;onAction:(name:string)=>void;
   style:ViewStyle;onStyle:(value:ViewStyle)=>void;wireframe:boolean;onWireframe:()=>void
 }) {
   const id = useId();
@@ -20,6 +21,7 @@ export function ViewportTools({ready,mode,onMode,onAction,style,onStyle,wirefram
     <div className="viewport-rail" role="group" aria-label="Viewport tools">
       <ToolHint text="Orbit the model with a drag"><button aria-label="Orbit navigation" aria-pressed={mode==='orbit'} disabled={!ready} onClick={()=>onMode('orbit')}><Icon name="orbit"/></button></ToolHint>
       <ToolHint text="Pan the model with a drag"><button aria-label="Pan navigation" aria-pressed={mode==='pan'} disabled={!ready} onClick={()=>onMode('pan')}><Icon name="pan"/></button></ToolHint>
+      <ToolHint text="Circle an area of the model to select it"><button aria-label="Circle an area" aria-pressed={mode==='lasso'} disabled={!ready} onClick={()=>onMode(mode==='lasso'?'orbit':'lasso')}><Icon name="lasso"/></button></ToolHint>
       <span className="rail-divider"/>
       <ToolHint text="Fit all visible bodies in the viewport"><button aria-label="Fit model" disabled={!ready} onClick={()=>onAction('Fit')}><Icon name="fitModel"/></button></ToolHint>
       <ToolHint text="Materials, lighting and workplane"><button aria-label="Viewport display settings" popoverTarget={id}><Icon name="display"/></button></ToolHint>
