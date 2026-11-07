@@ -3,8 +3,10 @@
     .venv/bin/python magic.py serve [--port 8766]
 
     GET  /health                         engine identity
-    POST /runs                           {"project": "/abs/folder", "samples"?, "timeout"?, "wait"?}
-                                         202 with the queued run; with "wait": true, 200 once it is done
+    POST /runs                           {"project": "/abs/folder", "samples"?, "timeout"?, "wait"?, "slice"?}
+                                         202 with the queued run; with "wait": true, 200 once it is done.
+                                         "slice": true also slices passing designs with ElegooSlicer
+                                         (engine/slicer.py) and keeps a 3MF; it never sends a print job
     GET  /runs                           every run since the engine started, newest first
     GET  /runs/<id>                      status (queued | running | done | error) and, when done, the verdict
     GET  /runs/<id>/events               Server-Sent Events: the whole history, then live events,
@@ -56,9 +58,9 @@ RUN_PATH = re.compile(r"^/runs/([0-9a-f]{32})(/events|/artifacts/(.+))?$")
 
 
 class Run:
-    def __init__(self, project, samples, timeout):
+    def __init__(self, project, samples, timeout, slice=False):
         self.id = uuid.uuid4().hex
-        self.project, self.samples, self.timeout = project, samples, timeout
+        self.project, self.samples, self.timeout, self.slice = project, samples, timeout, slice
         self.status, self.verdict, self.error = "queued", None, None
         self.created = datetime.now(timezone.utc).isoformat(timespec="seconds")
         self.events = []
@@ -77,7 +79,7 @@ class Run:
 
     def summary(self):
         return {"id": self.id, "project": str(self.project), "status": self.status,
-                "created": self.created, "events": len(self.events), "verdict": self.verdict,
+                "created": self.created, "slice": self.slice, "events": len(self.events), "verdict": self.verdict,
                 "error": self.error, "links": {"self": f"/runs/{self.id}",
                                                "events": f"/runs/{self.id}/events",
                                                "artifacts": f"/runs/{self.id}/artifacts/"}}
@@ -96,14 +98,14 @@ class Engine:
         self.lock = threading.Lock()
         threading.Thread(target=self.work, name="engine-runs", daemon=True).start()
 
-    def submit(self, project, samples=None, timeout=180):
+    def submit(self, project, samples=None, timeout=180, slice=False):
         project = Path(project).expanduser().resolve()
         designs_of(project)  # refuse a non-project before it is queued
         with self.lock:
-            return self.queue(project, samples, timeout)
+            return self.queue(project, samples, timeout, slice)
 
-    def queue(self, project, samples, timeout):  # caller holds self.lock
-        run = Run(project, samples, timeout)
+    def queue(self, project, samples, timeout, slice=False):  # caller holds self.lock
+        run = Run(project, samples, timeout, slice)
         self.runs[run.id] = run
         run.emit({"type": "queued", "project": str(project)})
         self.pending.put(run)
@@ -120,10 +122,10 @@ class Engine:
     def save(self, project, message):
         return self.change(project, lambda p: save_version(p, message))
 
-    def rollback(self, project, version, samples=None, timeout=180):
+    def rollback(self, project, version, samples=None, timeout=180, slice=False):
         def act(p):
             new, target = restore_version(p, version)
-            return new, target, self.queue(p, samples, timeout)
+            return new, target, self.queue(p, samples, timeout, slice)
         return self.change(project, act)
 
     def work(self):
@@ -131,7 +133,7 @@ class Engine:
             run = self.pending.get()
             run.set_status("running")
             try:
-                _, run.verdict = run_project(run.project, run.emit, run.samples, run.timeout)
+                _, run.verdict = run_project(run.project, run.emit, run.samples, run.timeout, run.slice)
                 snapshot = Path(self.artifacts.name) / run.id
                 for relative in ["verdict.json", *verdict_artifacts(run.verdict)]:
                     source = artifact_path(run.project, relative)
@@ -313,7 +315,10 @@ class Handler(BaseHTTPRequestHandler):
     @staticmethod
     def run_options(body):
         samples = body.get("samples")
-        return (int(samples) if samples is not None else None), int(body.get("timeout", 180))
+        slice = body.get("slice", False)
+        if not isinstance(slice, bool):
+            raise ValueError("slice must be true or false")
+        return (int(samples) if samples is not None else None), int(body.get("timeout", 180)), slice
 
     @staticmethod
     def finished(run, wait):
