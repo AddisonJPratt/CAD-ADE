@@ -2,7 +2,7 @@
   "designs/holder_clip.py": "23605528d7ea4bd095dd016fca20ba8afb74f0de289d3899e4f07418816200f3",
   "designs/cable_clip.py": "a728d4d6b1e7cf901b80131734d9db7ba87c1f811a80957af49657dd3a96e963",
   "briefs/holder_clip.yaml": "b02362bd73101829271029e7a9630a03961b279923d860a8bd9d877833d4966c",
-  "library/standard_parts.json": "d35098804825d63340d98ed42897075f5c1981faa07691688fab8d25b66d218a",
+  "library/standard_parts.json": "e22a3a02c6f517f9850d7fbe6e67578f46a609005c1859e0fecacc68e29b4fcc",
   "library/__init__.py": "640989fe9b39b50c6653b4f5f4e9c192608d98e7370d5a80770567aa7d956acc",
   "library/features.py": "ee9725d5d25ab4aca56c28659e7aa1f0794c9af35af8a8475e508dcc33599a55",
   "runs/holder_clip/report.json": "241ea6c0c5a73b5a51ebc59ce6062f77fca537e74cfaddea5c34621f2e9f4137",

@@ -188,14 +188,24 @@ def test_passing_project(api, tmp):
 
 def test_negative_controls(api, tmp):
     project = make_project(tmp / "negatives", list(NEGATIVES))
+    existing = project / "outputs" / "hardcoded" / "user.3mf"
+    existing.parent.mkdir(parents=True)
+    existing.write_bytes(b"user data")
     began = time.time()
     status, done = api.json("POST", "/runs", {"project": str(project), "timeout": HANG_TIMEOUT, "wait": True})
     verdict = done["verdict"]
     check("negative-control project: verdict FAIL", status == 200 and done["status"] == "done"
           and not verdict["pass"], f"{time.time() - began:.0f} s")
+    status, _, _ = api.request("GET", f"/runs/{done['id']}/artifacts/hardcoded/user.3mf")
+    check("unrelated 3MF survives but is not offered by the failed run",
+          existing.read_bytes() == b"user data" and status == 404)
     by_design = {d["design"]: d for d in verdict["designs"]}
     for name, needle in NEGATIVES.items():
         entry = by_design[f"{name}.py"]
+        check(f"negative {name}: no production export is offered",
+              not any(Path(a).suffix in {".step", ".3mf"} for a in entry["artifacts"]))
+        status, _, _ = api.request("GET", f"/runs/{done['id']}/artifacts/{name}/{name}.step")
+        check(f"negative {name}: direct export download refused", status == 404)
         _, _, md = api.request("GET", f"/runs/{done['id']}/artifacts/{name}/report.md")
         code, report = cli_report(project / "designs" / f"{name}.py", "--timeout", str(HANG_TIMEOUT))
         check(f"negative {name}: fails, says why, matches CLI",

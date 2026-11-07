@@ -58,7 +58,7 @@ One quiet link joins the two surfaces in each direction.
 | Design | `#/design/wall_bracket` | Gate checklist with detail, dimensions (brief target, measured, delta, tolerance), sweep summary, parameters, the five renders with alt text, run history, and what the gates do not cover. Older runs open at `#/design/wall_bracket/<run folder>` |
 | Brief | `#/brief/wall_bracket` | Function, hard dimensions with their measures, interfaces, soft preferences, assumptions, and parameters with draft sliders. Also works for every brief in `evals/briefs/` |
 | Evals | `#/evals` | Summary figures and a per-brief table (PASS, FAIL, ERROR, NO_DESIGN) from the newest eval report |
-| Library | `#/library` | Standard parts grouped by category, with their dimensions |
+| Library | `#/library` | Standard parts and purchased components with their dimensions; enter a project folder to include its user-measured catalogue |
 
 ## Endpoints
 
@@ -68,7 +68,7 @@ One quiet link joins the two surfaces in each direction.
 | `/api/design/<stem>` | The newest `runs/*/report.json` whose `design` field is `<stem>.py`, plus `_`-prefixed provenance fields. `?run=<folder>` selects an older run. `_` folders are fixtures and are skipped |
 | `/api/brief/<stem>` | The brief YAML parsed, from `briefs/` then `evals/briefs/` |
 | `/api/evals` | The newest `evals/results/*/eval_report.json` |
-| `/api/library` | `library/standard_parts.json` |
+| `/api/library` | `library/standard_parts.json` and the shared component catalogue; optional `project` query adds that project’s components |
 | `/api/studio` | Every design with its status and whether it has a model, plus the default design |
 | `/api/studio/<stem>` | The design's function line, its newest run, and the model run: gates, sizes, volume, parts, staleness |
 | `/runs/<path>.png`, `/runs/<path>.stl` | Render PNGs and model STLs under `runs/`; nothing else there is served |

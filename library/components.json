@@ -1,0 +1,22 @@
+[
+  {
+    "id": "esp32-devkitc-v4",
+    "name": "Espressif ESP32-DevKitC V4",
+    "source": "https://dl.espressif.com/dl/schematics/esp32_devkitc_v4_dimensions.pdf",
+    "notes": "Board outline from Espressif drawing. Height, USB envelope and access clearance are estimates; measure the particular board and cable. Pin headers vary by model. Board has no dedicated mounting holes; support its edges instead.",
+    "dimensions": {
+      "length": {"value": 48.26, "unit": "mm", "provenance": "datasheet-verified"},
+      "width": {"value": 27.94, "unit": "mm", "provenance": "datasheet-verified"},
+      "height": {"value": 15.0, "unit": "mm", "provenance": "unverified"},
+      "usb_access_length": {"value": 15.0, "unit": "mm", "provenance": "unverified"},
+      "usb_access_width": {"value": 12.0, "unit": "mm", "provenance": "unverified"},
+      "usb_access_height": {"value": 10.0, "unit": "mm", "provenance": "unverified"}
+    },
+    "coordinate_system": "Origin at centre of board outline, z=0 at PCB bottom; length along y; USB at negative y end.",
+    "keepouts": [
+      {"purpose": "component", "shape": "box", "dimensions": ["width", "length", "height"], "placement": "centred over board, from z=0"},
+      {"purpose": "usb-access", "shape": "box", "dimensions": ["usb_access_width", "usb_access_length", "usb_access_height"], "placement": "centred on USB end, extending outward from negative y edge"}
+    ],
+    "mounting_points": []
+  }
+]
