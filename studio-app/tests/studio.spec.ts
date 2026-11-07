@@ -6,11 +6,6 @@ test('opens a project and inspects an older version', async ({ page }) => {
   await page.getByRole('button', { name: 'Open project' }).click();
   await expect(page.getByRole('heading', { name: 'Version 3' })).toBeVisible();
   await expect(page.getByText('Not ready to print', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Settings', exact: true }).click();
-  await expect(page.getByLabel('Material')).toHaveValue('PLA');
-  await page.getByLabel('Material').selectOption('PETG');
-  await expect(page.getByText('Material set to PETG for future checks.')).toBeVisible();
-  await page.getByLabel('Material').selectOption('PLA');
   await page.getByRole('button', { name: 'Versions', exact: true }).click();
   const currentModel = page.waitForResponse(r => r.url().includes('version-artifacts') && r.url().includes('path=') && r.ok());
   await page.getByRole('button', { name: /Version 2/ }).click();
@@ -100,6 +95,8 @@ test('fake agent previews, rejects and accepts a change', async ({ page, request
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.getByRole('button', { name: 'Reject change' }).click();
   await expect(page.getByText('Proposed change ready to review')).toHaveCount(0);
+  // The composer clears after sending, so ask again.
+  await page.getByLabel('Change request').fill('size 26');
   await page.getByRole('button', { name: 'Propose change' }).click();
   await expect(page.getByText('size: 24 → 26').first()).toBeVisible({ timeout: 120000 });
   await page.getByRole('button', { name: 'Accept change' }).click();
@@ -346,4 +343,18 @@ test('mission control shows the parts list derived from the assembly', async ({ 
   const csv = page.getByRole('link', { name: 'Download CSV' });
   await expect(csv).toHaveAttribute('href', /format=csv/);
   expect(new URL(await csv.getAttribute('href')!, page.url()).searchParams.get('project')).toBe(process.env.MAGIC_TEST_PROJECT);
+});
+
+// Last: choosing a material writes printer.json, an unsaved project change that would block rollbacks and proposals in earlier tests.
+test('the Settings drawer shows the project printer and changes the material for future checks', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel('Project folder').fill(process.env.MAGIC_TEST_PROJECT!);
+  await page.getByRole('button', { name: 'Open project' }).click();
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await expect(page.getByText('Elegoo Centauri Carbon 2')).toBeVisible();
+  await expect(page.getByLabel('Material')).toHaveValue('PLA');
+  await page.getByLabel('Material').selectOption('PETG');
+  await expect(page.getByText('Material set to PETG for future checks.')).toBeVisible();
+  await page.getByLabel('Material').selectOption('PLA');
+  await expect(page.getByText('Material set to PLA for future checks.')).toBeVisible();
 });
