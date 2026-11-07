@@ -18,6 +18,7 @@ Fastener rules (starting values, not calibrated on a real print):
 import importlib.util
 import json
 import math
+import shutil
 import subprocess
 import sys
 import traceback
@@ -200,8 +201,12 @@ def load_assembly(path):
     return module
 
 
-def evaluate(path, project, overrides=None):
-    """Build the assembly in this process and run every check. Returns the report dict."""
+def evaluate(path, project, overrides=None, out=None):
+    """Build the assembly in this process and run every check. Returns the report dict.
+
+    With `out`, an assembly that builds also writes its manifest (assembly.json) and per-instance
+    meshes there, pass or fail, and the report names it under 'manifest'.
+    """
     from harness.lint import lint_design
     from .model import Assembly
     path, project = Path(path), Path(project)
@@ -249,10 +254,31 @@ def evaluate(path, project, overrides=None):
     report['bom'], report['steps'] = bom, steps
     try:
         validate_entries(asm.instances, bom, steps)
-        add('Derived entries', True, f'{len(bom)} parts-list rows and {len(steps)} steps, each instance once')
     except ValueError as err:
         add('Derived entries', False, str(err))
-    return finish(report)
+        return finish(report)
+    detail = f'{len(bom)} parts-list rows and {len(steps)} steps, each instance once'
+    if out is None:
+        add('Derived entries', True, detail)
+        return finish(report)
+    from .manifest import MANIFEST, ManifestError, build, write
+    try:
+        report = finish({**report, 'checks': report['checks'] + [{'name': 'Derived entries', 'status': 'PASS',
+                                                                   'detail': detail}]})
+        write(asm, build(asm, report, path, project, name=title(module)), out)
+        report['manifest'] = MANIFEST
+        return report
+    except ManifestError as err:
+        report['checks'] = [c for c in report['checks'] if c['name'] != 'Derived entries']
+        report['checks'] = [c for c in report['checks'] if c['status'] != 'SKIPPED']
+        add('Derived entries', False, f'manifest: {err}')
+        return finish(report)
+
+
+def title(module):
+    """An assembly's display name: its docstring's first line, up to any colon."""
+    line = (module.__doc__ or '').strip().splitlines()[:1]
+    return line[0].split(':')[0].strip().rstrip('.') if line and line[0].strip() else None
 
 
 def finish(report):
@@ -276,6 +302,8 @@ def run_gate(path, project, out, overrides=None, timeout=180):
     out.mkdir(parents=True, exist_ok=True)
     target = out / 'report.json'
     target.unlink(missing_ok=True)
+    (out / 'assembly.json').unlink(missing_ok=True)   # a crash must not leave a stale manifest behind
+    shutil.rmtree(out / 'meshes', ignore_errors=True)
     command = [sys.executable, '-m', 'assembly.gate', str(Path(path).resolve()), str(Path(project).resolve()),
                str(target.resolve()), json.dumps(overrides or {})]
     try:
@@ -295,7 +323,7 @@ def main():
     if (Path(project) / 'library' / '__init__.py').is_file():
         sys.path.insert(0, str(Path(project).resolve()))  # the project's own library, as its designs see it
     overrides = json.loads(sys.argv[4]) if len(sys.argv) > 4 else {}
-    report = evaluate(path, project, overrides)
+    report = evaluate(path, project, overrides, out=Path(target).parent)
     Path(target).write_text(json.dumps(report, indent=2))
     return 0 if report['pass'] else 1
 
