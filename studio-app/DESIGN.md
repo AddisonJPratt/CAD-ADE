@@ -11,8 +11,8 @@ it into a content panel.
 - Review decisions stay attached to the viewport, with orange reserved for applying work.
 - Local environment lighting adds readable reflections without network assets.
 - Custom 24-unit SVG icon family: consistent 1.55-unit strokes, no decorative icon tiles.
-- Every exposed control must operate a supported function. Assembly, motion and sketch
-  authoring remain engine roadmap capabilities and must not appear as working tools.
+- Every exposed control must operate a supported function. Assembly authoring, motion and
+  sketch authoring remain engine roadmap capabilities and must not appear as working tools.
 - Screenshots use actual test geometry. The two-block test is evidence of interaction,
   not a finished CAD product visual.
 
@@ -121,3 +121,14 @@ tile (#efe9df to #cfc6b6); the favicon box fills about 80% of the tile in flat c
 so it reads at 16 px. The glow is the one deliberate non-action use of orange: it belongs to the
 mark only and never appears on controls. The isometric cube glyph is a camera-view icon again, not
 the logo. Sources: public/brand/*.svg, public/favicon.svg.
+
+November 8 assembly view (#21): a project whose version has an assembly manifest opens in an
+Assembly view, switched with Parts from a tray in the stage bar. The tree is a compact panel docked
+top-right on the viewport (not a drawer, so the model and the tree are read together): one row per
+instance, children indented under the part they hang off with a hairline guide, the kind in the
+parts list's words. Hide, ghost (see-through) and isolate are 24 px line-glyph toggles that appear
+on row hover, focus or selection and stay shown while on. Selection tints the instance with the
+selection accent in 3D; hardware renders as steel, purchased components as a dark housing, printed
+parts in the chosen finish. The explode slider scales the manifest's derived offsets; a one-line
+note says it is not a collision check. The tree is a treegrid: arrow keys move between rows, Tab
+reaches that row's toggles, Escape clears the selection.
