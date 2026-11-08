@@ -694,3 +694,14 @@ body.resizing{cursor:col-resize;user-select:none}
 @keyframes progress-shimmer{from{background-position:100% 0}to{background-position:0 0}}
 @keyframes progress-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.75)}}
 @media(prefers-reduced-motion:reduce){.app.desk .progress-row.live .shimmer-text{animation:none;background:none;color:var(--d-accent)}.app.desk .progress-row.live .progress-mark{animation:none}}
+
+/* Header project switcher: the current project by name, then the same picker as the open screen */
+.app.desk .project-open.compact.switcher{display:grid;gap:10px;width:400px;max-height:min(80vh,640px);overflow:auto;padding:14px}
+.app.desk .project-open .switch-current{display:flex;align-items:center;gap:8px;margin:0;font-size:13.5px;font-weight:650;color:var(--d-ink)}
+.app.desk .switch-current svg{width:16px;height:16px;flex:none;color:var(--d-accent)}
+.app.desk .switch-current span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.app.desk .switch-current small{margin-left:auto;font-size:11.5px;font-weight:500;color:var(--d-ink-3)}
+.app.desk .switcher .picker{margin:0}
+@media(max-width:760px){.app.desk .project-open.compact.switcher{width:calc(100vw - 16px)}}
+/* The switcher sits inside <header>, whose legacy `header span` rule mutes every span. */
+.app.desk .switcher .picker-name,.app.desk .switcher .finder-button span,.app.desk .switcher .switch-current span,.app.desk .switcher .picker-tab{color:inherit}

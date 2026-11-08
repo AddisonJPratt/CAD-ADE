@@ -97,9 +97,11 @@ export function ProjectPicker({ onOpen, busy, children }: { onOpen: (path: strin
     } finally { setCreating(false); }
   }
 
+  // Projects are known by name; a folder is shown only to tell two projects of the same name apart.
+  const twins = new Set((projects || []).map(p => p.name).filter((n, i, all) => all.indexOf(n) !== i));
   const row = (p: Project) => <button type="button" className="picker-row" disabled={busy} onClick={() => onOpen(p.path)} title={p.path}>
     <Icon name="cube" /><span className="picker-name">{p.name}</span>
-    <span className="picker-meta">{!p.in_home && <><span className="path">{tilde(dirname(p.path))}</span> · </>}{ago(p.opened && p.opened > p.modified ? p.opened : p.modified)}</span>
+    <span className="picker-meta">{twins.has(p.name) && <><span className="path">{tilde(dirname(p.path))}</span> · </>}{ago(p.opened && p.opened > p.modified ? p.opened : p.modified)}</span>
   </button>;
 
   return <div className="picker">
