@@ -13,6 +13,7 @@ import threading
 from pathlib import Path
 
 from .agents import AgentAdapter
+from .reviewer import usage_of
 from .parameters import parameter_edit, parameters_of
 from .projects import ProjectError, designs_of
 
@@ -114,6 +115,9 @@ class ClaudeCodeAgent(AgentAdapter):
                                 yield {'type':'plan','message':'Using ' + block.get('name','CAD tool')}
                     if event.get('type') == 'result':
                         result = event
+                        usage = usage_of(event, 'designer')
+                        if usage:
+                            yield usage
                 code = process.wait()
                 if session['interrupted']:
                     return
@@ -130,6 +134,7 @@ class ClaudeCodeAgent(AgentAdapter):
                                           edit.get('parameter'),edit.get('value'))
                 session.update({key:proposed[key] for key in ('file','source','changes')})
                 yield {'type':'plan','message':str(edit.get('reason','Proposed parameter change'))[:2000]}
+                yield {'type':'edit','file':proposed['file'],'changes':proposed['changes']}
             finally:
                 timer.cancel()
                 self._stop(process)
