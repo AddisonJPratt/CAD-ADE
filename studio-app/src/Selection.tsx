@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { BufferAttribute, BufferGeometry, DoubleSide, EdgesGeometry, Vector3 } from 'three';
-import type { FaceRecord } from './Features';
+import { parameterText, type FaceRecord, type FeatureParameters } from './Features';
 
 export type PickKind = 'body' | 'face' | 'area' | 'point';
 export type Vec = [number, number, number];
@@ -9,8 +9,9 @@ export type Pick = {
   point: Vec; normal: Vec; centroid: Vec;
   area?: number; flat?: boolean; region?: Float32Array; geometry: BufferGeometry;
   note?: string; locked?: boolean; loop?: Float32Array;
-  /** From the harness face map: the named feature this pick lies on (null when the face is unnamed), the B-rep face, and for a body its feature names. */
-  feature?: string | null; face?: FaceRecord; features?: string[];
+  /** From the harness face map: the named feature this pick lies on (null when the face is unnamed), the parameters
+   *  driving that feature at their built values, the B-rep face, and for a body its feature names. */
+  feature?: string | null; parameters?: FeatureParameters; face?: FaceRecord; features?: string[];
 };
 
 const round = (n: number) => Math.abs(n) < 0.05 ? '0.0' : n.toFixed(1);
@@ -106,7 +107,8 @@ const title = (name: string) => name.replace(/^./, c => c.toUpperCase());
 
 /** Chip text: the feature's name when the harness named the face, otherwise where the pick is. */
 export function label(pick: Pick) {
-  const name = pick.feature ? title(pick.feature) : null;
+  const value = parameterText(pick.parameters ?? {});
+  const name = pick.feature ? title(pick.feature) + (!value ? '' : value.startsWith('Ø') || value.startsWith('R') ? ` ${value}` : `, ${value}`) : null;
   const base = pick.kind === 'body' ? `Body ${pick.body}`
     : pick.kind === 'area' ? `Circled area on ${name ? `${pick.feature}, ${pick.body}` : pick.body}`
     : pick.kind === 'point' ? `Point on ${name ? `${pick.feature}, ${pick.body}` : pick.body}`
@@ -117,7 +119,8 @@ export function label(pick: Pick) {
 /** What the assistant reads: the named feature when the harness exported one, else the face's geometry. */
 export function describe(pick: Pick) {
   const [x, y, z] = pick.centroid.map(round);
-  const named = pick.feature ? `the "${pick.feature}" feature of body "${pick.body}"` : null;
+  const driving = Object.entries(pick.parameters ?? {}).map(([k, v]) => `${k} = ${Math.round(v * 1000) / 1000}`).join(', ');
+  const named = pick.feature ? `the "${pick.feature}" feature of body "${pick.body}"${driving ? ` (driven by ${driving})` : ''}` : null;
   const what = pick.kind === 'body' ? `the whole body "${pick.body}"${pick.features?.length ? ` (named features: ${pick.features.join(', ')})` : ''}`
     : pick.kind === 'point' ? `a point on ${named || `body "${pick.body}"`} at (${pick.point.map(round).join(', ')}) mm`
     : `${pick.kind === 'area' ? 'an area circled' : pick.flat === false ? 'a curved surface patch' : 'a flat face'} on ${named || `body "${pick.body}"`} facing ${facing(pick.normal)}, area ≈ ${Math.round(pick.area || 0)} mm², centred at (${x}, ${y}, ${z}) mm`;
@@ -127,7 +130,7 @@ export function describe(pick: Pick) {
 /** The structured selection sent with a request: what the engine hands the agent adapter as-is. */
 export type SelectionPayload = {
   design: string;
-  picks: { instance: string; kind: PickKind; feature: string | null; features?: string[]; face: number | null; description: string;
+  picks: { instance: string; kind: PickKind; feature: string | null; parameters: FeatureParameters; features?: string[]; face: number | null; description: string;
     point: Vec; normal: Vec; centroid: Vec; area: number | null; flat: boolean | null; note: string | null; locked: boolean }[];
   measurement: { value: number; kind: string; from: Vec; to: Vec } | null;
 };
@@ -135,7 +138,7 @@ const mm = (v: Vec): Vec => v.map(n => Math.round(n * 100) / 100) as Vec;
 export function selectionPayload(design: string, picks: Pick[], measured: ReturnType<typeof measure> | null): SelectionPayload {
   return {
     design,
-    picks: picks.map(pick => ({ instance: pick.body, kind: pick.kind, feature: pick.feature ?? null, ...(pick.kind === 'body' ? { features: pick.features ?? [] } : {}),
+    picks: picks.map(pick => ({ instance: pick.body, kind: pick.kind, feature: pick.feature ?? null, parameters: pick.feature ? pick.parameters ?? {} : {}, ...(pick.kind === 'body' ? { features: pick.features ?? [] } : {}),
       face: pick.face?.id ?? null, description: describe(pick), point: mm(pick.point), normal: mm(pick.normal), centroid: mm(pick.centroid),
       area: pick.area == null ? null : Math.round(pick.area * 10) / 10, flat: pick.flat ?? null, note: pick.note ?? null, locked: !!pick.locked })),
     measurement: measured ? { value: Math.round(measured.value * 100) / 100, kind: measured.kind, from: mm(measured.from), to: mm(measured.to) } : null,

@@ -24,20 +24,23 @@ def view_basis(view):
     return np.array([right, np.cross(forward, right), forward])
 
 
-def zbuffer(meshes, view, size=SIZE):
-    """Rasterize meshes orthographically. Returns (rgb image, mm per pixel, mins)."""
-    basis = view_basis(view)
+def zbuffer(meshes, view, size=SIZE, colors=None, background=(1.0, 1.0, 1.0), ambient=0.35):
+    """Rasterize meshes orthographically. Returns (rgb image, mm per pixel, mins).
+
+    `view` is a named view or a 3x3 basis (rows: screen right, screen up, toward the viewer);
+    `colors` gives one rgb per mesh, default the QA palette; `ambient` is the darkest shade factor."""
+    basis = view_basis(view) if isinstance(view, str) else np.asarray(view, dtype=float)
     all_pts = np.vstack([m.vertices @ basis.T for m in meshes])
     mins, maxs = all_pts[:, :2].min(axis=0), all_pts[:, :2].max(axis=0)
     scale = (maxs - mins).max() / (size * 0.9)
     pad = (size * scale - (maxs - mins)) / 2
     depth = np.full((size, size), -np.inf)
-    image = np.ones((size, size, 3))
+    image = np.ones((size, size, 3)) * np.asarray(background, dtype=float)
     for index, mesh in enumerate(meshes):
         tris = mesh.triangles @ basis.T
         xy = (tris[:, :, :2] - mins + pad) / scale
-        shade = 0.35 + 0.65 * np.abs(mesh.face_normals @ (LIGHT / np.linalg.norm(LIGHT)))
-        color = PALETTE[index % len(PALETTE)]
+        shade = ambient + (1 - ambient) * np.abs(mesh.face_normals @ (LIGHT / np.linalg.norm(LIGHT)))
+        color = PALETTE[index % len(PALETTE)] if colors is None else np.asarray(colors[index], dtype=float)
         for tri, z, s in zip(xy, tris[:, :, 2], shade):
             x0, y0 = np.floor(tri.min(axis=0)).astype(int)
             x1, y1 = np.ceil(tri.max(axis=0)).astype(int) + 1

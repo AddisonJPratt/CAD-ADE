@@ -25,23 +25,32 @@ def _lookup(table, key):
     return entries[key]
 
 
-# Features a design named while building, in order. Read by the harness worker after build().
+# Features a design named while building, in order, and the PARAMS each is driven by.
+# Read by the harness worker after build().
 _DECLARED = []
+_PARAMETERS = {}
 
 
-def feature(name, shape):
+def feature(name, shape, params=()):
     """Name a feature of a design: a cutter, a boss, any shape whose faces end up on the part.
 
     Sets the shape's label and records it, so the harness can name the part's faces that
     lie on this shape (`<part>.faces.json`, read by Studio when a face is picked). Returns
-    the shape, so it reads inline: `part -= feature("cable slot", Box(...))`.
+    the shape, so it reads inline: `part -= feature("cable slot", Box(...), params="slot_w")`.
+
+    params: the PARAMS key, or keys, that drive this feature (most telling first). The harness
+    exports each with its built value, and fails the design if one is not in PARAMS.
     """
     if not isinstance(name, str) or not name.strip():
         raise ValueError("a feature needs a non-empty name")
     if not hasattr(shape, "faces"):
         raise ValueError(f"feature {name!r} must be a build123d shape, not {type(shape).__name__}")
+    params = (params,) if isinstance(params, str) else tuple(params)
+    if not all(isinstance(p, str) and p.strip() for p in params):
+        raise ValueError(f"feature {name!r}: params must be PARAMS names, got {params!r}")
     shape.label = name.strip()
     _DECLARED.append((shape.label, shape))
+    _PARAMETERS[shape.label] = tuple(p.strip() for p in params)
     return shape
 
 
@@ -50,9 +59,15 @@ def declared_features():
     return list(_DECLARED)
 
 
+def feature_parameters():
+    """Each named feature's driving PARAMS names: {feature name: (param, ...)}."""
+    return dict(_PARAMETERS)
+
+
 def reset_features():
     """Forget the features named so far (the worker calls this before each build)."""
     _DECLARED.clear()
+    _PARAMETERS.clear()
 
 
 def _one_solid(shape):

@@ -6,6 +6,7 @@
   python magic.py check <design.py> [--brief brief.yaml] [--out dir] [--samples N] [--no-sweep]
   python magic.py evals [--quick] [--out dir] [--timeout S]
   python magic.py assembly <assembly.py> [--project folder] [--out dir]   the assembly gate
+  python magic.py instructions <gate output folder> [--style illustrated|checklist] [--out dir] [--no-pdf]
   python magic.py project <folder> [--samples N] [--timeout S]   every design in a project folder
   python magic.py serve [--port 8766]                             the local engine API
   python magic.py new <folder> --from <design stem or .py>        a project folder, version 1
@@ -27,6 +28,8 @@ def main():
         return run_evals(sys.argv[2:])
     if sys.argv[1:2] == ["assembly"]:
         return assembly_command(sys.argv[2:])
+    if sys.argv[1:2] == ["instructions"]:
+        return instructions_command(sys.argv[2:])
     if sys.argv[1:2] in (["project"], ["serve"], ["new"], ["versions"], ["save"], ["rollback"]):
         return engine_command(sys.argv[1], sys.argv[2:])
     parser = argparse.ArgumentParser(description=__doc__,
@@ -75,6 +78,32 @@ def assembly_command(argv):
         print(f"{check['status']:8} {check['name']:15} {check['detail']}")
     print("OVERALL", "PASS" if report["pass"] else "FAIL")
     return 0 if report["pass"] else 1
+
+
+def instructions_command(argv):
+    from pathlib import Path
+    from assembly.instructions import STYLES, export
+    from assembly.manifest import MANIFEST
+    parser = argparse.ArgumentParser(prog="magic.py instructions",
+                                     description="Assembly instructions from the gate's assembly manifest.")
+    parser.add_argument("folder", help=f"a folder the assembly gate wrote, holding {MANIFEST} and meshes/")
+    parser.add_argument("--style", choices=STYLES, default=STYLES[0],
+                        help="illustrated: a rendered image per step (default); checklist: compact tick list")
+    parser.add_argument("--out", help="where to write the HTML and PDF; default the folder itself")
+    parser.add_argument("--no-pdf", action="store_true", help="write the HTML only")
+    args = parser.parse_args(argv)
+    folder = Path(args.folder)
+    if not (folder / MANIFEST).is_file():
+        print(f"error: no {MANIFEST} in {folder}; run `magic.py assembly` first", file=sys.stderr)
+        return 2
+    try:
+        files = export(folder, Path(args.out) if args.out else folder, args.style, pdf=not args.no_pdf)
+    except RuntimeError as err:   # no browser for the PDF, or it failed
+        print(f"error: {err}", file=sys.stderr)
+        return 1
+    for path in files.values():
+        print(path)
+    return 0
 
 
 def print_versions(rows):

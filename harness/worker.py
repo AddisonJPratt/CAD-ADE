@@ -5,7 +5,9 @@
 Every part is exported to STL and STEP, and all B-rep facts are measured on the STEP
 file reloaded from disk. Beside each STL goes `<part>.faces.json`: every B-rep face with
 its geometry (kind, centre, normal or axis, area, bbox) and the name of the feature the
-design gave it with `library.feature(...)`, or null. Studio reads it to name a picked face.
+design gave it with `library.feature(...)`, or null, plus each feature's driving parameters at
+their built values. Studio reads it to name a picked face. A feature tag naming a parameter
+that PARAMS does not declare fails the build.
 """
 import importlib.util
 import json
@@ -102,7 +104,17 @@ def point_on(face):
     return fallback or face.position_at(0.5, 0.5)
 
 
-def face_map(part_name, shape, features):
+def feature_parameter_values(driving, params):
+    """{feature: {param: built value}}; raises if a feature names a parameter PARAMS lacks."""
+    missing = [f"feature {name!r} names parameter {p!r}" for name, keys in driving.items()
+               for p in keys if p not in params]
+    if missing:
+        raise ValueError(f"feature tags reference missing parameters: {'; '.join(missing)} "
+                         f"(PARAMS has {sorted(params)})")
+    return {name: {p: params[p] for p in keys} for name, keys in driving.items()}
+
+
+def face_map(part_name, shape, features, parameters=None):
     """Every face of `shape` with its geometry and the named feature it belongs to, if any.
 
     A face belongs to the first declared feature whose boundary passes through the face's
@@ -128,7 +140,10 @@ def face_map(part_name, shape, features):
             if face.geom_type == GeomType.CYLINDER:
                 entry["radius"] = face.radius
         faces.append(entry)
-    return {"part": part_name, "features": [name for name, _ in features], "faces": faces}
+    names = [name for name, _ in features]
+    parameters = parameters or {}
+    return {"part": part_name, "features": names,
+            "parameters": {name: parameters.get(name, {}) for name in names}, "faces": faces}
 
 
 def build_and_measure(design_path, out_dir, overrides, fits=None):
@@ -137,6 +152,7 @@ def build_and_measure(design_path, out_dir, overrides, fits=None):
     import library.features as feature_registry  # the copy the design imported (project or root)
     reset = getattr(feature_registry, "reset_features", lambda: None)
     declared_features = getattr(feature_registry, "declared_features", list)
+    driving_parameters = getattr(feature_registry, "feature_parameters", dict)
     declared = {k: list(v) for k, v in module.PARAMS.items()}
     params = {k: v[0] for k, v in module.PARAMS.items()}
     unknown = set(overrides) - set(params)
@@ -147,11 +163,12 @@ def build_and_measure(design_path, out_dir, overrides, fits=None):
     reset()
     built = named_parts(module.build(**params))
     features = declared_features()
+    parameters = feature_parameter_values(driving_parameters(), params)
     for name, shape in built:
         stl, step, faces = out_dir / f"{name}.stl", out_dir / f"{name}.step", out_dir / f"{name}.faces.json"
         export_stl(shape, str(stl), tolerance=STL_TOLERANCE, angular_tolerance=STL_ANGULAR)
         export_step(shape, str(step))
-        faces.write_text(json.dumps(face_map(name, shape, features), indent=1))
+        faces.write_text(json.dumps(face_map(name, shape, features, parameters), indent=1))
         reloaded = import_step(str(step))
         solids = reloaded.solids()
         parts.append({
