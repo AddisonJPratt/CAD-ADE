@@ -38,8 +38,12 @@ presented as a design review or a print.
   upgrades a claim.
 - Never send a print job; printer actions always need the user's confirmation.
 - No weapon or firearm components; original designs only.
-- Every exposed control must operate a supported function. Assembly, motion and sketching are
-  roadmap capabilities and must not appear as working tools until they exist.
+- Every exposed control must operate a supported function. Assembly authoring, motion and
+  sketching are roadmap capabilities and must not appear as working tools until they exist.
+- Assembly viewing (#21) exists: when a version's assembly gate wrote `_assembly/assembly.json`,
+  Studio opens it in an Assembly view (tree of every printed part, hardware item and purchased
+  component; hide, ghost, isolate; an explode slider). Placements and explode offsets come only
+  from the manifest; Studio never computes them.
 - Selection (#25): a click picks a face, double-click a body, the lasso an area. A picked face is
   named from the face map the harness exports beside each STL (`<part>.faces.json`, from the
   design's `feature(name, shape)` calls); an unnamed face is described by where it faces, its area

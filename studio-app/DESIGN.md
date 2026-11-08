@@ -11,8 +11,8 @@ it into a content panel.
 - Review decisions stay attached to the viewport, with orange reserved for applying work.
 - Local environment lighting adds readable reflections without network assets.
 - Custom 24-unit SVG icon family: consistent 1.55-unit strokes, no decorative icon tiles.
-- Every exposed control must operate a supported function. Assembly, motion and sketch
-  authoring remain engine roadmap capabilities and must not appear as working tools.
+- Every exposed control must operate a supported function. Assembly authoring, motion and
+  sketch authoring remain engine roadmap capabilities and must not appear as working tools.
 - Screenshots use actual test geometry. The two-block test is evidence of interaction,
   not a finished CAD product visual.
 
@@ -129,6 +129,17 @@ measurements and part names (I l 1, O 0). src/fonts.css declares the family "Mag
 weight ranges mapped one step lighter: requested weights up to 549 use Regular, 550 to 699 use
 Medium, 700 and up use SemiBold. Stylesheets keep their numbers; headings at 600/650 now render
 as Medium and 500 labels as Regular. No synthesized bold. The wordmark stays Archivo outlines.
+
+November 8 assembly view (#21): a project whose version has an assembly manifest opens in an
+Assembly view, switched with Parts from a tray in the stage bar. The tree is a compact panel docked
+top-right on the viewport (not a drawer, so the model and the tree are read together): one row per
+instance, children indented under the part they hang off with a hairline guide, the kind in the
+parts list's words. Hide, ghost (see-through) and isolate are 24 px line-glyph toggles that appear
+on row hover, focus or selection and stay shown while on. Selection tints the instance with the
+selection accent in 3D; hardware renders as steel, purchased components as a dark housing, printed
+parts in the chosen finish. The explode slider scales the manifest's derived offsets; a one-line
+note says it is not a collision check. The tree is a treegrid: arrow keys move between rows, Tab
+reaches that row's toggles, Escape clears the selection.
 
 November 8 tools (#26): the viewport rail gains "Pin a note" and "Measure distance and angle" after
 "Circle an area", each a toggle that Escape leaves. A pin is a numbered ink marker on a short stem

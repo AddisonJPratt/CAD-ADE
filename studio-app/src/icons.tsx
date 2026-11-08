@@ -1,5 +1,5 @@
 import { useId, type ReactNode } from 'react';
-export type IconName = 'orbit'|'pan'|'fitModel'|'display'|'grid'|'shaded'|'front'|'top'|'side'|'iso'|'zoomIn'|'zoomOut'|'reset'|'eyeOff'|'search'|'browser'|'inspector'|'parameters'|'cube'|'folder'|'layers'|'eye'|'chat'|'history'|'download'|'fit'|'wire'|'sun'|'moon'|'check'|'arrow'|'close'|'selectBody'|'selectFace'|'pin'|'minus'|'lasso'|'measure';
+export type IconName = 'orbit'|'pan'|'fitModel'|'display'|'grid'|'shaded'|'front'|'top'|'side'|'iso'|'zoomIn'|'zoomOut'|'reset'|'eyeOff'|'search'|'browser'|'inspector'|'parameters'|'cube'|'folder'|'layers'|'eye'|'chat'|'history'|'download'|'fit'|'wire'|'sun'|'moon'|'check'|'arrow'|'close'|'selectBody'|'selectFace'|'pin'|'minus'|'lasso'|'measure'|'isolate'|'ghost'|'chevron';
 
 // True isometric cube on the 24-unit grid (30° edges, 9.5-unit sides), shared by every view glyph.
 const HEX = 'M12 2.5 20.25 7.25v9.5L12 21.5l-8.25-4.75v-9.5Z';
@@ -70,6 +70,10 @@ const paths: Record<IconName, ReactNode> = {
  // Interface chrome stays plain line: glass is reserved for objects and tools.
  eye:<><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></>,
  eyeOff:<><path d="m3 3 18 18M9 5a12 12 0 0 1 13 7 18 18 0 0 1-4 4M6 6a18 18 0 0 0-4 6s4 7 10 7c2 0 3.5-.5 5-1.5M10 10a3 3 0 0 0 4 4"/></>,
+ // Assembly display: isolate keeps one part inside a broken ring; ghost draws the cube see-through.
+ isolate:<><path d={MINI}/><path d={MINI_SEAMS}/><path d="M12 3a9 9 0 0 1 9 9m0 0a9 9 0 0 1-9 9m0 0a9 9 0 0 1-9-9m0 0a9 9 0 0 1 9-9" strokeDasharray="4.2 2.9"/></>,
+ chevron:<path d="m6 9.5 6 6 6-6"/>,
+ ghost:<><path d={HEX} strokeDasharray="2.3 2.1"/><path d={SEAMS} strokeDasharray="1.6 2.2" opacity=".7"/></>,
  search:<><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></>,
  check:<path d="m5 12.5 4.5 4.5L19 7"/>,
  arrow:<path d="M4 12h16m-6-6 6 6-6 6"/>,
