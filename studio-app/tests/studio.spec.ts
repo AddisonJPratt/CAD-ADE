@@ -332,7 +332,8 @@ test('modes preserve the project and selected version, and Mission Control shows
   await expect(page.getByRole('heading', { name: 'good_two_parts.py', exact: true }).last()).toBeVisible();
   await expect(page.getByText('24.0', { exact: false }).first()).toBeVisible();
   await page.getByRole('button', { name: 'Make', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Make' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'What are we holding?' })).toBeVisible();
+  await expect(page.getByText(/stays open in Studio/)).toBeVisible();
   await page.getByRole('button', { name: 'Studio', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Version 2' })).toBeVisible();
   await expect(page.getByLabel('Project folder')).toHaveValue(process.env.MAGIC_TEST_PROJECT!);
@@ -422,7 +423,7 @@ test('a picked face is named from the harness face map, survives a mode switch a
   await page.getByRole('button', {name:'Mission Control'}).click();
   await expect(page.getByRole('heading', {name:'Mission Control'})).toBeVisible();
   await page.getByRole('button', {name:'Make', exact:true}).click();
-  await expect(page.getByRole('heading', {name:'Make'})).toBeVisible();
+  await expect(page.getByRole('heading', {name:'What are we holding?'})).toBeVisible();
   await page.getByRole('button', {name:'Studio', exact:true}).click();
   await expect(chips).toContainText('Lid pocket · plate');
   // The plate's own front face has no name: it is described by where it faces.

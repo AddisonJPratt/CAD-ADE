@@ -122,6 +122,7 @@ export function MakeMode({ project, version, onOpen }: Props) {
     <nav className="mk-steps" aria-label="Make steps">
       <ol>{STEPS.map(s => <li key={s.id}><button type="button" aria-current={step === s.id ? 'step' : undefined} disabled={!reachable[s.id]} title={reachable[s.id] ? undefined : s.id === 'make' ? 'Shows progress while a holder is being made' : s.id === 'prove' ? 'Available once a holder has been made or opened from the Shelf' : 'Available when nothing is being made'} onClick={() => setStep(s.id)}>{s.label}</button></li>)}</ol>
     </nav>
+    {step === 'ask' && project && proof?.project !== project && <p className="mk-note mk-open">{project.split('/').filter(Boolean).pop()} stays open in Studio. Making a holder starts a new project beside it.</p>}
     {step === 'ask' && <AskStep key={prefill ? prefill.object + prefill.clearance_used_mm : "new"} spec={spec} specError={specError} prefill={prefill} heading={heading} onSubmit={start} />}
     {step === 'make' && making && <MakeStep object={making.object} gates={gates} error={runError} heading={heading} onBack={() => { stream.current?.close(); stream.current = null; setMaking(null); setPrefill(lastAsk.current); setStep('ask'); }} />}
     {step === 'prove' && proof && <ProveStep key={proof.project + proof.version.id + (proof.outcome ? "r" : "")} proof={proof} heading={heading} onRecorded={setProof} onRemake={remake} onCheck={check}

@@ -22,10 +22,10 @@ test('makes a holder, proves it, records a print and finds it on the Shelf', asy
   await expect(page.getByText('The design builds from its own settings')).toBeVisible();
 
   // Prove: only a fully checked version offers the print file.
-  await expect(page.getByRole('heading', { name: 'Bike pump holder', level: 1 })).toBeVisible({ timeout: 150000 });
+  await expect(page.getByRole('heading', { name: 'Bike pump holder', exact: true, level: 1 })).toBeVisible({ timeout: 150000 });
   await expect(page.getByRole('heading', { name: 'Ready to print' })).toBeVisible();
   await expect(page.getByText('Sized for 42 mm diameter', { exact: false })).toBeVisible();
-  await expect(page.getByRole('img', { name: /The checked Bike pump holder/ }).locator('canvas')).toBeVisible();
+  await expect(page.getByRole('img', { name: /The checked Bike pump holder/ })).toHaveAttribute('data-ready', 'true', { timeout: 20000 });
   await page.getByText('Engineering render').click();
   await expect(page.getByRole('img', { name: 'Harness check render of the Bike pump holder' })).toBeVisible();
   const download = page.getByRole('link', { name: 'Download print file (STL)' });
@@ -46,7 +46,7 @@ test('makes a holder, proves it, records a print and finds it on the Shelf', asy
 
   // Shelf: the project with its version history and print result; it opens in Studio.
   await page.getByRole('navigation', { name: 'Make steps' }).getByRole('button', { name: 'Shelf' }).click();
-  const item = page.getByRole('listitem').filter({ has: page.getByRole('heading', { name: 'Bike pump holder', level: 2 }) });
+  const item = page.getByRole('listitem').filter({ has: page.getByRole('heading', { name: 'Bike pump holder', exact: true, level: 2 }) });
   await expect(item).toContainText('Last print: Too tight (version 2)');
   await item.getByText('2 versions').click();
   await expect(item.getByText('Sized for Bike pump: 42 mm diameter')).toBeVisible();
@@ -54,6 +54,8 @@ test('makes a holder, proves it, records a print and finds it on the Shelf', asy
   await item.getByRole('button', { name: 'Proof: Bike pump holder version 2' }).click();
   await expect(page.getByRole('heading', { name: 'Your print' })).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('.mk-part[data-ready]')).toBeVisible();
+  await page.waitForTimeout(500);
   await page.screenshot({ path: test.info().outputPath('make-prove-mobile.png'), fullPage: true });
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.getByRole('navigation', { name: 'Make steps' }).getByRole('button', { name: 'Shelf' }).click();

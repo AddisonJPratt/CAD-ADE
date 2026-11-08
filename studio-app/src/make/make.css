@@ -92,6 +92,7 @@
 /* The harness QA plot is drawn on white; it keeps its own paper. */
 .mk-qa img{display:block;width:100%;margin-top:8px;background:#fff;border:1px solid var(--d-line);border-radius:8px}
 .mk-note{color:var(--d-ink-2)}
+.mk-open{margin:-20px 0 24px;font-size:13px}
 .mk-render figcaption{margin-top:8px;color:var(--d-ink-3);font-size:12.5px}
 .mk-lede{color:var(--d-ink-2);font-size:15px}
 .mk-verdict section{padding:20px 0;border-top:1px solid var(--d-line)}
