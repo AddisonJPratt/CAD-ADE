@@ -33,6 +33,15 @@
     POST /projects/rollback              {"project", "version", "wait"?}: restore a version's files as a
                                          new version, then re-run the gates (202, or 200 with "wait")
 
+    Make mode (engine/make.py): Ask -> Make -> Prove -> Shelf
+    GET  /make/form                      the holder templates, their measured ranges and materials
+    POST /make                           {"object", "shape", measurements, "material", "mount"}: a new
+                                         project sized to the ask, gates queued (202); or {"project"}:
+                                         remake it with the current calibrated clearance as a new version
+    GET  /make/proof?project=&version=   one version's make record, verdict, print file and outcome
+    POST /make/print                     {"project", "version", "result"}: record a physical fit result
+    GET  /make/shelf                     every project with its version history and print outcomes
+
 Version requests on a project that has a run queued or in progress are refused (409), so a
 run never sees its files change underneath it.
 
@@ -60,6 +69,7 @@ from harness.execute import run_worker
 from harness.pipeline import material_fits
 from harness.sweep import plan_samples
 
+from . import make
 from .proposal_session import ProposalSession
 from .agents import ScriptedFakeAgent, ParameterEditAgent
 from .workspace import browse, list_projects, new_project, remember, starters
@@ -273,6 +283,14 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(data)
             return
+        if path in ("/make/form", "/make/shelf", "/make/proof"):
+            query = parse_qs(urlsplit(self.path).query)
+            if path == "/make/form":
+                return self.guarded(lambda: (HTTPStatus.OK, make.form_spec()))
+            if path == "/make/shelf":
+                return self.guarded(lambda: (HTTPStatus.OK, make.shelf()))
+            return self.guarded(lambda: (HTTPStatus.OK, make.proof(query.get("project", [""])[0],
+                                                                   query.get("version", [""])[0])))
         if path == "/catalogue":
             project = parse_qs(urlsplit(self.path).query).get("project", [""])[0]
             return self.guarded(lambda: self.catalogue(project))
@@ -401,7 +419,8 @@ class Handler(BaseHTTPRequestHandler):
         routes = {"/proposals": self.post_proposal, "/catalogue": self.post_catalogue, "/projects/printer": self.post_printer, "/runs": self.post_run, "/projects": self.post_project,
                   "/workspace/projects": self.post_workspace_project, "/workspace/recent": self.post_recent,
                   "/projects/versions": self.post_version, "/projects/rollback": self.post_rollback,
-                  "/projects/version-artifacts": self.post_version_artifacts}
+                  "/projects/version-artifacts": self.post_version_artifacts,
+                  "/make": self.post_make, "/make/print": self.post_make_print}
         proposal_match = re.fullmatch(r"/proposals/([0-9a-f]{32})/(reject|accept|interrupt|resume)", path)
         if proposal_match:
             ident, action = proposal_match.groups()
@@ -550,6 +569,23 @@ class Handler(BaseHTTPRequestHandler):
         version, run = self.engine.change(proposal["project"], accept)
         status = self.finished(run, body.get("wait"))
         return status, {"version": version, "run": run.summary()}
+
+    def post_make(self, body):
+        """Ask -> a sized version with its gates queued. {"project"} remakes an existing make."""
+        options = self.run_options(body)
+        if body.get("project"):
+            folder, ask = body["project"], None
+        else:
+            folder, ask = make.create(body)
+        def act(project):
+            version = make.size(project, ask)
+            return version, self.engine.queue(project, *options)
+        version, run = self.engine.change(folder, act)
+        return self.finished(run, body.get("wait")), {"project": str(run.project), "version": version,
+                                                      "run": run.summary()}
+
+    def post_make_print(self, body):
+        return HTTPStatus.OK, make.record_print(body["project"], body["version"], body["result"])
 
     def post_printer(self, body):
         project = Path(body["project"]).expanduser().resolve()
