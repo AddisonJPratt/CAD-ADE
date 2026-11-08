@@ -122,6 +122,14 @@ so it reads at 16 px. The glow is the one deliberate non-action use of orange: i
 mark only and never appears on controls. The isometric cube glyph is a camera-view icon again, not
 the logo. Sources: public/brand/*.svg, public/favicon.svg.
 
+November 8 type direction (owner): the interface read too bold and too generic. Text is now
+Atkinson Hyperlegible Next (Braille Institute, SIL OFL 1.1), self-hosted from src/fonts/ (latin
+subset; the app still loads nothing from the network), chosen for unambiguous letterforms in
+measurements and part names (I l 1, O 0). src/fonts.css declares the family "Magic Text" with
+weight ranges mapped one step lighter: requested weights up to 549 use Regular, 550 to 699 use
+Medium, 700 and up use SemiBold. Stylesheets keep their numbers; headings at 600/650 now render
+as Medium and 500 labels as Regular. No synthesized bold. The wordmark stays Archivo outlines.
+
 November 8 assembly view (#21): a project whose version has an assembly manifest opens in an
 Assembly view, switched with Parts from a tray in the stage bar. The tree is a compact panel docked
 top-right on the viewport (not a drawer, so the model and the tree are read together): one row per

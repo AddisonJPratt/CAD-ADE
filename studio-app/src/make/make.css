@@ -1,0 +1,146 @@
+/* Make mode (#14). Built on the desk tokens (--d-*) so light and dark follow the app theme.
+   A guided path for makers: larger type than Studio's dense chrome, one orange action per step. */
+.app.desk > .mk{flex:1;min-height:0;overflow:auto;padding:28px max(24px,calc((100vw - 1040px)/2)) 64px;background:var(--d-bench);color:var(--d-ink);font-size:14px;line-height:1.5;scrollbar-color:var(--d-line-2) transparent}
+.mk h1{font-size:28px;line-height:1.15;font-weight:500;letter-spacing:-.015em;margin:0 0 12px;text-wrap:balance}
+.app.desk .mk h1:focus,.app.desk .mk h1:focus-visible{outline:none}
+.mk h2{font-size:15px;font-weight:600;margin:0 0 8px}
+.mk p{margin:0 0 12px;max-width:62ch}
+.mk .mk-quiet{color:var(--d-ink-3);font-size:13px}
+/* Alerts stay in the tree when empty so the first message is announced; they just take no room. */
+.mk .mk-error{color:var(--d-bad);font-weight:600}
+.mk .mk-error:empty{margin:0}
+.mk :where(button,input,select){font:inherit;color:inherit}
+/* Light bench: status words need darker ink than the shared desk tokens give 12.5px text (AA). */
+.app.desk:not(.dark) .mk{--d-ok:#356a41;--d-wait:#6e6146}
+/* Interactive boundaries need 3:1 against the panel (WCAG 1.4.11); --d-line-2 is for rules only. */
+.mk{--mk-edge:var(--d-ink-3)}
+/* The legacy sheet styles every li button as a full-width timeline row; Make's are not. */
+.mk li button{width:auto;border-top:0;display:inline-flex;text-align:left;border-radius:0}
+
+/* Steps */
+.mk-steps{margin:0 0 36px;border-bottom:1px solid var(--d-line)}
+.mk-steps ol{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+.mk-steps li{counter-increment:step}
+.mk-steps button{display:flex;align-items:center;gap:8px;border:0;background:transparent;padding:10px 14px 12px;border-radius:0;color:var(--d-ink-3);font-weight:500;margin-bottom:-1px;border-bottom:2px solid transparent}
+.mk-steps button::before{content:counter(step);display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1px solid currentColor;font-size:11px;font-variant-numeric:tabular-nums}
+.mk-steps button:hover:not(:disabled){color:var(--d-ink)}
+.mk-steps button[aria-current=step]{background:transparent;color:var(--d-ink);border-bottom-color:var(--d-ink)}
+.mk-steps button:disabled{opacity:.45;cursor:default}
+
+/* Layouts */
+.mk-columns{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:clamp(32px,6vw,72px);align-items:start}
+.mk-columns.prove{grid-template-columns:minmax(0,6fr) minmax(0,5fr)}
+.mk-single{max-width:640px}
+.mk-single.wide{max-width:880px}
+.mk-intro p:first-of-type{font-size:16px;color:var(--d-ink-2)}
+
+/* Ask form */
+.mk-form{display:grid;gap:6px}
+.mk-form label,.mk-form legend,.mk-label{font-size:13px;font-weight:600;color:var(--d-ink-2)}
+.mk-form fieldset{border:0;margin:18px 0 0;padding:0;min-width:0}
+.mk-form legend{padding:0;margin-bottom:8px}
+.mk-form input:not([type=radio]),.mk-form select{width:100%;min-height:40px;padding:8px 10px;border:1px solid var(--mk-edge);border-radius:6px;background:var(--d-panel);caret-color:var(--d-accent)}
+.mk-form input::placeholder{color:var(--d-ink-3)}
+.mk-form input[aria-invalid=true]{border-color:var(--d-bad)}
+.mk-shape{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mk-shape legend{grid-column:1/-1}
+.mk-shape label{position:relative;display:grid;gap:2px;padding:12px 14px;border:1px solid var(--mk-edge);border-radius:8px;background:var(--d-panel);cursor:pointer;color:var(--d-ink);font-weight:500}
+.mk-shape label small{font-weight:400;color:var(--d-ink-3);font-size:12.5px}
+.mk-shape label.chosen{border-color:var(--d-ink);box-shadow:inset 0 0 0 1px var(--d-ink)}
+.mk-shape input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.mk-shape label:has(input:focus-visible){outline:2px solid var(--d-accent);outline-offset:2px}
+.mk-row{display:grid;grid-template-columns:7rem 9rem minmax(0,1fr);align-items:center;gap:12px;padding:6px 0;border-top:1px solid var(--d-line)}
+.mk-row:last-child{border-bottom:1px solid var(--d-line)}
+.mk-row label{color:var(--d-ink);font-weight:500}
+.mk-row small{color:var(--d-ink-3);font-size:12.5px}
+.mk-number{display:flex;align-items:center;gap:6px}
+.mk-number input{text-align:right;font-variant-numeric:tabular-nums}
+.mk-number span{color:var(--d-ink-3)}
+.mk-material{display:grid;gap:6px;margin-top:18px;max-width:16rem}
+.mk-form .mk-primary{justify-self:start;margin-top:10px}
+
+/* Buttons */
+.mk-primary,.mk-secondary{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 16px;border-radius:6px;font-weight:600;text-decoration:none;cursor:pointer}
+.mk-primary{border:0;background:var(--d-accent);color:var(--d-accent-ink)}
+.mk-primary:hover:not(:disabled){filter:brightness(1.08)}
+.mk-primary .cad-icon{--icon-line:currentColor;--icon-hue:currentColor;filter:none;width:18px;height:18px}
+.mk-primary .cad-icon *{fill:none}
+.mk-secondary{border:1px solid var(--mk-edge);background:var(--d-panel);color:var(--d-ink)}
+.mk-secondary:hover{background:var(--d-raise)}
+.mk-primary:disabled,.mk-secondary:disabled,.mk-choices button:disabled{opacity:.55;cursor:wait}
+.mk-link{border:0;background:none;padding:0;color:var(--d-ink);text-decoration:underline;text-underline-offset:3px;font-weight:500;cursor:pointer}
+.mk-link:hover{color:var(--d-accent)}
+
+/* Make progress and gate lists */
+.mk-progress{font-variant-numeric:tabular-nums;color:var(--d-ink-2);font-weight:500}
+.mk-gates{list-style:none;margin:0 0 20px;padding:0}
+.mk-gates li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;align-items:baseline;padding:12px 0;border-top:1px solid var(--d-line)}
+.mk-gates li:last-child{border-bottom:1px solid var(--d-line)}
+.mk-gates li p{grid-column:1/-1;margin:0;color:var(--d-ink-3);font-size:13px;overflow-wrap:anywhere}
+.mk-gates.compact li{padding:8px 0;font-size:13px}
+.mk-state{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.mk-state .cad-icon{width:16px;height:16px;--icon-line:currentColor}
+.mk-state.ok{color:var(--d-ok)}.mk-state.bad{color:var(--d-bad)}.mk-state.wait{color:var(--d-wait)}.mk-state.idle{color:var(--d-ink-3);font-weight:500}
+
+/* Prove */
+.mk-render{margin:0;position:sticky;top:0}
+.mk-part,.mk-norender{display:block;width:100%;aspect-ratio:4/3;background:var(--d-panel);border:1px solid var(--d-line);border-radius:8px;overflow:hidden;cursor:grab}
+.mk-part:active{cursor:grabbing}
+.mk-norender{display:grid;place-items:center;color:var(--d-ink-3);cursor:default;padding:24px;text-align:center}
+.mk-qa{margin-top:12px}
+.mk-qa summary{cursor:pointer;color:var(--d-ink-2);font-size:13px;font-weight:500;width:max-content}
+/* The harness QA plot is drawn on white; it keeps its own paper. */
+.mk-qa img{display:block;width:100%;margin-top:8px;background:#fff;border:1px solid var(--d-line);border-radius:8px}
+.mk-note{color:var(--d-ink-2)}
+.mk-open{margin:-20px 0 24px;font-size:13px}
+.mk-render figcaption{margin-top:8px;color:var(--d-ink-3);font-size:12.5px}
+.mk-lede{color:var(--d-ink-2);font-size:15px}
+.mk-verdict section{padding:20px 0;border-top:1px solid var(--d-line)}
+.mk-verdict section h2{font-size:18px;font-weight:600}
+.mk-tiers{margin:0 0 20px;display:grid;gap:10px}
+.mk-tiers div{display:grid;grid-template-columns:9.5rem minmax(0,1fr);gap:12px}
+.mk-tiers dt{font-weight:600;color:var(--d-ink)}
+.mk-tiers dd{margin:0;color:var(--d-ink-2);text-wrap:pretty}
+.mk-choices{display:flex;flex-wrap:wrap;gap:8px}
+.mk-choices button{min-height:40px;padding:0 16px;border:1px solid var(--mk-edge);border-radius:6px;background:var(--d-panel);font-weight:500;cursor:pointer}
+.mk-choices button:hover:not(:disabled){background:var(--d-raise)}
+.mk-choices button[aria-pressed=true]{border-color:var(--d-ink);box-shadow:inset 0 0 0 1px var(--d-ink);background:var(--d-raise)}
+.mk-print .mk-quiet{margin:12px 0}
+.mk-links{margin-top:8px}
+
+/* Shelf */
+.mk-shelf{list-style:none;margin:24px 0 0;padding:0}
+.mk-shelf>li{padding:16px 0;border-top:1px solid var(--d-line)}
+.mk-shelf>li:last-child{border-bottom:1px solid var(--d-line)}
+.mk-shelf-head{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.mk-shelf-head h2{font-size:16px;margin:0 0 2px}
+.mk-shelf-head p{margin:0;color:var(--d-ink-3);font-size:13px}
+.mk-shelf details{margin-top:8px}
+.mk-shelf summary{cursor:pointer;color:var(--d-ink-2);font-size:13px;font-weight:500;width:max-content;padding:4px 0}
+.mk-history{list-style:none;margin:8px 0 0;padding:0}
+.mk-history li{display:grid;grid-template-columns:5.5rem minmax(0,1fr) auto auto;gap:16px;align-items:baseline;padding:8px 0 8px 12px;border-top:1px solid var(--d-line);font-size:13px}
+.mk-num{font-variant-numeric:tabular-nums;color:var(--d-ink-2)}
+.mk-msg{overflow-wrap:anywhere}
+.mk-msg small{display:block;color:var(--d-ink-3);font-size:12px}
+.mk-check{color:var(--d-ink-2);white-space:nowrap}
+.mk-empty{padding:32px 0;border-top:1px solid var(--d-line)}
+
+@media (max-width:760px){
+  .app.desk > .mk{padding:16px 16px 48px}
+  .mk h1{font-size:24px}
+  .mk-steps{margin-bottom:24px;overflow-x:auto}
+  .mk-steps ol{gap:0}
+  .mk-steps button{padding:10px 8px 12px;min-height:44px;gap:6px}
+  .mk-columns,.mk-columns.prove{grid-template-columns:1fr;gap:24px}
+  .mk-render{position:static}
+  .mk-row{grid-template-columns:1fr 8.5rem;gap:4px 12px}
+  .mk-row small{grid-column:1/-1}
+  .mk-tiers div{grid-template-columns:1fr;gap:2px}
+  .mk-shelf-head{flex-direction:column;align-items:flex-start}
+  .mk-history li{grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding-left:0}
+  .mk-history .mk-num{grid-column:1/-1;font-size:12px}
+  .mk-history .mk-msg{grid-column:1/-1}
+  .mk-history .mk-check{grid-column:1}
+  .mk-primary,.mk-secondary,.mk-choices button{min-height:44px}
+}
+@media (prefers-reduced-motion:no-preference){.mk-primary,.mk-secondary,.mk-choices button,.mk-steps button{transition:background-color .15s ease-out,color .15s ease-out,border-color .15s ease-out}}
