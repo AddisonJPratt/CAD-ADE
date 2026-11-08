@@ -181,7 +181,7 @@ class MakeTests(unittest.TestCase):
         make.size(folder)
         self.assertAlmostEqual(params(folder / "designs" / "holder_clip.py")["clearance"][0], .45)
         versions = list_versions(folder)
-        self.assertEqual(versions[0]["message"], "Adjusted fit: clearance 0.45 mm")
+        self.assertEqual(versions[0]["message"], "Adjusted fit gap: 0.45 mm per side")
         self.assertAlmostEqual(make.record(folder)["clearance_used_mm"], .45)
         self.assertAlmostEqual(make.record(folder, versions[1]["id"])["clearance_used_mm"], .25)
         new = self.made()  # a new make of the same template starts from the calibrated clearance

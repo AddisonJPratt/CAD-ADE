@@ -220,7 +220,7 @@ def size(project, ask=None):
     _write_json(project / MAKE_FILE, ask)
     (project / SETTINGS).write_text(json.dumps({"printer": PROFILE["id"], "material": ask["material"]}, indent=2) + "\n")
     if previous and previous.get("readings") == ask["readings"]:
-        message = f"Adjusted fit: clearance {clearance:g} mm"
+        message = f"Adjusted fit gap: {clearance:g} mm per side"
     else:
         message = f"Sized for {ask['object']}: {describe(ask)}"
     return save_version(project, message)

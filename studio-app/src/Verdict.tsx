@@ -3,7 +3,7 @@ import { Icon } from './icons';
 
 // Plain-language reading of the harness gates for makers who do not read gate reports.
 // Each entry says what passing proves; `fail` says what went wrong when it does not.
-const GATES: { key: string; pass: string; fail: string }[] = [
+export const GATES: { key: string; pass: string; fail: string }[] = [
   { key: 'Execute', pass: 'The design builds from its own settings', fail: 'The design does not build from its settings' },
   { key: 'Geometry', pass: 'Every part is one solid piece at the intended size', fail: 'A part is not one solid piece at the intended size' },
   { key: 'Printability', pass: 'It fits your print bed and needs no supports', fail: 'It may not print cleanly on your bed' },
