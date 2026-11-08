@@ -10,7 +10,9 @@ export type FaceRecord = {
   centre: Vec3; normal: Vec3 | null; axis: { origin: Vec3; direction: Vec3 } | null;
   radius?: number; area: number; bbox: { min: Vec3; max: Vec3 };
 };
-export type FaceMap = { part: string; features: string[]; faces: FaceRecord[] };
+/** A feature's driving PARAMS at the values this model was built with: {param: value}. */
+export type FeatureParameters = Record<string, number>;
+export type FaceMap = { part: string; features: string[]; parameters: Record<string, FeatureParameters>; faces: FaceRecord[] };
 
 export const FACE_KEYS = ['id', 'kind', 'feature', 'centre', 'normal', 'axis', 'area', 'bbox'] as const;
 const PLANE_DOT = 0.97;        // cos 14°: the pick's normal must agree with the face's
@@ -24,6 +26,11 @@ export function parseFaceMap(data: unknown): FaceMap {
   if (!map || typeof map !== 'object' || typeof map.part !== 'string') throw new Error('face map: missing part');
   if (!Array.isArray(map.features) || !map.features.every(f => typeof f === 'string')) throw new Error('face map: missing features');
   if (!Array.isArray(map.faces)) throw new Error('face map: missing faces');
+  // Optional: maps exported before driving parameters existed have none.
+  const parameters = (map.parameters ?? {}) as Record<string, unknown>;
+  if (typeof parameters !== 'object' || Array.isArray(parameters)
+    || !Object.values(parameters).every(p => p && typeof p === 'object' && !Array.isArray(p) && Object.values(p).every(v => typeof v === 'number' && Number.isFinite(v))))
+    throw new Error('face map: malformed parameters');
   const faces = map.faces.map((raw, i) => {
     const face = raw as Record<string, unknown>;
     for (const key of FACE_KEYS) if (!(key in face)) throw new Error(`face map: face ${i} missing ${key}`);
@@ -37,7 +44,7 @@ export function parseFaceMap(data: unknown): FaceMap {
     return { id: face.id, kind: face.kind, feature: face.feature, centre: face.centre, normal: face.normal, axis: axis as FaceRecord['axis'],
       area: face.area, bbox: { min: bbox.min, max: bbox.max }, ...(typeof face.radius === 'number' ? { radius: face.radius } : {}) } as FaceRecord;
   });
-  return { part: map.part, features: map.features as string[], faces };
+  return { part: map.part, features: map.features as string[], parameters: parameters as FaceMap['parameters'], faces };
 }
 
 function extent(map: FaceMap) {
@@ -65,4 +72,23 @@ export function faceAt(map: FaceMap | undefined, point: Vec3, normal: Vec3 | nul
   if (preferred.length) return preferred.reduce((best, f) => f.area < best.area ? f : best);
   // No face of the expected kind under the point: the closest centre among the faces whose extent holds it.
   return near.reduce((best, f) => length(sub(point, f.centre)) < length(sub(point, best.centre)) ? f : best);
+}
+
+/** The parameters that drive the feature a face belongs to; none for an unnamed face. */
+export function featureParameters(map: FaceMap | undefined, face: FaceRecord | null | undefined): FeatureParameters {
+  return (face?.feature && map?.parameters[face.feature]) || {};
+}
+
+const number = (v: number) => String(Math.round(v * 100) / 100);
+const DIAMETER = /(^|_)(d|dia|diam|diameter)$/i;
+const RADIUS = /(^|_)(r|rad|radius)$/i;
+
+/** The first (most telling) driving parameter as a drawing would print it: Ø4, R1.5, or "pocket depth 3". */
+export function parameterText(parameters: FeatureParameters) {
+  const [first] = Object.entries(parameters);
+  if (!first) return '';
+  const [name, value] = first;
+  if (DIAMETER.test(name)) return `Ø${number(value)}`;
+  if (RADIUS.test(name)) return `R${number(value)}`;
+  return `${name.replace(/_/g, ' ')} ${number(value)}`;
 }

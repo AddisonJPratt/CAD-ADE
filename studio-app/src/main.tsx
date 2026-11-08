@@ -16,7 +16,7 @@ import { ToolHint } from './watermelon/ToolHint';
 import { ViewportTools, DEFAULT_VIEW, MATERIALS, type ViewStyle, type ToolMode } from './watermelon/ViewportTools';
 import { Verdict } from './Verdict';
 import { Highlight, circled, describe, label, loopArea, measure, regionAt, selectionPayload, type Pick } from './Selection';
-import { faceAt, parseFaceMap, type FaceMap } from './Features';
+import { faceAt, featureParameters, parseFaceMap, type FaceMap } from './Features';
 import { PartsList } from './PartsList';
 import { ProjectPicker } from './ProjectPicker';
 
@@ -218,11 +218,11 @@ function App() {
   const makePick = (kind: Pick['kind'], body: string, geometry: BufferGeometry, point: Vector3, faceIndex?: number | null, normal?: Vector3): Pick => {
     const map = faceMaps[body]; const at = point.toArray() as Pick['point'];
     const base = { id: `pick-${++pickCount.current}`, kind, body, geometry, point: at };
-    if (kind === 'face' && faceIndex != null) { const r = regionAt(geometry, faceIndex, point); const face = faceAt(map, at, r.normal.toArray() as Pick['normal'], r.flat); return { ...base, region: r.region, area: r.area, flat: r.flat, normal: r.normal.toArray() as Pick['normal'], centroid: r.centroid.toArray() as Pick['centroid'], feature: face?.feature ?? null, face: face ?? undefined }; }
+    if (kind === 'face' && faceIndex != null) { const r = regionAt(geometry, faceIndex, point); const face = faceAt(map, at, r.normal.toArray() as Pick['normal'], r.flat); return { ...base, region: r.region, area: r.area, flat: r.flat, normal: r.normal.toArray() as Pick['normal'], centroid: r.centroid.toArray() as Pick['centroid'], feature: face?.feature ?? null, parameters: featureParameters(map, face), face: face ?? undefined }; }
     geometry.computeBoundingBox(); const c = geometry.boundingBox!.getCenter(new Vector3());
     if (kind === 'body') return { ...base, normal: (normal?.toArray() || [0, 0, 1]) as Pick['normal'], centroid: c.toArray() as Pick['centroid'], features: map?.features ?? [] };
     const face = faceAt(map, at, null, null);
-    return { ...base, normal: (normal?.toArray() || [0, 0, 1]) as Pick['normal'], centroid: c.toArray() as Pick['centroid'], feature: face?.feature ?? null, face: face ?? undefined };
+    return { ...base, normal: (normal?.toArray() || [0, 0, 1]) as Pick['normal'], centroid: c.toArray() as Pick['centroid'], feature: face?.feature ?? null, parameters: featureParameters(map, face), face: face ?? undefined };
   };
   const add = (next: Pick, extend: boolean) => { setNoteDraft(null); setPicks(current => extend ? [...current.filter(p => !(p.kind === next.kind && p.body === next.body && p.kind === 'body')), next] : [next]); };
   const interact = (body: string) => ({
@@ -236,7 +236,7 @@ function App() {
     if (hit) {
       const centroid = hit.loop.reduce((c, v) => c.add(v), new Vector3()).divideScalar(hit.loop.length);
       const face = faceAt(faceMaps[hit.body], centroid.toArray() as Pick['point'], null, null);
-      const next: Pick = { id: `pick-${++pickCount.current}`, kind: 'area', body: hit.body, geometry: hit.geometry, region: hit.region, loop: new Float32Array(hit.loop.flatMap(v => v.toArray())), area: loopArea(hit.loop), flat: false, point: centroid.toArray() as Pick['point'], centroid: centroid.toArray() as Pick['centroid'], normal: hit.normal.toArray() as Pick['normal'], feature: face?.feature ?? null, face: face ?? undefined };
+      const next: Pick = { id: `pick-${++pickCount.current}`, kind: 'area', body: hit.body, geometry: hit.geometry, region: hit.region, loop: new Float32Array(hit.loop.flatMap(v => v.toArray())), area: loopArea(hit.loop), flat: false, point: centroid.toArray() as Pick['point'], centroid: centroid.toArray() as Pick['centroid'], normal: hit.normal.toArray() as Pick['normal'], feature: face?.feature ?? null, parameters: featureParameters(faceMaps[hit.body], face), face: face ?? undefined };
       setPicks(current => extend ? [...current, next] : [next]);
     }
     setNavigation('orbit');
@@ -299,7 +299,7 @@ function App() {
             {designs.length > 1 && <div className="part-picker"><label htmlFor="design">Part</label><select id="design" value={design} onChange={e => setDesign(e.target.value)} disabled={proposalBusy}>{designs.map(name => <option key={name} value={name}>{niceName(name)}</option>)}</select></div>}
             <label htmlFor="request" className="sr-only">Change request</label>
             <div className="composer">
-              {picks.length > 0 && <ul className="pick-chips" aria-label="Selected on the model">{picks.map(p => <li key={p.id}><span>{label(p)}</span><button type="button" aria-label={`Remove ${label(p)}`} onClick={() => setPicks(c => c.filter(x => x.id !== p.id))}><Icon name="close"/></button></li>)}</ul>}
+              {picks.length > 0 && <ul className="pick-chips" aria-label="Selected on the model">{picks.map(p => <li key={p.id}><span title={label(p)}>{label(p)}</span><button type="button" aria-label={`Remove ${label(p)}`} onClick={() => setPicks(c => c.filter(x => x.id !== p.id))}><Icon name="close"/></button></li>)}</ul>}
               <textarea id="request" rows={2} value={message} placeholder={picks.length ? 'What should change here?' : runtime === 'claude' ? 'Make the wall 0.5 mm thicker' : 'size 24'} onChange={e => setMessage(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); e.currentTarget.form?.requestSubmit(); } }} disabled={proposalBusy}/>
               <div className="composer-footer"><small aria-hidden="true">{picks.length ? 'Selection rides along with its feature names and positions' : 'Click the model to point at a part'}</small><ToolHint text="Propose change (Enter)"><button className="composer-send" aria-label="Propose change" disabled={proposalBusy || opening || !selected?.current || !message.trim()}><Icon name="arrow"/></button></ToolHint></div>
             </div>
@@ -331,7 +331,7 @@ function App() {
           {anchor && !proposal && <Html position={anchor.kind === 'body' ? anchor.centroid : anchor.point} zIndexRange={[30, 20]} style={{ pointerEvents: 'auto' }}>
             <div className="selection-bar" role="toolbar" aria-label="Selection actions" onPointerDown={e => e.stopPropagation()}>
               {noteDraft === null ? <>
-                <span className="selection-name">{picks.length > 1 ? `${picks.length} selected` : label(anchor)}</span>
+                <span className="selection-name" title={picks.length > 1 ? picks.map(label).join('; ') : label(anchor)}>{picks.length > 1 ? `${picks.length} selected` : label(anchor)}</span>
                 <button type="button" onClick={focusComposerSoon}><Icon name="chat"/>Ask</button>
                 <button type="button" disabled={!measured} title={measured ? 'Show the distance on the model' : 'Shift-click a second face to measure'} aria-pressed={!!measured} onClick={() => setMeasureEdit(measured ? measured.value.toFixed(1) : null)}><Icon name="fit"/>Measure</button>
                 <button type="button" onClick={() => setNoteDraft(anchor.note || '')}><Icon name="pin"/>{anchor.note ? 'Edit note' : 'Note'}</button>

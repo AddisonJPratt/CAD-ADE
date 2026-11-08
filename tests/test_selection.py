@@ -36,10 +36,10 @@ def rounded(value, places=6):
 def selection(design='named_features.py'):
     """A selection as Studio sends it: one named face, one unnamed face, and their distance."""
     return {'design': design, 'picks': [
-        {'instance': 'plate', 'kind': 'face', 'feature': 'lid pocket', 'face': 11,
-         'description': 'a flat face on the "lid pocket" feature of body "plate" facing up (+Z), area ≈ 64 mm², centred at (0.0, 0.0, 9.0) mm',
+        {'instance': 'plate', 'kind': 'face', 'feature': 'lid pocket', 'parameters': {'pocket_depth': 3.0}, 'face': 11,
+         'description': 'a flat face on the "lid pocket" feature of body "plate" (driven by pocket_depth = 3) facing up (+Z), area ≈ 64 mm², centred at (0.0, 0.0, 9.0) mm',
          'point': [0.4, -0.2, 9.0], 'normal': [0, 0, 1], 'centroid': [0, 0, 9], 'area': 64.0, 'flat': True, 'note': None, 'locked': False},
-        {'instance': 'plate', 'kind': 'face', 'feature': None, 'face': 1,
+        {'instance': 'plate', 'kind': 'face', 'feature': None, 'parameters': {}, 'face': 1,
          'description': 'a flat face on body "plate" facing front (−Y), area ≈ 432 mm², centred at (0.0, -18.0, 6.0) mm',
          'point': [1.0, -18.0, 5.0], 'normal': [0, -1, 0], 'centroid': [0, -18, 6], 'area': 432.0, 'flat': True, 'note': 'keep this flat', 'locked': True}],
         'measurement': {'value': 20.12, 'kind': 'centre to centre', 'from': [0, 0, 9], 'to': [0, -18, 6]}}
@@ -73,6 +73,16 @@ class FaceMapTest(unittest.TestCase):
         self.assertAlmostEqual(floor['centre'][2], 9.0)          # height 12 minus pocket depth 3
         self.assertAlmostEqual(floor['area'], 324.0)                # (size / 2)²
 
+    def test_each_feature_carries_its_driving_parameters_at_their_built_values(self):
+        self.assertEqual(self.map['parameters'], {'lid pocket': {'pocket_depth': 3.0}, 'mount hole': {'hole_dia': 4.0}})
+
+    def test_overridden_parameters_are_exported_at_the_value_built(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result = run_worker(FIXTURE, tmp, {'hole_dia': 3.5})
+            self.assertTrue(result['ok'], result.get('traceback'))
+            built = json.loads(Path(result['parts'][0]['faces']).read_text())
+            self.assertEqual(built['parameters']['mount hole'], {'hole_dia': 3.5})
+
     def test_unnamed_faces_keep_a_geometric_description(self):
         unnamed = [f for f in self.map['faces'] if f['feature'] is None]
         self.assertEqual(len(unnamed), 6)                        # the plate's own six faces
@@ -88,7 +98,7 @@ class FaceMapTest(unittest.TestCase):
 
     def test_feature_helper_validates_and_records_in_order(self):
         from build123d import Box
-        from library import declared_features, feature, reset_features
+        from library import declared_features, feature, feature_parameters, reset_features
         reset_features()
         with self.assertRaises(ValueError):
             feature('', Box(1, 1, 1))
@@ -96,10 +106,31 @@ class FaceMapTest(unittest.TestCase):
             feature('slot', 'not a shape')
         box = feature(' slot ', Box(1, 1, 1))
         self.assertEqual(box.label, 'slot')
-        feature('boss', Box(2, 2, 2))
-        self.assertEqual([name for name, _ in declared_features()], ['slot', 'boss'])
+        feature('boss', Box(2, 2, 2), params=('boss_d', 'boss_h'))
+        feature('rib', Box(1, 1, 1), params='rib_t')
+        self.assertEqual([name for name, _ in declared_features()], ['slot', 'boss', 'rib'])
+        self.assertEqual(feature_parameters(), {'slot': (), 'boss': ('boss_d', 'boss_h'), 'rib': ('rib_t',)})
+        with self.assertRaises(ValueError):
+            feature('peg', Box(1, 1, 1), params=('',))
+        with self.assertRaises(ValueError):
+            feature('peg', Box(1, 1, 1), params=(3,))
         reset_features()
         self.assertEqual(declared_features(), [])
+        self.assertEqual(feature_parameters(), {})
+
+
+class FeatureParameterGateTest(unittest.TestCase):
+    """The harness fails a design whose feature tags name a parameter PARAMS does not declare."""
+
+    def test_a_tag_naming_a_missing_parameter_fails_the_execute_gate(self):
+        from harness.pipeline import run
+        with tempfile.TemporaryDirectory() as tmp:
+            _, report = run(ROOT / 'tests/fixtures/feature_missing_param.py', out=Path(tmp) / 'out', exports=False, skip_sweep=True)
+        self.assertFalse(report['pass'])
+        execute = next(g for g in report['gates'] if g['name'] == '1 Execute')
+        self.assertEqual(execute['status'], 'FAIL')
+        self.assertIn("'boss_d'", execute['detail'])
+        self.assertIn('screw boss', execute['detail'])
 
 
 class FakeAgentSelectionTest(unittest.TestCase):
