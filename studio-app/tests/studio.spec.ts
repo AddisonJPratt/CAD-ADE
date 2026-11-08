@@ -388,3 +388,36 @@ test('the Settings drawer shows the project printer and changes the material for
   await page.getByLabel('Material').selectOption('PLA');
   await expect(page.getByText('Material set to PLA for future checks.')).toBeVisible();
 });
+
+test('creates a project without typing a path, lists it, and colours gate progress', async ({ page }) => {
+  test.skip(!process.env.MAGIC_PROJECTS_HOME, 'needs a scratch MAGIC_PROJECTS_HOME (tests/run.sh sets one)');
+  const name = `Picker ${Date.now()}`;
+  await page.goto('/');
+  await page.getByRole('button', { name: 'New project', exact: true }).first().click();
+  await expect(page.getByText('L-shaped wall bracket that carries one edge of a shelf.')).toBeInViewport();
+  await page.getByRole('button', { name: 'Create project' }).click();
+  await expect(page.getByRole('alert')).toHaveText('Give the project a name.');
+  await page.getByLabel('Name').fill(name);
+  await page.getByRole('button', { name: 'Create project' }).click();
+  await expect(page.getByRole('heading', { name: 'Version 1' })).toBeVisible({ timeout: 60000 });
+
+  await page.getByLabel('Change request').fill('thickness 9');
+  await page.getByRole('button', { name: 'Propose change' }).click();
+  await page.getByRole('button', { name: 'Accept change' }).click();
+  await expect(page.getByRole('heading', { name: 'Version 2' })).toBeVisible({ timeout: 180000 });
+  const rows = page.locator('.gate-progress .progress-row');
+  await expect(rows.filter({ hasText: 'Geometry' })).toHaveClass(/pass/);
+  await expect(rows.filter({ hasText: 'Geometry' })).toHaveCount(1);
+  await expect(page.locator('.progress-row.live')).toHaveCount(0);
+
+  await page.goto('/');
+  await page.getByRole('button', { name: new RegExp(name) }).click();
+  await expect(page.getByRole('heading', { name: 'Version 2' })).toBeVisible({ timeout: 60000 });
+
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Browse here', exact: true }).click();
+  const here = await page.locator('.crumb .path').textContent();
+  await page.getByLabel('Up one folder').click();
+  await expect(page.locator('.crumb .path')).not.toHaveText(here!);
+  await expect(page.locator('.picker-browse .picker-row').first()).toBeVisible();
+});
