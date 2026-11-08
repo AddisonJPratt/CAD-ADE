@@ -3,7 +3,9 @@
     python -m harness.worker design.py out_dir [params_json]
 
 Every part is exported to STL and STEP, and all B-rep facts are measured on the STEP
-file reloaded from disk.
+file reloaded from disk. Beside each STL goes `<part>.faces.json`: every B-rep face with
+its geometry (kind, centre, normal or axis, area, bbox) and the name of the feature the
+design gave it with `library.feature(...)`, or null. Studio reads it to name a picked face.
 """
 import importlib.util
 import json
@@ -15,6 +17,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 STL_TOLERANCE = 0.01      # mm linear deflection
 STL_ANGULAR = 0.1         # rad
+FACE_ON_FEATURE = 0.01    # mm: a face belongs to a feature when its sample point lies on the feature's boundary
+# Parametric samples tried in turn for a point that lies inside the face, clear of its edges: a
+# face with a hole in it (a top face around a pocket) has its parametric centre in the hole, and
+# a point on the rim of that hole would also lie on the cutter that made it.
+FACE_SAMPLES = ((0.5, 0.5), (0.3, 0.3), (0.7, 0.7), (0.3, 0.7), (0.7, 0.3), (0.15, 0.5), (0.5, 0.15),
+                (0.85, 0.5), (0.5, 0.85), (0.1, 0.1), (0.9, 0.9), (0.1, 0.9), (0.9, 0.1))
+EDGE_CLEARANCE = 0.1      # mm: how far inside its edges the sample point must lie
 
 
 def load_design(path, fits=None):
@@ -75,9 +84,59 @@ def internal_cylinders(shape):
     return found
 
 
+def _xyz(v):
+    return [c + 0.0 for c in (v.X, v.Y, v.Z)]  # + 0.0 turns -0.0 into 0.0
+
+
+def point_on(face):
+    """A point that lies on the face itself, not in one of its holes and not on its rim."""
+    edges = face.edges()
+    fallback = None
+    for u, v in FACE_SAMPLES:
+        point = face.position_at(u, v)
+        if not face.is_inside(point):
+            continue
+        if all(edge.distance_to(point) > EDGE_CLEARANCE for edge in edges):
+            return point
+        fallback = fallback or point
+    return fallback or face.position_at(0.5, 0.5)
+
+
+def face_map(part_name, shape, features):
+    """Every face of `shape` with its geometry and the named feature it belongs to, if any.
+
+    A face belongs to the first declared feature whose boundary passes through the face's
+    centre point: the faces a cutter leaves behind lie on the cutter's faces, and a boss's
+    faces are its own. Unnamed faces keep their geometry so a pick still has a description.
+    """
+    from build123d import GeomType
+    feature_faces = [(name, feature.faces()) for name, feature in features]
+    faces = []
+    for index, face in enumerate(shape.faces()):
+        centre = point_on(face)
+        name = next((n for n, fs in feature_faces
+                     if any(f.distance_to(centre) <= FACE_ON_FEATURE for f in fs)), None)
+        box = face.bounding_box()
+        entry = {"id": index, "kind": face.geom_type.name.lower(), "feature": name,
+                 "centre": _xyz(centre), "normal": None, "axis": None, "area": face.area,
+                 "bbox": {"min": _xyz(box.min), "max": _xyz(box.max)}}
+        if face.geom_type == GeomType.PLANE:
+            entry["normal"] = _xyz(face.normal_at(centre))
+        elif face.geom_type in (GeomType.CYLINDER, GeomType.CONE, GeomType.TORUS):
+            axis = face.axis_of_rotation
+            entry["axis"] = {"origin": _xyz(axis.position), "direction": _xyz(axis.direction)}
+            if face.geom_type == GeomType.CYLINDER:
+                entry["radius"] = face.radius
+        faces.append(entry)
+    return {"part": part_name, "features": [name for name, _ in features], "faces": faces}
+
+
 def build_and_measure(design_path, out_dir, overrides, fits=None):
     from build123d import export_step, export_stl, import_step
     module = load_design(design_path, fits)
+    import library.features as feature_registry  # the copy the design imported (project or root)
+    reset = getattr(feature_registry, "reset_features", lambda: None)
+    declared_features = getattr(feature_registry, "declared_features", list)
     declared = {k: list(v) for k, v in module.PARAMS.items()}
     params = {k: v[0] for k, v in module.PARAMS.items()}
     unknown = set(overrides) - set(params)
@@ -85,14 +144,18 @@ def build_and_measure(design_path, out_dir, overrides, fits=None):
         raise ValueError(f"unknown params: {sorted(unknown)}")
     params.update(overrides)
     parts = []
-    for name, shape in named_parts(module.build(**params)):
-        stl, step = out_dir / f"{name}.stl", out_dir / f"{name}.step"
+    reset()
+    built = named_parts(module.build(**params))
+    features = declared_features()
+    for name, shape in built:
+        stl, step, faces = out_dir / f"{name}.stl", out_dir / f"{name}.step", out_dir / f"{name}.faces.json"
         export_stl(shape, str(stl), tolerance=STL_TOLERANCE, angular_tolerance=STL_ANGULAR)
         export_step(shape, str(step))
+        faces.write_text(json.dumps(face_map(name, shape, features), indent=1))
         reloaded = import_step(str(step))
         solids = reloaded.solids()
         parts.append({
-            "name": name, "stl": str(stl), "step": str(step),
+            "name": name, "stl": str(stl), "step": str(step), "faces": str(faces),
             "solids": [{"valid": bool(s.is_valid), "closed": is_closed(s), "volume": s.volume}
                        for s in solids],
             "volume_in_memory": shape.volume, "volume": sum(s.volume for s in solids),

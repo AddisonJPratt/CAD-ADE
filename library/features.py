@@ -1,4 +1,4 @@
-"""Three feature helpers. All dimensions in mm; Z is the print axis unless noted."""
+"""Three feature helpers, and feature naming. All dimensions in mm; Z is the print axis unless noted."""
 import json
 import math
 from functools import lru_cache
@@ -23,6 +23,36 @@ def _lookup(table, key):
     if key not in entries:
         raise ValueError(f"{key!r} not in {table}; available: {sorted(entries)}")
     return entries[key]
+
+
+# Features a design named while building, in order. Read by the harness worker after build().
+_DECLARED = []
+
+
+def feature(name, shape):
+    """Name a feature of a design: a cutter, a boss, any shape whose faces end up on the part.
+
+    Sets the shape's label and records it, so the harness can name the part's faces that
+    lie on this shape (`<part>.faces.json`, read by Studio when a face is picked). Returns
+    the shape, so it reads inline: `part -= feature("cable slot", Box(...))`.
+    """
+    if not isinstance(name, str) or not name.strip():
+        raise ValueError("a feature needs a non-empty name")
+    if not hasattr(shape, "faces"):
+        raise ValueError(f"feature {name!r} must be a build123d shape, not {type(shape).__name__}")
+    shape.label = name.strip()
+    _DECLARED.append((shape.label, shape))
+    return shape
+
+
+def declared_features():
+    """Named features in declaration order, as (name, shape) pairs."""
+    return list(_DECLARED)
+
+
+def reset_features():
+    """Forget the features named so far (the worker calls this before each build)."""
+    _DECLARED.clear()
 
 
 def _one_solid(shape):

@@ -85,8 +85,9 @@ card panels; controls are 28 px on desktop and 40 px or more on touch. The assis
 print" or "Not checked yet", with each gate translated into maker language and the untested
 real print always listed. Studio never shows .py filenames; Mission Control (the expert view)
 still does. Selection tools (body, face, point) highlight in the accent colour and ride into
-the next request as chips; they are sent as positions and directions until the harness
-exports face names. Keep (orange) stays the single accent for applying work.
+the next request as chips. A chip reads the feature's name when the harness face map names
+the face ("Lid pocket · plate") and where the face points when it does not ("Face on plate ·
+front"); the request carries both the name and the geometry. Keep (orange) stays the single accent for applying work.
 
 November 7 polish (owner): no glowing status dots or coloured meters; state is said in words or
 small check/cross line glyphs. The owner's custom optical-glass icon family stays everywhere in the

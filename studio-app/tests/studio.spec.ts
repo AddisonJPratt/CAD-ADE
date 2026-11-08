@@ -392,6 +392,66 @@ test('the Settings drawer shows the project printer and changes the material for
   await expect(page.getByText('Material set to PLA for future checks.')).toBeVisible();
 });
 
+test('a picked face is named from the harness face map, survives a mode switch and reaches the agent', async ({ page, request }) => {
+  test.setTimeout(300000);  // one full gate run with its sweep, then a proposal preview
+  const folder = process.env.MAGIC_TEST_PROJECT! + '/named-features';
+  const source = decodeURIComponent(new URL('../../tests/fixtures/named_features.py', import.meta.url).pathname);
+  expect((await request.post('/api/projects', {data:{folder, from_design:source}})).ok()).toBeTruthy();
+  // Checking the version exports the model and its face map together; the open then loads both.
+  const checked = await request.post('/api/runs', {data:{project: folder, wait: true, samples: 9}, timeout: 180000});
+  expect(checked.ok(), await checked.text()).toBeTruthy();
+  const faceMap = page.waitForResponse(r => r.url().includes('plate.faces.json') && r.ok());
+  await page.goto('/');
+  await page.getByLabel('Project folder').fill(folder);
+  await page.getByRole('button', {name:'Open project'}).click();
+  expect((await (await faceMap).json()).features).toEqual(['lid pocket', 'mount hole']);
+  const canvas = page.getByLabel('3D model').locator('canvas');
+  await expect(canvas).toBeVisible();
+  const cameras = page.getByRole('group', {name:'Camera controls'});
+  const at = async (fx: number, fy: number) => { const box = (await canvas.boundingBox())!; return {x: box.width * fx, y: box.height * fy}; };
+  const centre = () => at(0.5, 0.5);
+  // The camera presets animate: wait until two consecutive frames agree before clicking.
+  const settled = async () => { await page.waitForTimeout(700); let last = await canvas.screenshot(); await expect.poll(async () => { await page.waitForTimeout(400); const next = await canvas.screenshot(); const same = next.equals(last); last = next; return same; }, {timeout: 15000}).toBe(true); };
+  // Straight down onto the middle of the plate: the floor of the lid pocket, a labelled feature.
+  await cameras.getByRole('button', {name:'Top', exact:true}).click();
+  await settled();
+  await canvas.click({position: await centre()});
+  const chips = page.getByRole('list', {name:'Selected on the model'});
+  await expect(chips).toContainText('Lid pocket · plate');
+  // The selection belongs to the project, not to the Studio mode.
+  await page.getByRole('button', {name:'Mission Control'}).click();
+  await expect(page.getByRole('heading', {name:'Mission Control'})).toBeVisible();
+  await page.getByRole('button', {name:'Make', exact:true}).click();
+  await expect(page.getByRole('heading', {name:'Make'})).toBeVisible();
+  await page.getByRole('button', {name:'Studio', exact:true}).click();
+  await expect(chips).toContainText('Lid pocket · plate');
+  // The plate's own front face has no name: it is described by where it faces.
+  await cameras.getByRole('button', {name:'Front', exact:true}).click();
+  await settled();
+  // Up and to the left of the first pick: its action bar hangs below and to the right of the anchor.
+  await canvas.click({position: await at(0.3, 0.45), modifiers:['Shift']});
+  await expect(chips.getByRole('listitem')).toHaveCount(2);
+  await expect(chips).toContainText('Face on plate ·');
+  await page.screenshot({path: test.info().outputPath('magic-selection-named-feature.png')});
+  // Sending attaches the structured selection; the engine echoes what the agent received.
+  await page.getByLabel('Change request').fill('size 32');
+  const posted = page.waitForResponse(r => r.url().endsWith('/api/proposals') && r.request().method() === 'POST');
+  await page.getByRole('button', {name:'Propose change'}).click();
+  const proposal = await (await posted).json();
+  expect(proposal.selection.design).toBe('named_features.py');
+  expect(proposal.selection.picks.map((p: {instance: string; kind: string; feature: string | null}) => [p.instance, p.kind, p.feature])).toEqual([['plate', 'face', 'lid pocket'], ['plate', 'face', null]]);
+  expect(proposal.selection.picks[0].description).toContain('the "lid pocket" feature of body "plate"');
+  expect(proposal.selection.picks[1].description).toMatch(/^a flat face on body "plate" facing /);
+  expect(proposal.selection.measurement.kind).toBe('centre to centre');
+  const echoed = await (await request.get(`/api/proposals/${proposal.id}`)).json();
+  expect(echoed.selection).toEqual(proposal.selection);
+  await expect(page.locator('.gate-progress')).toContainText('Selected: a flat face on the "lid pocket" feature of body "plate"');
+  await expect(chips).toHaveCount(0);
+  await expect(page.getByRole('button', {name:'Accept change'})).toBeEnabled({timeout:120000});
+  await page.getByRole('button', {name:'Reject change'}).click();
+  await expect(page.getByRole('region', {name:'Proposed edit'})).toHaveCount(0);
+});
+
 test('creates a project without typing a path, lists it, and browses folders', async ({ page }) => {
   test.skip(!process.env.MAGIC_PROJECTS_HOME, 'needs a scratch MAGIC_PROJECTS_HOME (tests/run.sh sets one)');
   const name = `Picker ${Date.now()}`;

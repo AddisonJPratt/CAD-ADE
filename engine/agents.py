@@ -31,7 +31,11 @@ class ScriptedFakeAgent(AgentAdapter):
         if not match:
             raise ProjectError('fake agent expects a parameter and value, such as size 24')
         chosen = selection.get('design') if isinstance(selection, dict) else None
-        return parameter_edit(project, chosen, match.group(1), float(match.group(2)))
+        session = parameter_edit(project, chosen, match.group(1), float(match.group(2)))
+        session['selection'] = selection  # echoed by GET /proposals/<id>, so a test can see it arrived
+        for pick in picks_of(selection):
+            session['events'].append({'type': 'plan', 'message': f"Selected: {pick}"})
+        return session
 
     def stream_events(self, session):
         while not session['interrupted'] and session['cursor'] < len(session['events']):
@@ -46,10 +50,20 @@ class ScriptedFakeAgent(AgentAdapter):
         session['interrupted'] = False
 
 
+def picks_of(selection):
+    """One line per pick in a selection payload, as Studio describes it, or nothing."""
+    picks = selection.get('picks') if isinstance(selection, dict) else None
+    if not isinstance(picks, list):
+        return []
+    return [p['description'] for p in picks if isinstance(p, dict) and isinstance(p.get('description'), str)]
+
+
 class ParameterEditAgent(ScriptedFakeAgent):
     """Direct numeric edits use the same resumable proposal lifecycle, without an LLM."""
     def start(self, project, brief, selection, message):
         if not isinstance(message, dict):
             raise ProjectError('parameter edit must contain name and value')
         chosen = selection.get('design') if isinstance(selection, dict) else None
-        return parameter_edit(project, chosen, message.get('name'), message.get('value'))
+        session = parameter_edit(project, chosen, message.get('name'), message.get('value'))
+        session['selection'] = selection
+        return session

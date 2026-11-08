@@ -10,6 +10,8 @@ if '--pid-file' in sys.argv:
 if '--pause-before-read' in sys.argv:
     time.sleep(100)
 prompt = sys.stdin.read()
+if '--prompt-file' in sys.argv:  # so a test can assert what the engine sent the CLI
+    Path(sys.argv[sys.argv.index('--prompt-file') + 1]).write_text(prompt)
 print(json.dumps({'type':'system', 'subtype':'init', 'mcp_servers':[
     {'name':'magic-cad','status':'connected'}, {'name':'build123d','status':'connected'}]}), flush=True)
 print(json.dumps({'type':'assistant','message':{'content':[{'type':'text','text':'Inspecting the selected design'}]}}), flush=True)
