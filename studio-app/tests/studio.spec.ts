@@ -417,14 +417,14 @@ test('a picked face is named from the harness face map, survives a mode switch a
   await settled();
   await canvas.click({position: await centre()});
   const chips = page.getByRole('list', {name:'Selected on the model'});
-  await expect(chips).toContainText('Lid pocket · plate');
+  await expect(chips).toContainText('Lid pocket, pocket depth 3 · plate');
   // The selection belongs to the project, not to the Studio mode.
   await page.getByRole('button', {name:'Mission Control'}).click();
   await expect(page.getByRole('heading', {name:'Mission Control'})).toBeVisible();
   await page.getByRole('button', {name:'Make', exact:true}).click();
   await expect(page.getByRole('heading', {name:'Make'})).toBeVisible();
   await page.getByRole('button', {name:'Studio', exact:true}).click();
-  await expect(chips).toContainText('Lid pocket · plate');
+  await expect(chips).toContainText('Lid pocket, pocket depth 3 · plate');
   // The plate's own front face has no name: it is described by where it faces.
   await cameras.getByRole('button', {name:'Front', exact:true}).click();
   await settled();
@@ -439,8 +439,8 @@ test('a picked face is named from the harness face map, survives a mode switch a
   await page.getByRole('button', {name:'Propose change'}).click();
   const proposal = await (await posted).json();
   expect(proposal.selection.design).toBe('named_features.py');
-  expect(proposal.selection.picks.map((p: {instance: string; kind: string; feature: string | null}) => [p.instance, p.kind, p.feature])).toEqual([['plate', 'face', 'lid pocket'], ['plate', 'face', null]]);
-  expect(proposal.selection.picks[0].description).toContain('the "lid pocket" feature of body "plate"');
+  expect(proposal.selection.picks.map((p: {instance: string; kind: string; feature: string | null; parameters: Record<string, number>}) => [p.instance, p.kind, p.feature, p.parameters])).toEqual([['plate', 'face', 'lid pocket', {pocket_depth: 3}], ['plate', 'face', null, {}]]);
+  expect(proposal.selection.picks[0].description).toContain('the "lid pocket" feature of body "plate" (driven by pocket_depth = 3)');
   expect(proposal.selection.picks[1].description).toMatch(/^a flat face on body "plate" facing /);
   expect(proposal.selection.measurement.kind).toBe('centre to centre');
   const echoed = await (await request.get(`/api/proposals/${proposal.id}`)).json();

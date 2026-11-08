@@ -22,7 +22,7 @@
     POST /proposals                      {"project", "message", "selection"?} a chat request to the agent, or
                                          {"project", "parameter":{"name","value"}, "selection"?} an explicit
                                          parameter edit; both are held for acceptance. selection is
-                                         {"design", "picks":[{instance, kind, feature, description, point,
+                                         {"design", "picks":[{instance, kind, feature, parameters, description, point,
                                          normal, centroid, area, ...}], "measurement"?} and is handed to the
                                          agent as sent; GET /proposals/<id> echoes it back
     POST /projects                       {"folder", "from_design"}: a new project as version 1 (201)

@@ -40,3 +40,14 @@ The agent still needs to hear "the lid pocket", not "a face at (0, 0, 9)".
   confused. Per-triangle face ids would need a mesh format that carries them (GLB); not needed yet.
 - A feature's name is the first match in declaration order, so a face shared by two features
   belongs to the one declared first.
+
+## Addendum: driving parameters (#51, 2026-11-08)
+
+- A feature names the PARAMS that drive it: `feature("mount hole", cutter, params="hole_dia")`
+  (a key or a tuple, most telling first). The face map gains a top-level
+  `parameters: {feature: {param: built value}}`; maps without it still parse, with none.
+- A tag naming a parameter PARAMS does not declare fails the build, so gate 1 Execute fails with
+  the feature and parameter named. A renamed parameter cannot leave a stale tag behind.
+- Studio's chip prints the first driving parameter as a drawing would ("Mount hole Ø4 · plate",
+  "Lid pocket, pocket depth 3 · plate"). Each pick in the request carries `parameters`, and its
+  description says "driven by hole_dia = 4", so the agent knows which PARAMS to change.
