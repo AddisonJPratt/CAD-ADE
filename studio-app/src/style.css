@@ -610,6 +610,16 @@ body.resizing{cursor:col-resize;user-select:none}
 .printer-settings{border-bottom:1px solid #d2cec7;margin:0 0 24px;padding-bottom:16px}.printer-settings p{line-height:1.45}.printer-settings small,.printer-note{color:#58544d;font-size:.78rem}.printer-settings select{font:inherit;width:100%;padding:9px;border:1px solid #77716a;border-radius:4px;background:#fff;color:#1d1b18}.printer-settings select:focus-visible{outline:2px solid #1d1b18;outline-offset:3px}
 .app .printer-settings{border-top:1px solid var(--line);margin-top:20px;padding-top:16px}.app .printer-settings h3{font-size:.8125rem;font-weight:600;margin:0 0 6px}.app .printer-settings p{line-height:1.45;margin:0 0 10px}.app .printer-settings small,.app .printer-note{color:var(--muted);font-size:.75rem}.app .printer-settings label{display:block;font-size:.7rem;margin-bottom:4px}.app .printer-settings select{width:100%;padding:8px}.app .printer-settings .error:empty,.app .printer-note:empty{display:none}
 .app.desk .printer-settings{border-color:var(--d-line-2)}.app.desk .printer-settings small,.app.desk .printer-note{color:var(--d-ink-3);font-size:12px}.app.desk .printer-settings select{height:26px;border-radius:6px;border:1px solid var(--d-line-2);background:var(--d-bench);color:var(--d-ink);padding:0 6px;font-size:12px}
+/* Open field, final: one bordered container with the input and the action side by side (no overlap). */
+.app.desk .open-field{display:flex;align-items:center;gap:4px;height:32px;padding:0 4px 0 0;border:1px solid var(--d-line-2);border-radius:8px;background:var(--d-bench)}
+.app.desk .open-field:focus-within{border-color:var(--d-ink-3);box-shadow:0 0 0 3px var(--d-accent-soft)}
+.app.desk .open-field:has(input[aria-invalid=true]){border-color:var(--d-bad)}
+.app.desk .open-field input{position:static;z-index:auto;flex:1;min-width:0;height:100%;padding:0 4px 0 10px;border:0;border-radius:8px 0 0 8px;background:transparent;box-shadow:none}
+.app.desk .open-field input:focus-visible{outline:none;box-shadow:none;border:0}
+.app.desk .open-button{position:static;transform:none;z-index:auto;flex:none}
+/* The button is in the flow now, so the pressed nudge must not keep #60's -50% centring offset. */
+.app.desk .open-button:active:not(:disabled){transform:translateY(1px)}
+@media(max-width:760px){.app.desk .open-field{height:40px}}
 
 /* Project picker on the open screen (#66) */
 .app.desk .picker{display:grid;gap:12px;margin:4px 0 16px;min-width:0}
