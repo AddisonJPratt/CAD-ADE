@@ -68,7 +68,8 @@
 .mk-secondary{border:1px solid var(--mk-edge);background:var(--d-panel);color:var(--d-ink)}
 .mk-secondary:hover{background:var(--d-raise)}
 .mk-primary:disabled,.mk-secondary:disabled,.mk-choices button:disabled{opacity:.55;cursor:wait}
-.mk-link{border:0;background:none;padding:0;color:var(--d-ink);text-decoration:underline;text-underline-offset:3px;font-weight:500;cursor:pointer}
+/* Text-style controls still meet the 24 px minimum target (WCAG 2.5.8); the underline stays on the text. */
+.mk-link{display:inline-flex;align-items:center;min-height:28px;border:0;background:none;padding:0;color:var(--d-ink);text-decoration:underline;text-underline-offset:3px;font-weight:500;cursor:pointer}
 .mk-link:hover{color:var(--d-accent)}
 
 /* Make progress and gate lists */
@@ -88,7 +89,7 @@
 .mk-part:active{cursor:grabbing}
 .mk-norender{display:grid;place-items:center;color:var(--d-ink-3);cursor:default;padding:24px;text-align:center}
 .mk-qa{margin-top:12px}
-.mk-qa summary{cursor:pointer;color:var(--d-ink-2);font-size:13px;font-weight:500;width:max-content}
+.mk-qa summary{line-height:28px;cursor:pointer;color:var(--d-ink-2);font-size:13px;font-weight:500;width:max-content}
 /* The harness QA plot is drawn on white; it keeps its own paper. */
 .mk-qa img{display:block;width:100%;margin-top:8px;background:#fff;border:1px solid var(--d-line);border-radius:8px}
 .mk-note{color:var(--d-ink-2)}
@@ -125,7 +126,7 @@
 .mk-check{color:var(--d-ink-2);white-space:nowrap}
 .mk-empty{padding:32px 0;border-top:1px solid var(--d-line)}
 
-@media (max-width:760px){
+@media (max-width:760px){.mk-link{min-height:44px}.mk-qa summary{line-height:44px}
   .app.desk > .mk{padding:16px 16px 48px}
   .mk h1{font-size:24px}
   .mk-steps{margin-bottom:24px;overflow-x:auto}
