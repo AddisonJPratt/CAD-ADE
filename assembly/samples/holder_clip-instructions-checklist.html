@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The 38 mm wall clip held by two M3 socket-head screws: assembly</title>
+<style>
+:root{--sheet:#faf9f6;--bench:#ece9e3;--ink:#1d1b18;--muted:#58544d;--line:#d2cec7;--accent:#d65b25;
+--accent-ink:#983300;--warn:#a23737;--hover:#f1efea;--select:#ffd9c4;--shadow:#1d1b1814;
+color-scheme:light;
+font-family:Seravek,"Gill Sans Nova","Segoe UI Variable Text","Segoe UI",sans-serif;font-synthesis:none;
+font-variant-numeric:tabular-nums;color:var(--ink);background:var(--bench)}
+*{box-sizing:border-box}
+::selection{background:var(--select);color:var(--ink)}
+body{margin:0;padding:48px 16px}
+main{max-width:60rem;margin:0 auto;background:var(--sheet);padding:56px 64px 48px;border:1px solid var(--line);
+box-shadow:0 12px 32px var(--shadow)}
+h1{font-size:2.25rem;line-height:1.1;letter-spacing:-.025em;font-weight:500;margin:0 0 12px;text-wrap:balance;
+max-width:24ch}
+.meta{margin:0;color:var(--muted);font-size:.9375rem;line-height:1.5}
+.meta strong{color:var(--ink);font-weight:600}
+.failed{margin:24px 0 0;padding:12px 16px;border:1px solid var(--warn);color:var(--warn);font-weight:600}
+.prep{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:40px;margin:40px 0 0;padding:24px 0;
+border-top:2px solid var(--ink);border-bottom:1px solid var(--line)}
+.prep h2{font-size:.8125rem;font-weight:600;text-align:left;margin:0 0 12px;padding:0}
+table{border-collapse:collapse;width:100%}
+td,th{padding:8px 0;border-top:1px solid var(--line);vertical-align:baseline;text-align:left;font-size:.9375rem}
+th{font-weight:500}
+th small{display:block;overflow-wrap:anywhere;font-weight:400;color:var(--muted);font-size:.8125rem;line-height:1.4;margin-top:2px}
+.qty{width:3.5rem;font-size:1.25rem;font-weight:600;padding-right:12px}
+.qty::after{content:" ×" / "";font-weight:400;color:var(--muted);font-size:1rem}
+.prep ul{list-style:none;margin:0;padding:0}
+.prep li{padding:8px 0;border-top:1px solid var(--line);font-size:.9375rem}
+.prep p{margin:0;color:var(--muted);font-size:.9375rem;padding:8px 0;border-top:1px solid var(--line)}
+.steps{margin-top:8px}
+.step{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:center;
+padding:32px 0;border-bottom:1px solid var(--line);break-inside:avoid}
+h3{margin:0 0 20px;font-size:1.25rem;line-height:1.35;font-weight:500;text-wrap:pretty}
+h3 .n,.checklist .n{display:block;font-size:3.5rem;line-height:1;font-weight:300;letter-spacing:-.04em;
+margin-bottom:12px}
+.callout,.tool{display:flex;gap:12px;align-items:baseline;margin:0;padding:8px 0;border-top:1px solid var(--line);
+font-size:1rem}
+.callout [data-field]{font-weight:600;color:var(--accent-ink);text-wrap:balance}
+.label{flex:0 0 4.5rem;font-size:.8125rem;color:var(--muted)}
+figure{margin:0}
+img{display:block;width:100%;height:auto}
+.checklist{list-style:none;margin:8px 0 0;padding:0}
+.checklist li{display:grid;grid-template-columns:28px 3rem minmax(0,1fr);gap:16px;align-items:start;
+padding:20px 8px;margin:0 -8px;border-bottom:1px solid var(--line);break-inside:avoid;font-size:1.0625rem;
+line-height:1.45}
+.checklist li:hover{background:var(--hover)}
+.checklist label{cursor:pointer}
+.checklist .n{font-size:1.75rem;margin:0;line-height:1}
+.checklist .callout,.checklist .tool{font-size:.9375rem;padding:4px 0;border:0}
+.checklist .callout{margin-top:8px}
+.checklist .callout,.checklist .tool{display:flex}
+.checklist .label{flex-basis:4.5rem}
+input[type=checkbox]{appearance:none;width:24px;height:24px;margin:2px 0 0;border:1.5px solid var(--ink);
+border-radius:3px;background:var(--sheet);display:grid;place-content:center;cursor:pointer}
+input[type=checkbox]::before{content:"";width:12px;height:7px;border-left:2.5px solid var(--sheet);
+border-bottom:2.5px solid var(--sheet);transform:translateY(-2px) rotate(-45deg)}
+input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+input[type=checkbox]:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+li:has(input:checked) .what{color:var(--muted)}
+.done{margin:24px 0 0;font-size:1.0625rem;font-weight:500}
+footer{margin-top:40px;color:var(--muted);font-size:.8125rem;line-height:1.55;max-width:70ch}
+footer p{margin:0 0 8px}
+code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.8125rem}
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@media (max-width:720px){body{padding:0}main{padding:32px 16px;border:0;box-shadow:none}h1{font-size:1.75rem}
+.prep,.step{grid-template-columns:minmax(0,1fr);gap:24px}h3 .n{font-size:2.75rem}}
+@page{margin:14mm 16mm}
+@media print{:root{background:none}body{padding:0}main{max-width:none;padding:0;border:0;box-shadow:none;
+background:none}
+.prep{break-inside:avoid}.step{grid-template-columns:minmax(0,1fr) 64mm;padding:16px 0;gap:28px}
+img{max-height:64mm;width:auto;max-width:100%;margin:0 auto}h3 .n,.checklist .n{font-weight:400}
+.checklist li{margin:0;padding:16px 0}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>The 38 mm wall clip held by two M3 socket-head screws</h1>
+<p class="meta"><strong>2 steps</strong> · checklist</p>
+
+</header>
+<section class="prep" aria-label="Before you start">
+<div><h2 id="parts">Parts</h2><table class="parts" aria-labelledby="parts"><tbody><tr><td class="qty">1</td><th scope="row">Wall clip<small>FDM print; barrel_dia 38, clearance 0.25, clip_height 32, wall 2.4</small></th></tr><tr><td class="qty">2</td><th scope="row">M3 socket-head screw, 12 mm<small>ISO 4762 socket head cap screw, M3, 12 mm under the head</small></th></tr></tbody></table></div>
+<div><h2>Tools</h2><ul><li>hex key</li></ul></div>
+</section>
+<h2 class="visually-hidden">Steps</h2>
+<ol class="checklist"><li data-step="1"><input type="checkbox" id="check-1"><span class="n" aria-hidden="true">1</span><div class="what"><label for="check-1" data-field="text">Place the wall clip.</label></div></li><li data-step="2"><input type="checkbox" id="check-2" aria-describedby="detail-2"><span class="n" aria-hidden="true">2</span><div class="what"><label for="check-2" data-field="text">Fasten the wall clip with 2 M3 x 12 mm screws into the mounting surface.</label><div id="detail-2"><p class="callout"><span class="label">Hardware</span><span data-field="callout">2 × M3 socket-head screw, 12 mm</span></p><p class="tool"><span class="label">Tool</span><span data-field="tool">hex key</span></p></div></div></li></ol>
+<p class="done">That's every step. The assembly is complete.</p>
+<footer>
+<p>Hardware is a simplified envelope (no threads or sockets). Exploded offsets and steps illustrate how the parts go together; they are not a collision-checked tool path or a motion simulation. Fit, retention and strength are not physically tested.</p>
+<p>Generated from <code>assembly/holder_clip.py</code> (sha256 <code>6aa1d81928d5</code>) by the
+assembly gate (result: PASS). Edit the assembly, not this page.</p>
+</footer>
+</main>
+</body>
+</html>
