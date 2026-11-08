@@ -708,47 +708,6 @@ body.resizing{cursor:col-resize;user-select:none}
 .app.desk.dark .pin-marker{background:var(--d-panel);color:var(--d-ink);box-shadow:0 0 0 2px var(--d-ink),0 4px 10px var(--d-shadow)}
 .app.desk.dark .pin-marker:hover,.app.desk.dark .pin-marker[aria-expanded=true]{box-shadow:0 0 0 2px var(--d-ink),0 0 0 4px var(--d-panel),0 4px 10px var(--d-shadow)}
 
-/* Finder folder panel button and its notice (#66) */
-.app.desk .finder-button{display:flex;align-items:center;gap:10px;width:100%;height:40px;padding:0 14px;border:1px solid var(--d-line-2);border-radius:8px;background:var(--d-raise);color:var(--d-ink);font-size:13.5px;font-weight:600;text-align:left;transition:background-color .12s ease-out,border-color .12s ease-out}
-.app.desk .finder-button:hover:not(:disabled){border-color:var(--d-accent);background:color-mix(in srgb,var(--d-raise) 80%,var(--d-accent))}
-.app.desk .finder-button:disabled{color:var(--d-ink-3);cursor:progress}
-.app.desk .finder-button svg{width:18px;height:18px;flex:none;color:var(--d-accent)}
-.app.desk .project-open .picker-notice{display:flex;gap:8px;align-items:baseline;margin:0;font-size:12px;color:var(--d-ink-2)}
-.app.desk .project-open .picker-notice::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:var(--d-wait);transform:translateY(-1px)}
-
-/* Live progress: one row per step; the running step shimmers (#66).
-   The background-clip:text sweep is the owner-requested loading shimmer (like Claude Code),
-   shown only while a step runs, never as static decoration. */
-.app.desk .progress-row{display:flex;align-items:center;gap:8px;min-width:0}
-.app.desk .progress-row .shimmer-text{min-width:0;overflow-wrap:anywhere}
-.app.desk .progress-row.note{color:var(--d-ink-2)}
-.app.desk .progress-row.note.done{color:var(--d-ink-3)}
-.app.desk .progress-mark{flex:none;width:7px;height:7px;border-radius:50%;background:var(--d-line-2)}
-.app.desk .progress-row.pass .progress-mark{background:var(--d-ok)}
-.app.desk .progress-row.fail .progress-mark{background:var(--d-bad)}
-.app.desk .progress-row.other .progress-mark{background:var(--d-wait)}
-.app.desk .progress-row.check{color:var(--d-ink-2)}
-.app.desk .progress-status{margin-left:auto;padding-left:12px;font-size:11px;font-weight:650;letter-spacing:.04em;font-variant-numeric:tabular-nums}
-.app.desk .progress-row.pass .progress-status{color:var(--d-ok)}
-.app.desk .progress-row.fail .progress-status{color:var(--d-bad)}
-.app.desk .progress-row.fail .shimmer-text{color:var(--d-bad)}
-.app.desk .progress-row.other .progress-status{color:var(--d-ink-2)}
-.app.desk .progress-row.live .progress-mark{background:var(--d-accent);animation:progress-pulse 1.2s ease-in-out infinite}
-.app.desk .progress-row.live .shimmer-text{color:transparent;background:linear-gradient(100deg,var(--d-ink-2) 0%,var(--d-ink-2) 38%,var(--d-accent) 50%,var(--d-ink-2) 62%,var(--d-ink-2) 100%) 0 0/300% 100% no-repeat;-webkit-background-clip:text;background-clip:text;animation:progress-shimmer 2s linear infinite}
-@keyframes progress-shimmer{from{background-position:100% 0}to{background-position:0 0}}
-@keyframes progress-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.75)}}
-@media(prefers-reduced-motion:reduce){.app.desk .progress-row.live .shimmer-text{animation:none;background:none;color:var(--d-accent)}.app.desk .progress-row.live .progress-mark{animation:none}}
-
-/* Header project switcher: the current project by name, then the same picker as the open screen */
-.app.desk .project-open.compact.switcher{display:grid;gap:10px;width:400px;max-height:min(80vh,640px);overflow:auto;padding:14px}
-.app.desk .project-open .switch-current{display:flex;align-items:center;gap:8px;margin:0;font-size:13.5px;font-weight:650;color:var(--d-ink)}
-.app.desk .switch-current svg{width:16px;height:16px;flex:none;color:var(--d-accent)}
-.app.desk .switch-current span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.app.desk .switch-current small{margin-left:auto;font-size:11.5px;font-weight:500;color:var(--d-ink-3)}
-.app.desk .switcher .picker{margin:0}
-@media(max-width:760px){.app.desk .project-open.compact.switcher{width:calc(100vw - 16px)}}
-/* The switcher sits inside <header>, whose legacy `header span` rule mutes every span. */
-.app.desk .switcher .picker-name,.app.desk .switcher .finder-button span,.app.desk .switcher .switch-current span,.app.desk .switcher .picker-tab{color:inherit}
 /* Assembly view (#21): the tree docks on the viewport's right; the model keeps the room. */
 .app.desk .stage-views{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
 .app.desk .model-view-switch{background:color-mix(in srgb,var(--d-bench) 70%,transparent)}
@@ -813,3 +772,75 @@ body.resizing{cursor:col-resize;user-select:none}
   .app.desk .assembly-foot .quiet-button{height:36px}
 }
 @media(prefers-reduced-motion:reduce){.app.desk .assembly-actions button{transition:none}}
+
+/* Finder folder panel button and its notice (#66) */
+.app.desk .finder-button{display:flex;align-items:center;gap:10px;width:100%;height:40px;padding:0 14px;border:1px solid var(--d-line-2);border-radius:8px;background:var(--d-raise);color:var(--d-ink);font-size:13.5px;font-weight:600;text-align:left;transition:background-color .12s ease-out,border-color .12s ease-out}
+.app.desk .finder-button:hover:not(:disabled){border-color:var(--d-accent);background:color-mix(in srgb,var(--d-raise) 80%,var(--d-accent))}
+.app.desk .finder-button:disabled{color:var(--d-ink-3);cursor:progress}
+.app.desk .finder-button svg{width:18px;height:18px;flex:none;color:var(--d-accent)}
+.app.desk .project-open .picker-notice{display:flex;gap:8px;align-items:baseline;margin:0;font-size:12px;color:var(--d-ink-2)}
+.app.desk .project-open .picker-notice::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:var(--d-wait);transform:translateY(-1px)}
+
+/* Live progress: one row per step; the running step shimmers (#66).
+   The background-clip:text sweep is the owner-requested loading shimmer (like Claude Code),
+   shown only while a step runs, never as static decoration. */
+.app.desk .progress-row{display:flex;align-items:center;gap:8px;min-width:0}
+.app.desk .progress-row .shimmer-text{min-width:0;overflow-wrap:anywhere}
+.app.desk .progress-row.note{color:var(--d-ink-2)}
+.app.desk .progress-row.note.done{color:var(--d-ink-3)}
+.app.desk .progress-mark{flex:none;width:7px;height:7px;border-radius:50%;background:var(--d-line-2)}
+.app.desk .progress-row.pass .progress-mark{background:var(--d-ok)}
+.app.desk .progress-row.fail .progress-mark{background:var(--d-bad)}
+.app.desk .progress-row.other .progress-mark{background:var(--d-wait)}
+.app.desk .progress-row.check{color:var(--d-ink-2)}
+.app.desk .progress-status{margin-left:auto;padding-left:12px;font-size:11px;font-weight:650;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.app.desk .progress-row.pass .progress-status{color:var(--d-ok)}
+.app.desk .progress-row.fail .progress-status{color:var(--d-bad)}
+.app.desk .progress-row.fail .shimmer-text{color:var(--d-bad)}
+.app.desk .progress-row.other .progress-status{color:var(--d-ink-2)}
+.app.desk .progress-row.live .progress-mark{background:var(--d-accent);animation:progress-pulse 1.2s ease-in-out infinite}
+.app.desk .progress-row.live .shimmer-text{color:transparent;background:linear-gradient(100deg,var(--d-ink-2) 0%,var(--d-ink-2) 38%,var(--d-accent) 50%,var(--d-ink-2) 62%,var(--d-ink-2) 100%) 0 0/300% 100% no-repeat;-webkit-background-clip:text;background-clip:text;animation:progress-shimmer 2s linear infinite}
+@keyframes progress-shimmer{from{background-position:100% 0}to{background-position:0 0}}
+@keyframes progress-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.75)}}
+@media(prefers-reduced-motion:reduce){.app.desk .progress-row.live .shimmer-text{animation:none;background:none;color:var(--d-accent)}.app.desk .progress-row.live .progress-mark{animation:none}}
+
+/* Header project switcher: the current project by name, then the same picker as the open screen */
+.app.desk .project-open.compact.switcher{display:grid;gap:10px;width:400px;max-height:min(80vh,640px);overflow:auto;padding:14px}
+.app.desk .project-open .switch-current{display:flex;align-items:center;gap:8px;margin:0;font-size:13.5px;font-weight:650;color:var(--d-ink)}
+.app.desk .switch-current svg{width:16px;height:16px;flex:none;color:var(--d-accent)}
+.app.desk .switch-current span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.app.desk .switch-current small{margin-left:auto;font-size:11.5px;font-weight:500;color:var(--d-ink-3)}
+.app.desk .switcher .picker{margin:0}
+@media(max-width:760px){.app.desk .project-open.compact.switcher{width:calc(100vw - 16px)}}
+/* The switcher sits inside <header>, whose legacy `header span` rule mutes every span. */
+.app.desk .switcher .picker-name,.app.desk .switcher .finder-button span,.app.desk .switcher .switch-current span,.app.desk .switcher .picker-tab{color:inherit}
+
+/* Reviewer verdict (#28): an independent design review after the gates pass */
+.app.desk .review-card{display:grid;gap:10px;margin-top:2px;padding:12px 14px;border:1px solid var(--d-line);border-radius:10px;background:var(--d-panel)}
+.app.desk .review-card.fail{border-color:color-mix(in srgb,var(--d-wait) 55%,var(--d-line))}
+.app.desk .review-card header{display:flex;align-items:baseline;gap:10px;height:auto;padding:0;border:0;background:none}
+.app.desk .review-card h3{margin:0;font-size:13px;font-weight:650;color:var(--d-ink)}
+.app.desk .review-card .review-score{margin:0 0 0 auto;font-size:12px;color:var(--d-ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.app.desk .review-card .review-score b{font-size:15px;font-weight:700;color:var(--d-ink)}
+.app.desk .review-card.pass .review-score b{color:var(--d-ok)}
+.app.desk .review-card.fail .review-score b{color:var(--d-bad)}
+.app.desk .review-card p{margin:0;font-size:12.5px;line-height:1.45;color:var(--d-ink-2)}
+.app.desk .review-scores{display:grid;gap:4px;margin:0}
+.app.desk .review-scores>div{display:flex;align-items:center;gap:10px;font-size:12px}
+.app.desk .review-scores dt{flex:1;min-width:0;color:var(--d-ink-2)}
+.app.desk .review-scores dd{display:flex;align-items:center;gap:8px;margin:0}
+.app.desk .review-pips{display:inline-flex;gap:3px}
+.app.desk .review-pips i{width:14px;height:5px;border-radius:3px;background:var(--d-line-2)}
+.app.desk .review-card.pass .review-pips i.on{background:var(--d-ok)}
+.app.desk .review-card.fail .review-pips i.on{background:var(--d-ink-2)}
+.app.desk .review-num{width:24px;text-align:right;color:var(--d-ink-3);font-variant-numeric:tabular-nums}
+.app.desk .review-card h4{margin:2px 0 0;font-size:12px;font-weight:650;color:var(--d-ink)}
+.app.desk .review-fixes{margin:0;padding-left:18px;display:grid;gap:4px;font-size:12.5px;line-height:1.45;color:var(--d-ink)}
+.app.desk .review-fixes li::marker{color:var(--d-ink-3);font-variant-numeric:tabular-nums}
+.app.desk .review-param{display:inline-block;margin-left:6px;padding:0 6px;border-radius:5px;background:var(--d-raise);font-family:var(--font-2);font-size:11px;color:var(--d-ink-2)}
+.app.desk .review-card b{color:var(--d-ink);font-weight:600}
+.app.desk .session-meter{font-variant-numeric:tabular-nums}
+
+.app.desk .verdict-card.rework h1::before{background:var(--d-wait)}
+.app.desk .verdict-card.rework .verdict-headline{color:var(--d-ink)}
+.app.desk .review-fixes{list-style:decimal}  /* the legacy `ol{list-style:none}` would drop the ranking */

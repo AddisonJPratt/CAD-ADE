@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from engine.api import Engine, Handler
 from engine.claude_agent import ClaudeCodeAgent
+from engine.reviewer import ClaudeCodeReviewer
 from engine.versions import create_project, list_versions
 
 
@@ -28,7 +29,7 @@ def main():
     if not project.exists():
         create_project(project, ROOT / 'designs/wall_bracket.py')
     handler = Handler.__new__(Handler)
-    handler.engine = Engine(agent=ClaudeCodeAgent())
+    handler.engine = Engine(agent=ClaudeCodeAgent(), reviewer=ClaudeCodeReviewer())
     _, pending = handler.post_proposal({'project':str(project), 'message':args.request,
                                         'selection':{'design':'wall_bracket.py'}})
     proposal = handler.engine.proposals[pending['id']]
@@ -64,8 +65,12 @@ def main():
     print(json.dumps(handler.proposal_summary(proposal)),flush=True)
     _, result = handler.accept_proposal(pending['id'], {'wait':True})
     passed = result['run']['status'] == 'done' and result['run']['verdict']['pass']
+    run = handler.engine.get(result['run']['id'])
+    for event in run.events:
+        if event['type'] in ('review_note', 'usage', 'review_finished', 'sent_back', 'review_kept', 'review_error'):
+            print(json.dumps(event), flush=True)
     print(json.dumps({'pass':passed,'version':list_versions(project)[0]['number'],
-                      'project':str(project)}),flush=True)
+                      'review':list_versions(project)[0]['review'],'project':str(project)}),flush=True)
     return 0 if passed else 1
 
 

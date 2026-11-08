@@ -15,6 +15,12 @@ open issue status alone is not evidence that code is missing.
   (`<part>.faces.json`, from `library.feature(...)` in the design) with a geometric fallback;
   the selection survives mode switches and is sent as `selection.picks` with the request, which
   the engine passes to the agent adapter unchanged and echoes from `GET /proposals/<id>` (#25).
+- An independent reviewer agent judges each kept change after its gates pass (magic-cad-reviewer
+  rubric, read-only Claude Code with a fresh context). Its verdict card shows scores and ranked
+  fixes, and the verdict is stored with the version. A failing review (12/20 or less) sends its top
+  fix back to the designer once as a proposal the owner approves. The activity stream shows plan,
+  the file being edited, each gate, the review and the reviewer's notes, with session time and the
+  usage Claude Code reports (#28, ADR 0003).
 - Outline, note pin and measure tools (#26): the lasso's catch (every visible face and corner point
   inside the loop, on every body) rides as `picks[].enclosed`; note pins are kept per version in
   `.magic/pins/` (`GET`/`POST /projects/pins`) and sent as `selection.pins` with every request; the
@@ -37,7 +43,7 @@ open issue status alone is not evidence that code is missing.
 | #14–#18 | Guided Make/Shelf, print outcomes and approved calibration in the new app | Separate proof app and project versions |
 | #19, #20 | Provenance catalogue and general assembly gate | Standard-part library and assembly demos |
 | #21–#24 | Assembly tree, isolate/ghost, exploded view, BOM and instructions/playback | Multi-body mesh viewing |
-| #27, #28 | Lead briefing and independent reviewer agents in the app | Existing briefs, skills and gate engine |
+| #27 | Lead briefing agent in the app | Existing briefs, skills, gate engine and the reviewer loop (#28) |
 | #30, #31 | Joint motion and clearance throughout motion | Static geometry checks |
 
 Recommended sequence: owner M0 walkthrough (#8), shared modes (#9), evidence tiers (#12),

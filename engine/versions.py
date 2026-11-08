@@ -122,7 +122,7 @@ def list_versions(project):
     current = head(project)
     total = len(rows)
     return [{"number": total - i, "id": vid, "timestamp": stamp, "message": body.strip(),
-             "current": vid == current, "verdict": verdict_of(project, vid)}
+             "current": vid == current, "verdict": verdict_of(project, vid), "review": review_of(project, vid)}
             for i, (vid, stamp, body) in enumerate(rows)]
 
 
@@ -173,6 +173,27 @@ def verdict_of(project, version_id):
         summary["assembly"] = {"assembly": entry["assembly"], "pass": entry["pass"],
                                "checks": entry["checks"], "claims": entry["claims"]}
     return summary
+
+
+def review_of(project, version_id):
+    """The reviewer's verdict on a version (#28): total, band and pass, or None if never reviewed."""
+    path = Path(project) / STATE / "reviews" / f"{version_id}.json"
+    if not path.is_file():
+        return None
+    review = json.loads(path.read_text())
+    return {key: review[key] for key in ("total", "band", "pass")}
+
+
+def record_review(project, review):
+    """Keep the reviewer's verdict against the saved version it judged. Unsaved edits: nothing recorded."""
+    project = Path(project)
+    if not is_versioned(project) or not head_exists(project) or unsaved(project):
+        return None
+    version_id = head(project)
+    folder = project / STATE / "reviews"
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / f"{version_id}.json").write_text(json.dumps(review, indent=2))
+    return version_id
 
 
 def record_verdict(project, verdict):

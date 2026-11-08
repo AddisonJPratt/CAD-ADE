@@ -121,7 +121,9 @@ def parameter_edit(project, design, name, value):
     updated = source.encode()[:start] + repr(value).encode() + source.encode()[end:]
     return {'file': str(Path('designs') / design.name), 'source': updated.decode(),
             'changes': [{'parameter': name, 'old': old, 'new': value}],
-            'events': [{'type': 'plan', 'message': f'Change {name} to {value}'}],
+            'events': [{'type': 'plan', 'message': f'Change {name} to {value}'},
+                       {'type': 'edit', 'file': str(Path('designs') / design.name),
+                        'changes': [{'parameter': name, 'old': old, 'new': value}]}],
             'cursor': 0, 'interrupted': False}
 
 

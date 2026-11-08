@@ -41,3 +41,17 @@ other pairs measure centre to centre. The angle is between the faces' planes (0Â
 
 **Explode offset**: how far an instance moves in the fully exploded view, its ancestors' moves
 included. It's derived by the explode rule in `assembly/manifest.py` and scaled by Studio's slider.
+
+**Designer**: the agent that turns a request into a proposal (`AgentAdapter`: Claude Code, or the
+scripted fake in tests). In M0 it proposes one bounded parameter change.
+
+**Reviewer**: the independent agent that judges a kept, gate-passing change with the
+magic-cad-reviewer rubric (`engine/reviewer.py`). It has a fresh context and read-only tools, and
+never sees the designer's conversation. See ADR 0003.
+
+**Review**: the reviewer's verdict on a version: five scores of 0-4 (20 in all), a band
+(adopt-ready, direction approved, rework, reject), slop tells and ranked fixes. 13 or more passes.
+It is stored in `.magic/reviews/<version id>.json`. A review is not a print.
+
+**Send-back**: when a review fails, the engine turns its top fix into a new designer proposal, once
+per change. The owner still decides whether to keep it.

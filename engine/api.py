@@ -75,6 +75,7 @@ from harness.sweep import plan_samples
 from . import make
 from .proposal_session import ProposalSession
 from .agents import ScriptedFakeAgent, ParameterEditAgent
+from .reviewer import ScriptedFakeReviewer, review_context, send_back_message
 from .workspace import browse, choose_folder, is_project, list_projects, new_project, remember, starters
 from .catalogue import BUILTIN, add_component, list_components, project_path
 from .parameters import parameters_of, accepted_brief_edit
@@ -82,13 +83,13 @@ from .printers import PROFILE, project_printer, select_printer
 from .pins import pin_document, save_pins
 from .projects import (ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, project_parts_list,
                        run_project, verdict_artifacts)
-from .versions import (Conflict, create_project, list_versions, require_versioned,
+from .versions import (Conflict, create_project, list_versions, record_review, require_versioned,
                        restore_version, save_version, find_version, rebuild_version_artifacts, head, unsaved, git)
 
 HOST = "127.0.0.1"
 PORT = 8766  # the plain-JS UI server keeps 8765
 API_VERSION = 1
-TERMINAL = ("done", "error")
+TERMINAL = ("done", "error")  # "reviewing" (#28) is not terminal: the project stays busy
 RUN_PATH = re.compile(r"^/runs/([0-9a-f]{32})(/events|/artifacts/(.+))?$")
 
 
@@ -101,6 +102,8 @@ class Run:
         self.events = []
         self.artifact_project = None
         self.changed = threading.Condition()
+        # Set for a run started by accepting a proposal: what the reviewer judges after the gates pass (#28).
+        self.review_request, self.review, self.send_back = None, None, None
 
     def emit(self, event):
         with self.changed:
@@ -115,6 +118,7 @@ class Run:
     def summary(self):
         return {"id": self.id, "project": str(self.project), "status": self.status,
                 "created": self.created, "slice": self.slice, "events": len(self.events), "verdict": self.verdict,
+                "review": self.review,
                 "error": self.error, "links": {"self": f"/runs/{self.id}",
                                                "events": f"/runs/{self.id}/events",
                                                "artifacts": f"/runs/{self.id}/artifacts/"}}
@@ -127,10 +131,11 @@ class Busy(Conflict):
 class Engine:
     """The run registry and its single worker thread."""
 
-    def __init__(self, agent=None):
+    def __init__(self, agent=None, reviewer=None):
         self.runs, self.pending = {}, queue.Queue()
         self.proposals = {}
         self.agent = agent or ScriptedFakeAgent()
+        self.reviewer = reviewer or ScriptedFakeReviewer()
         self.artifacts = tempfile.TemporaryDirectory(prefix="magic-cad-runs-")
         self.lock = threading.Lock()
         self.execution = threading.Lock()
@@ -143,6 +148,7 @@ class Engine:
         for proposal in pending:
             proposal['session'].reject()
             proposal['agent'].interrupt(proposal)
+        self.reviewer.interrupt()
 
     def submit(self, project, samples=None, timeout=180, slice=False):
         project = Path(project).expanduser().resolve()
@@ -157,11 +163,11 @@ class Engine:
         self.pending.put(run)
         return run
 
-    def change(self, project, action):
-        """Run a version change while no run of this project is queued or running."""
+    def change(self, project, action, ignore=None):
+        """Run a version change while no run of this project is queued or running (except `ignore`)."""
         project = require_versioned(project)
         with self.lock:
-            if any(r.project == project and r.status not in TERMINAL for r in self.runs.values()):
+            if any(r.project == project and r.status not in TERMINAL and r is not ignore for r in self.runs.values()):
                 raise Busy(f"{project} has a run in progress; try again when it finishes")
             return action(project)
 
@@ -190,11 +196,39 @@ class Engine:
                     target.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copyfile(source, target)
                 run.artifact_project = snapshot
-                run.set_status("done")
+                if run.review_request and run.verdict.get("pass"):
+                    run.set_status("reviewing")  # not terminal: the project stays busy until the verdict lands
+                    threading.Thread(target=self.review, args=(run,), name="engine-review", daemon=True).start()
+                else:
+                    run.set_status("done")
             except Exception as err:  # the run fails; the engine keeps serving
                 run.error = f"{type(err).__name__}: {err}"
                 run.emit({"type": "error", "error": run.error, "traceback": traceback.format_exc()})
                 run.set_status("error")
+
+    def review(self, run):
+        """The independent reviewer's verdict on a passed run; a failed review goes back to the designer once."""
+        request = run.review_request
+        try:
+            run.emit({"type": "review_started", "design": request["file"]})
+            run.review = self.reviewer.review(review_context(run.project, request), run.emit)
+            record_review(run.project, run.review)   # the verdict belongs to the version, like the gates'
+            run.emit({"type": "review_finished", "review": run.review})
+            if not run.review["pass"]:
+                message = send_back_message(run.review)
+                if request["round"] >= 1 or message is None or run.send_back is None:
+                    run.emit({"type": "review_kept", "reason": "a reviewer fix was already sent back once for this change"
+                              if request["round"] >= 1 else "the review named no fix the designer can act on"})
+                else:
+                    try:
+                        proposal = run.send_back(message)
+                        run.emit({"type": "sent_back", "proposal": proposal, "message": message})
+                    except Exception as err:  # the review stands even if the designer cannot start
+                        run.emit({"type": "send_back_failed", "error": str(err)})
+        except Exception as err:  # an unavailable reviewer leaves the design unreviewed, not the run failed
+            run.emit({"type": "review_error", "error": str(err)[:2000]})
+        finally:
+            run.set_status("done")
 
     def get(self, run_id):
         with self.lock:
@@ -475,10 +509,12 @@ class Handler(BaseHTTPRequestHandler):
             dimensions = {side: [part["bbox"]["size"] for part in parts]
                           for side, parts in session.previews.items()}
             return {"id": session.id, "state": session.state, "error": session.error,
+                    "origin": proposal.get("origin"), "message": proposal.get("message"),
                     "changes": proposal["changes"], "previews": previews, "preview_dimensions": dimensions,
                     "selection": proposal.get("selection")}
 
-    def post_proposal(self, body):
+    def post_proposal(self, body, origin=None, ignore=None):
+        """origin: set when the engine itself proposes, sending a failed review's top fix back (#28)."""
         project = require_versioned(body["project"])
         ident = uuid.uuid4().hex
         folder = Path(self.engine.artifacts.name) / ("proposal-" + ident)
@@ -488,7 +524,7 @@ class Handler(BaseHTTPRequestHandler):
                 raise Conflict("save project changes before proposing an edit")
             shutil.copytree(project, draft, ignore=shutil.ignore_patterns(".git", ".magic", "outputs", "__pycache__"))
             return head(project)
-        base = self.engine.change(project, prepare)
+        base = self.engine.change(project, prepare, ignore=ignore)
         try:
             # Previews build with the same material fits an accepted run's gates use.
             fits = material_fits(project_printer(draft))
@@ -497,7 +533,8 @@ class Handler(BaseHTTPRequestHandler):
         except Exception:
             shutil.rmtree(folder, ignore_errors=True)
             raise
-        proposal.update({"id": ident, "project": str(project), "state": "pending", "base": base, "agent": agent})
+        proposal.update({"id": ident, "project": str(project), "state": "pending", "base": base, "agent": agent,
+                         "origin": origin, "review_round": (origin or {}).get("round", 0), "message": body.get("message")})
         def build(side, cancel):
             if side == "after":
                 (draft / proposal["file"]).write_text(proposal["source"])
@@ -573,7 +610,13 @@ class Handler(BaseHTTPRequestHandler):
                     brief_edit[0].write_text(brief_edit[1])
                 raise
             proposal["state"] = "accepted"
-            return version, self.engine.queue(project, *options)
+            run = self.engine.queue(project, *options)
+            run.review_request = {"file": proposal["file"], "changes": proposal["changes"],
+                                  "round": proposal.get("review_round", 0)}
+            run.send_back = lambda message: self.post_proposal(
+                {"project": str(project), "message": message, "selection": {"design": Path(proposal["file"]).name}},
+                origin={"run": run.id, "round": run.review_request["round"] + 1}, ignore=run)[1]["id"]
+            return version, run
         version, run = self.engine.change(proposal["project"], accept)
         status = self.finished(run, body.get("wait"))
         return status, {"version": version, "run": run.summary()}
@@ -699,7 +742,10 @@ def make_server(port=PORT, engine=None):
 
 def serve(port=PORT, agent="claude"):
     from .claude_agent import ClaudeCodeAgent
-    server = make_server(port, Engine(agent=ClaudeCodeAgent() if agent == "claude" else ScriptedFakeAgent()))
+    from .reviewer import ClaudeCodeReviewer
+    real = agent == "claude"
+    server = make_server(port, Engine(agent=ClaudeCodeAgent() if real else ScriptedFakeAgent(),
+                                      reviewer=ClaudeCodeReviewer() if real else ScriptedFakeReviewer()))
     print(f"Magic CAD engine API on http://{HOST}:{server.server_address[1]}  (Ctrl-C stops)")
     try:
         server.serve_forever()
