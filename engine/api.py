@@ -80,7 +80,7 @@ from .parameters import parameters_of, accepted_brief_edit
 from .printers import PROFILE, project_printer, select_printer
 from .projects import (ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, project_parts_list,
                        run_project, verdict_artifacts)
-from .versions import (Conflict, create_project, list_versions, require_versioned,
+from .versions import (Conflict, create_project, list_versions, record_review, require_versioned,
                        restore_version, save_version, find_version, rebuild_version_artifacts, head, unsaved, git)
 
 HOST = "127.0.0.1"
@@ -209,6 +209,7 @@ class Engine:
         try:
             run.emit({"type": "review_started", "design": request["file"]})
             run.review = self.reviewer.review(review_context(run.project, request), run.emit)
+            record_review(run.project, run.review)   # the verdict belongs to the version, like the gates'
             run.emit({"type": "review_finished", "review": run.review})
             if not run.review["pass"]:
                 message = send_back_message(run.review)

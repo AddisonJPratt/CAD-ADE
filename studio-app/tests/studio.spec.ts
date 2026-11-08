@@ -523,3 +523,40 @@ test('the header switcher shows the project by name and switches through the pic
   await expect(page.locator('.project-switch summary')).toHaveText(other);
   await expect(switcher).toHaveCount(0);
 });
+
+test('the reviewer judges a kept change, sends a failing fix back once, and the activity shows each step', async ({ page, request }) => {
+  // good_two_parts: size 20 in 10..30. The scripted reviewer fails a setting pushed to the end of its range.
+  const folder = process.env.MAGIC_TEST_PROJECT! + `/review-${Date.now()}`;
+  const source = new URL('../../tests/fixtures/good_two_parts.py', import.meta.url).pathname;
+  expect((await request.post('/api/projects', { data: { folder, from_design: decodeURIComponent(source) } })).ok()).toBeTruthy();
+  await page.goto('/');
+  await page.getByLabel('Project folder').fill(folder);
+  await page.getByRole('button', { name: 'Open project' }).click();
+  await expect(page.getByRole('heading', { name: 'Version 1' })).toBeVisible({ timeout: 60000 });
+
+  await page.getByLabel('Change request').fill('size 30');
+  await page.getByRole('button', { name: 'Propose change' }).click();
+  await expect(page.getByText('Editing designs/good_two_parts.py: size 20 → 30')).toBeVisible({ timeout: 120000 });
+  await page.getByRole('button', { name: 'Accept change' }).click();
+
+  const first = page.getByRole('region', { name: 'Design review' }).first();
+  await expect(first).toBeVisible({ timeout: 180000 });
+  await expect(first).toHaveClass(/fail/);
+  await expect(first.getByRole('listitem').first()).toContainText('size → 20');   // ranked fix 1: the range midpoint
+  await expect(page.getByText(/The reviewer sent its top fix back/)).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Version 2\s*Prints, but needs rework/ })).toBeVisible();   // no "done" language
+
+  // The fix arrives as a proposal; nothing changes until the owner keeps it.
+  await expect(page.getByText('size: 30 → 20').first()).toBeVisible({ timeout: 120000 });
+  await expect(page.getByRole('heading', { name: 'Version 2' })).toBeVisible();
+  await page.getByRole('button', { name: 'Accept change' }).click();
+  const second = page.getByRole('region', { name: 'Design review' }).nth(1);
+  await expect(second).toBeVisible({ timeout: 180000 });
+  await expect(second).toHaveClass(/pass/);
+  const reviewRow = page.locator('.gate-progress .progress-row', { hasText: 'Design review' });
+  await expect(reviewRow).toHaveClass(/pass/);                                    // the review is a step in the activity
+  await expect(page.locator('.gate-progress .progress-row', { hasText: '1 Execute' })).toHaveClass(/pass/);
+  await expect(page.getByRole('heading', { name: /Version 3\s*Ready to print/ })).toBeVisible();
+  await expect(page.getByText(/The reviewer sent its top fix back/)).toHaveCount(1);       // once, not a loop
+  await expect(page.locator('.session-meter')).toContainText('Session');
+});

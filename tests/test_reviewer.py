@@ -75,6 +75,8 @@ class ScriptedReviewLoopTest(ReviewLoopTest):
         run, kinds = self.accept(self.propose('size 30')['id'])     # 30 is the end of size's range
         self.assertFalse(run.review['pass'])
         self.assertEqual(run.review['fixes'][0]['parameter'], 'size')
+        self.assertEqual(list_versions(self.project)[0]['review'],                 # kept with the version
+                         {'total': run.review['total'], 'band': 'rework', 'pass': False})
         sent = next(e for e in run.events if e['type'] == 'sent_back')
         self.assertTrue(sent['message'].startswith('size to 20.0'))
         back = self.ready(sent['proposal'])                         # a proposal, not an applied change
@@ -116,6 +118,7 @@ class UnavailableReviewerTest(ReviewLoopTest):
         self.assertTrue(run.verdict['pass'])
         self.assertIsNone(run.review)
         self.assertIn('review_error', kinds)
+        self.assertIsNone(list_versions(self.project)[0]['review'])               # labelled unreviewed
 
 
 class ClaudeReviewerTest(ReviewLoopTest):

@@ -35,6 +35,7 @@ export function explain(detail: string) {
 type Props = {
   number: number;
   verdict: null | { pass: boolean; designs?: EvidenceDesign[] };
+  review?: null | { total: number; band: string; pass: boolean };  // the reviewer agent's verdict (#28)
   assistant: string;
   lastReady?: number;
   onFix: (text: string) => void;
@@ -42,15 +43,17 @@ type Props = {
   onEvidence: () => void;
 };
 
-export function Verdict({ number, verdict, assistant, lastReady, onFix, onShowVersion, onEvidence }: Props) {
+export function Verdict({ number, verdict, review, assistant, lastReady, onFix, onShowVersion, onEvidence }: Props) {
   const readings = verdict ? readVerdict(verdict.designs || []) : [];
   const failed = readings.find(r => r.status === 'fail');
   const passed = readings.filter(r => r.status === 'pass').length;
-  const state = !verdict ? 'pending' : verdict.pass ? 'ready' : 'blocked';
+  // A failing design review blocks "done" language even when every gate is green.
+  const state = !verdict ? 'pending' : !verdict.pass ? 'blocked' : review && !review.pass ? 'rework' : 'ready';
   return <section className={`verdict-card ${state}`} aria-labelledby="verdict-title">
     <h1 id="verdict-title"><span className="verdict-version">Version {number}</span>
-      <span className="verdict-headline">{state === 'ready' ? 'Ready to print' : state === 'blocked' ? 'Not ready to print' : 'Not checked yet'}</span></h1>
-    {state === 'ready' && <p>All {readings.length} computer checks passed. Nobody has printed it yet, so real-world fit and strength are untested.</p>}
+      <span className="verdict-headline">{state === 'ready' ? 'Ready to print' : state === 'rework' ? 'Prints, but needs rework' : state === 'blocked' ? 'Not ready to print' : 'Not checked yet'}</span></h1>
+    {state === 'ready' && <p>All {readings.length} computer checks passed. {review ? `The design review scored it ${review.total}/20 (${review.band}).` : 'The design has not been reviewed.'} Nobody has printed it yet, so real-world fit and strength are untested.</p>}
+    {state === 'rework' && review && <p>All {readings.length} computer checks passed, but the independent design review scored it {review.total}/20 ({review.band}). Its fixes are in the conversation.</p>}
     {state === 'blocked' && failed && <p>{failed.text}. {explain(failed.detail)}</p>}
     {state === 'blocked' && !failed && <p>A check failed. Open the evidence to see which one.</p>}
     {state === 'pending' && <p>This version has not been through the checks.</p>}

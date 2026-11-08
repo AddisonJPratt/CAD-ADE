@@ -771,3 +771,33 @@ body.resizing{cursor:col-resize;user-select:none}
 @media(max-width:760px){.app.desk .project-open.compact.switcher{width:calc(100vw - 16px)}}
 /* The switcher sits inside <header>, whose legacy `header span` rule mutes every span. */
 .app.desk .switcher .picker-name,.app.desk .switcher .finder-button span,.app.desk .switcher .switch-current span,.app.desk .switcher .picker-tab{color:inherit}
+
+/* Reviewer verdict (#28): an independent design review after the gates pass */
+.app.desk .review-card{display:grid;gap:10px;margin-top:2px;padding:12px 14px;border:1px solid var(--d-line);border-radius:10px;background:var(--d-panel)}
+.app.desk .review-card.fail{border-color:color-mix(in srgb,var(--d-wait) 55%,var(--d-line))}
+.app.desk .review-card header{display:flex;align-items:baseline;gap:10px;height:auto;padding:0;border:0;background:none}
+.app.desk .review-card h3{margin:0;font-size:13px;font-weight:650;color:var(--d-ink)}
+.app.desk .review-card .review-score{margin:0 0 0 auto;font-size:12px;color:var(--d-ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.app.desk .review-card .review-score b{font-size:15px;font-weight:700;color:var(--d-ink)}
+.app.desk .review-card.pass .review-score b{color:var(--d-ok)}
+.app.desk .review-card.fail .review-score b{color:var(--d-bad)}
+.app.desk .review-card p{margin:0;font-size:12.5px;line-height:1.45;color:var(--d-ink-2)}
+.app.desk .review-scores{display:grid;gap:4px;margin:0}
+.app.desk .review-scores>div{display:flex;align-items:center;gap:10px;font-size:12px}
+.app.desk .review-scores dt{flex:1;min-width:0;color:var(--d-ink-2)}
+.app.desk .review-scores dd{display:flex;align-items:center;gap:8px;margin:0}
+.app.desk .review-pips{display:inline-flex;gap:3px}
+.app.desk .review-pips i{width:14px;height:5px;border-radius:3px;background:var(--d-line-2)}
+.app.desk .review-card.pass .review-pips i.on{background:var(--d-ok)}
+.app.desk .review-card.fail .review-pips i.on{background:var(--d-ink-2)}
+.app.desk .review-num{width:24px;text-align:right;color:var(--d-ink-3);font-variant-numeric:tabular-nums}
+.app.desk .review-card h4{margin:2px 0 0;font-size:12px;font-weight:650;color:var(--d-ink)}
+.app.desk .review-fixes{margin:0;padding-left:18px;display:grid;gap:4px;font-size:12.5px;line-height:1.45;color:var(--d-ink)}
+.app.desk .review-fixes li::marker{color:var(--d-ink-3);font-variant-numeric:tabular-nums}
+.app.desk .review-param{display:inline-block;margin-left:6px;padding:0 6px;border-radius:5px;background:var(--d-raise);font-family:var(--font-2);font-size:11px;color:var(--d-ink-2)}
+.app.desk .review-card b{color:var(--d-ink);font-weight:600}
+.app.desk .session-meter{font-variant-numeric:tabular-nums}
+
+.app.desk .verdict-card.rework h1::before{background:var(--d-wait)}
+.app.desk .verdict-card.rework .verdict-headline{color:var(--d-ink)}
+.app.desk .review-fixes{list-style:decimal}  /* the legacy `ol{list-style:none}` would drop the ranking */

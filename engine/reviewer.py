@@ -176,10 +176,11 @@ class ClaudeCodeReviewer(Reviewer):
                     if event.get("type") == "assistant":
                         for block in event.get("message", {}).get("content", []):
                             if block.get("type") == "text" and block.get("text", "").strip():
-                                emit({"type": "review_note", "message": block["text"][:1200]})
+                                # The activity shows a line per step; the verdict card carries the detail.
+                                first = block["text"].strip().splitlines()[0].strip("*# ").strip()
+                                emit({"type": "review_note", "message": first[:240]})
                             elif block.get("type") == "tool_use" and block.get("name") != "StructuredOutput":
-                                target = (block.get("input") or {}).get("file_path") or block.get("name", "a tool")
-                                emit({"type": "review_note", "message": f"Reading {Path(str(target)).name}"})
+                                emit({"type": "review_note", "message": tool_note(block)})
                     if event.get("type") == "result":
                         result = event
                 code = process.wait()
@@ -206,6 +207,16 @@ class ClaudeCodeReviewer(Reviewer):
         for state in active:
             state["stopped"] = True
             ClaudeCodeAgent._stop(state["process"])
+
+
+def tool_note(block):
+    """One plain line for a reviewer tool call: the file it reads, or what it searches for."""
+    args = block.get("input") or {}
+    if args.get("file_path"):
+        return f"Reading {Path(str(args['file_path'])).name}"
+    if args.get("pattern"):
+        return f"Searching for {str(args['pattern'])[:80]}"
+    return f"Using {block.get('name', 'a tool')}"
 
 
 def usage_of(result, agent, elapsed=None):
