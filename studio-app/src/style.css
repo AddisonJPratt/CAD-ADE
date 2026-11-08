@@ -663,3 +663,34 @@ body.resizing{cursor:col-resize;user-select:none}
 .app.desk .project-open label.type-path{margin-top:8px}
 
 .app.desk .type-path-form{display:grid;gap:8px}
+
+/* Finder folder panel button and its notice (#66) */
+.app.desk .finder-button{display:flex;align-items:center;gap:10px;width:100%;height:40px;padding:0 14px;border:1px solid var(--d-line-2);border-radius:8px;background:var(--d-raise);color:var(--d-ink);font-size:13.5px;font-weight:600;text-align:left;transition:background-color .12s ease-out,border-color .12s ease-out}
+.app.desk .finder-button:hover:not(:disabled){border-color:var(--d-accent);background:color-mix(in srgb,var(--d-raise) 80%,var(--d-accent))}
+.app.desk .finder-button:disabled{color:var(--d-ink-3);cursor:progress}
+.app.desk .finder-button svg{width:18px;height:18px;flex:none;color:var(--d-accent)}
+.app.desk .project-open .picker-notice{display:flex;gap:8px;align-items:baseline;margin:0;font-size:12px;color:var(--d-ink-2)}
+.app.desk .project-open .picker-notice::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:var(--d-wait);transform:translateY(-1px)}
+
+/* Live progress: one row per step; the running step shimmers (#66).
+   The background-clip:text sweep is the owner-requested loading shimmer (like Claude Code),
+   shown only while a step runs, never as static decoration. */
+.app.desk .progress-row{display:flex;align-items:center;gap:8px;min-width:0}
+.app.desk .progress-row .shimmer-text{min-width:0;overflow-wrap:anywhere}
+.app.desk .progress-row.note{color:var(--d-ink-2)}
+.app.desk .progress-row.note.done{color:var(--d-ink-3)}
+.app.desk .progress-mark{flex:none;width:7px;height:7px;border-radius:50%;background:var(--d-line-2)}
+.app.desk .progress-row.pass .progress-mark{background:var(--d-ok)}
+.app.desk .progress-row.fail .progress-mark{background:var(--d-bad)}
+.app.desk .progress-row.other .progress-mark{background:var(--d-wait)}
+.app.desk .progress-row.check{color:var(--d-ink-2)}
+.app.desk .progress-status{margin-left:auto;padding-left:12px;font-size:11px;font-weight:650;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.app.desk .progress-row.pass .progress-status{color:var(--d-ok)}
+.app.desk .progress-row.fail .progress-status{color:var(--d-bad)}
+.app.desk .progress-row.fail .shimmer-text{color:var(--d-bad)}
+.app.desk .progress-row.other .progress-status{color:var(--d-ink-2)}
+.app.desk .progress-row.live .progress-mark{background:var(--d-accent);animation:progress-pulse 1.2s ease-in-out infinite}
+.app.desk .progress-row.live .shimmer-text{color:transparent;background:linear-gradient(100deg,var(--d-ink-2) 0%,var(--d-ink-2) 38%,var(--d-accent) 50%,var(--d-ink-2) 62%,var(--d-ink-2) 100%) 0 0/300% 100% no-repeat;-webkit-background-clip:text;background-clip:text;animation:progress-shimmer 2s linear infinite}
+@keyframes progress-shimmer{from{background-position:100% 0}to{background-position:0 0}}
+@keyframes progress-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.75)}}
+@media(prefers-reduced-motion:reduce){.app.desk .progress-row.live .shimmer-text{animation:none;background:none;color:var(--d-accent)}.app.desk .progress-row.live .progress-mark{animation:none}}

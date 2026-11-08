@@ -101,7 +101,8 @@ test('fake agent previews, rejects and accepts a change', async ({ page, request
   await expect(page.getByText('size: 24 → 26').first()).toBeVisible({ timeout: 120000 });
   await page.getByRole('button', { name: 'Accept change' }).click();
   await expect(page.getByText('Previous: passed · Now: passed')).toBeVisible({ timeout: 180000 });
-  await expect(page.getByText('3 Printability: PASS')).toBeVisible();
+  await expect(page.locator('.gate-progress .progress-row', { hasText: '3 Printability' })).toHaveClass(/pass/);
+  await expect(page.locator('.gate-progress .progress-row', { hasText: '3 Printability' }).locator('.progress-status')).toHaveText('PASS');
   await expect(page.getByRole('heading', { name: 'Version 5' })).toBeVisible();
 });
 
@@ -483,4 +484,21 @@ test('creates a project without typing a path, lists it, and browses folders', a
   await expect(page.locator('.crumb .path')).toHaveText(here!);
   await page.locator('.picker-browse .picker-row.is-project', { hasText: name }).click();
   await expect(page.getByRole('heading', { name: 'Version 1' })).toBeVisible({ timeout: 60000 });
+});
+
+test('Choose a folder in Finder opens a project, explains a non-project folder, and ignores Cancel', async ({ page }) => {
+  // The engine shows the real macOS panel; here its answer is stubbed so no window opens.
+  const project = process.env.MAGIC_TEST_PROJECT!;
+  const answers = [{ path: null, project: false }, { path: project + '/designs', project: false }, { path: project, project: true }];
+  await page.route('**/api/workspace/choose-folder', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(answers.shift()) }));
+  await page.goto('/');
+  const finder = page.getByRole('button', { name: 'Choose a folder in Finder…' });
+  await finder.click();                       // Cancel: nothing changes
+  await expect(finder).toBeEnabled();
+  await expect(page.getByRole('heading', { name: 'Open a project' })).toBeVisible();
+  await finder.click();                       // a folder that is not a project
+  await expect(page.getByRole('status').filter({ hasText: 'That folder is not a project' })).toBeVisible();
+  await expect(page.locator('.crumb .path')).toContainText('designs');
+  await finder.click();                       // a project opens
+  await expect(page.getByRole('heading', { name: /Version \d/ })).toBeVisible({ timeout: 60000 });
 });

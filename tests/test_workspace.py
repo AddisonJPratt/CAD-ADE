@@ -90,6 +90,25 @@ class WorkspaceApiTest(unittest.TestCase):
         self.assertEqual(self.request('GET', '/workspace/browse?path=relative')[0], 400)
         self.assertEqual(self.request('GET', '/workspace/browse?path=' + str(base / 'missing'))[0], 400)
 
+    def test_finder_panel_returns_chosen_folder_or_none_on_cancel(self):
+        import subprocess
+        from engine.versions import create_project
+        project = create_project(Path(self.tmp.name) / 'picked', 'wall_bracket')
+        chosen = subprocess.CompletedProcess([], 0, stdout=str(project) + '/\n', stderr='')
+        with mock.patch('engine.workspace.sys.platform', 'darwin'), \
+             mock.patch('engine.workspace.subprocess.run', return_value=chosen) as run:
+            status, body = self.request('POST', '/workspace/choose-folder', {})
+        self.assertEqual((status, body), (200, {'path': str(project.resolve()), 'project': True}))
+        argv = run.call_args.args[0]
+        self.assertEqual(argv[0], 'osascript')
+        self.assertEqual(argv[-1], str(Path(self.tmp.name).resolve() / 'Magic CAD Projects') if self.home.is_dir() else str(Path.home().resolve()))
+        cancelled = subprocess.CompletedProcess([], 1, stdout='', stderr='execution error: User canceled. (-128)')
+        with mock.patch('engine.workspace.sys.platform', 'darwin'), \
+             mock.patch('engine.workspace.subprocess.run', return_value=cancelled):
+            self.assertEqual(self.request('POST', '/workspace/choose-folder', {}), (200, {'path': None, 'project': False}))
+        with mock.patch('engine.workspace.sys.platform', 'linux'):
+            self.assertEqual(self.request('POST', '/workspace/choose-folder', {})[0], 400)
+
 
 if __name__ == '__main__':
     unittest.main()

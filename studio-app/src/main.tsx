@@ -19,6 +19,7 @@ import { Highlight, circled, describe, label, loopArea, measure, regionAt, selec
 import { faceAt, parseFaceMap, type FaceMap } from './Features';
 import { PartsList } from './PartsList';
 import { ProjectPicker } from './ProjectPicker';
+import { ProgressLines } from './ProgressLines';
 
 // The assistant's name in the interface. One place, so the owner can rename it.
 export const ASSISTANT = 'Drafter';
@@ -279,8 +280,8 @@ function App() {
           <div className="thread">
             <div className="turn assistant"><span className="who">{ASSISTANT}</span><p>{runtime === 'claude' ? 'Tell me what to change, like “make the wall 0.5 mm thicker”. Select part of the model first to be precise. I use your local Claude Code login.' : runtime === 'scripted' ? 'Scripted test runtime: enter a setting and a value, for example “size 24”.' : 'I’m unavailable right now. Check that the local engine is running.'}</p></div>
             {thread.map(turn => <div key={turn.id} className={`turn ${turn.who}${turn.tone ? ' ' + turn.tone : ''}`}>{turn.who === 'assistant' && <span className="who">{ASSISTANT}</span>}<p>{turn.text}</p>{turn.chips && turn.chips.length > 0 && <ul className="turn-chips">{turn.chips.map(c => <li key={c}>{c}</li>)}</ul>}</div>)}
-            {preparing && <div className="turn assistant working"><span className="who">{ASSISTANT}</span><div role="status" className="gate-progress">{progress.length ? progress.map((line, i) => <div key={i}>{line}</div>) : <div>{sessionState === 'interrupted' ? 'Preview paused.' : 'Preparing previews…'}</div>}</div><button type="button" className="quiet-button" disabled={!sessionId} onClick={() => controlSession(sessionState === 'interrupted' ? 'resume' : 'interrupt')}>{sessionState === 'interrupted' ? 'Resume' : 'Interrupt'}</button></div>}
-            {!preparing && !proposal && progress.length > 0 && <div role="status" className="turn assistant gate-progress quiet">{progress.map((line, i) => <div key={i}>{line}</div>)}</div>}
+            {preparing && <div className="turn assistant working"><span className="who">{ASSISTANT}</span><div role="status" className="gate-progress"><ProgressLines lines={progress} active={sessionState !== 'interrupted'} idle={sessionState === 'interrupted' ? 'Preview paused.' : 'Preparing previews…'}/></div><button type="button" className="quiet-button" disabled={!sessionId} onClick={() => controlSession(sessionState === 'interrupted' ? 'resume' : 'interrupt')}>{sessionState === 'interrupted' ? 'Resume' : 'Interrupt'}</button></div>}
+            {!preparing && !proposal && progress.length > 0 && <div role="status" className="turn assistant gate-progress quiet"><ProgressLines lines={progress} active={proposalBusy}/></div>}
             {proposal && <section className="turn assistant review" aria-label="Proposed edit">
               <span className="who">{ASSISTANT}</span>
               <h3 role="status">Proposed change ready to review</h3>

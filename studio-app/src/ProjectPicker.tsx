@@ -37,6 +37,8 @@ export function ProjectPicker({ onOpen, busy, children }: { onOpen: (path: strin
   const [reading, setReading] = useState(false); const request = useRef(0); // only the newest listing may land
   const [engineDown, setEngineDown] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [finder, setFinder] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
   const tilde = (p: string) => userHome && p.startsWith(userHome) ? '~' + p.slice(userHome.length) : p;
 
@@ -46,8 +48,23 @@ export function ProjectPicker({ onOpen, busy, children }: { onOpen: (path: strin
       .catch(() => { setProjects([]); setEngineDown(true); });
   }, []);
 
+  // The engine runs on this Mac, so it can show the real Finder folder panel (#66).
+  async function chooseInFinder() {
+    if (finder) return;
+    setFinder(true); setError(''); setNotice('');
+    try {
+      const r = await fetch('/api/workspace/choose-folder', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      const body = await r.json().catch(() => ({}));
+      if (!r.ok) { setView('browse'); await browse(''); setNotice(body.error || 'Finder is not available here. Browse instead.'); return; }
+      if (!body.path) return;  // cancelled in Finder
+      if (body.project) { onOpen(body.path); return; }
+      setView('browse'); await browse(body.path);
+      setNotice('That folder is not a project. Open a project inside it, or start a new project.');
+    } catch (e) { setError((e as Error).message); } finally { setFinder(false); }
+  }
+
   function show(next: View) {
-    setError(''); setView(next);
+    setError(''); setNotice(''); setView(next);
     if (next === 'new') {
       if (!starters.length) get<{ starters: Starter[] }>('/api/workspace/starters').then(r => { setStarters(r.starters); setStarter(current => r.starters.some(s => s.id === current) ? current : r.starters[0]?.id || ''); }).catch(e => setError(e.message));
       setTimeout(() => nameRef.current?.focus());
@@ -86,6 +103,9 @@ export function ProjectPicker({ onOpen, busy, children }: { onOpen: (path: strin
   </button>;
 
   return <div className="picker">
+    <button type="button" className="finder-button" onClick={chooseInFinder} disabled={finder || busy}>
+      <Icon name="folder" /><span>{finder ? 'Waiting for Finder…' : 'Choose a folder in Finder…'}</span>
+    </button>
     <div className="picker-tabs" role="group" aria-label="Find a project">
       {(['list', 'new', 'browse'] as View[]).map(v => <button key={v} type="button" aria-pressed={view === v} className="picker-tab" onClick={() => show(v)}>
         {v === 'list' ? 'Your projects' : v === 'new' ? 'New project' : 'Browse'}</button>)}
@@ -130,6 +150,7 @@ export function ProjectPicker({ onOpen, busy, children }: { onOpen: (path: strin
       {reading && !error && <p className="picker-note" role="status">Reading folders…</p>}
     </section>}
 
+    {notice && <p role="status" className="picker-notice">{notice}</p>}
     {error && <p role="alert" className="error">{error}</p>}
     {view !== 'new' && children}
   </div>;
