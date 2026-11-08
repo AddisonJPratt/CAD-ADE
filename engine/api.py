@@ -13,6 +13,11 @@
                                          then an "end" event. Honours Last-Event-ID.
     GET  /runs/<id>/artifacts/<path>     a file from the project's outputs folder (STL, STEP, PNG, report)
 
+    GET  /workspace/projects             projects in the projects home plus recently opened ones
+    GET  /workspace/starters             repo designs a new project can start from
+    GET  /workspace/browse?path=...      a folder's subfolders with projects marked (default: ~)
+    POST /workspace/projects             {"name", "starter"}: <projects home>/<name> as version 1 (201)
+    POST /workspace/recent               {"project"}: remember a project as opened
     GET  /projects/parameters?project=...&design=...  literal defaults/ranges and brief units
     POST /proposals                      {"project", "selection":{"design"}, "parameter":{"name","value"}}
                                          explicit parameter edit, held for acceptance like a chat edit
@@ -48,10 +53,12 @@ from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
 
 from harness.execute import run_worker
+from harness.pipeline import material_fits
 from harness.sweep import plan_samples
 
 from .proposal_session import ProposalSession
 from .agents import ScriptedFakeAgent, ParameterEditAgent
+from .workspace import browse, list_projects, new_project, remember, starters
 from .catalogue import BUILTIN, add_component, list_components, project_path
 from .parameters import parameters_of, accepted_brief_edit
 from .printers import PROFILE, project_printer, select_printer
@@ -272,6 +279,13 @@ class Handler(BaseHTTPRequestHandler):
             project = query.get("project", [""])[0]
             design = query.get("design", [""])[0]
             return self.guarded(lambda: (HTTPStatus.OK, {"parameters": parameters_of(require_versioned(project), design)}))
+        if path == "/workspace/projects":
+            return self.guarded(lambda: (HTTPStatus.OK, list_projects()))
+        if path == "/workspace/starters":
+            return self.guarded(lambda: (HTTPStatus.OK, {"starters": starters()}))
+        if path == "/workspace/browse":
+            folder = parse_qs(urlsplit(self.path).query).get("path", [""])[0]
+            return self.guarded(lambda: (HTTPStatus.OK, browse(folder or None)))
         if path == "/projects/designs":
             project = parse_qs(urlsplit(self.path).query).get("project", [""])[0]
             return self.guarded(lambda: (HTTPStatus.OK, {"designs": [p.name for p in designs_of(project)]}))
@@ -381,6 +395,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         path = urlsplit(self.path).path
         routes = {"/proposals": self.post_proposal, "/catalogue": self.post_catalogue, "/projects/printer": self.post_printer, "/runs": self.post_run, "/projects": self.post_project,
+                  "/workspace/projects": self.post_workspace_project, "/workspace/recent": self.post_recent,
                   "/projects/versions": self.post_version, "/projects/rollback": self.post_rollback,
                   "/projects/version-artifacts": self.post_version_artifacts}
         proposal_match = re.fullmatch(r"/proposals/([0-9a-f]{32})/(reject|accept|interrupt|resume)", path)
@@ -443,6 +458,8 @@ class Handler(BaseHTTPRequestHandler):
             return head(project)
         base = self.engine.change(project, prepare)
         try:
+            # Previews build with the same material fits an accepted run's gates use.
+            fits = material_fits(project_printer(draft))
             agent = ParameterEditAgent() if "parameter" in body else self.engine.agent
             proposal = agent.start(draft, body.get("brief"), body.get("selection"), body["parameter"] if "parameter" in body else body["message"])
         except Exception:
@@ -459,7 +476,7 @@ class Handler(BaseHTTPRequestHandler):
                 if cancel.is_set():
                     return {"ok": False, "interrupted": True}
             try:
-                return run_worker(draft / proposal["file"], out, cancel_event=cancel)
+                return run_worker(draft / proposal["file"], out, fits=fits, cancel_event=cancel)
             finally:
                 self.engine.execution.release()
         proposal["session"] = ProposalSession(ident, build, lambda: proposal["agent"].stream_events(proposal))
@@ -553,6 +570,13 @@ class Handler(BaseHTTPRequestHandler):
     def post_project(self, body):
         folder = create_project(body["folder"], body["from_design"])
         return HTTPStatus.CREATED, {"project": str(folder), "versions": list_versions(folder)}
+
+    def post_workspace_project(self, body):
+        folder = new_project(body.get("name"), body.get("starter"))
+        return HTTPStatus.CREATED, {"project": str(folder), "versions": list_versions(folder)}
+
+    def post_recent(self, body):
+        return HTTPStatus.OK, {"project": str(remember(body["project"]))}
 
     def post_version(self, body):
         return HTTPStatus.CREATED, {"version": self.engine.save(body["project"], body["message"])}
