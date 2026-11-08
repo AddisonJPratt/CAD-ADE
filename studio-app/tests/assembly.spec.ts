@@ -1,5 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
-import { copyFileSync, readFileSync, rmSync } from 'node:fs';
+import { copyFileSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseManifest, type AssemblyManifest } from '../src/assembly/manifest';
 import { INITIAL_VIEW, assemblyRows, displayOf, viewReducer } from '../src/assembly/view';
@@ -36,9 +38,10 @@ test('hide, ghost and isolate act per instance and isolate never forgets what wa
   expect(viewReducer(view, { type: 'select', id: 'clip' }).selected).toBe('clip');
 });
 
-// The assembly project sits inside the shared test project folder; left there, it would read as an
-// unsaved change to that project's versions and block studio.spec's rollback.
-const assemblyFolder = () => `${process.env.MAGIC_TEST_PROJECT!}/holder-assembly-${test.info().workerIndex}-${test.info().repeatEachIndex}-${test.info().retry}`;
+// The assembly project gets its own scratch folder, outside the shared test project: inside it, even
+// briefly, it reads as an unsaved change and blocks studio.spec's rollback when the files run in parallel.
+const scratch = mkdtempSync(join(tmpdir(), 'magic-assembly-'));
+const assemblyFolder = () => join(scratch, `holder-assembly-${test.info().workerIndex}-${test.info().repeatEachIndex}-${test.info().retry}`);
 test.afterEach(() => rmSync(assemblyFolder(), { recursive: true, force: true }));
 
 type Probe = Record<string, { visible: boolean; opacity: number; highlighted: boolean; position: [number, number, number] }>;
@@ -131,7 +134,8 @@ test('a project without an assembly shows no assembly view', async ({ page }) =>
   await page.goto('/');
   await page.getByLabel('Project folder').fill(process.env.MAGIC_TEST_PROJECT!);
   await page.getByRole('button', { name: 'Open project' }).click();
-  await expect(page.getByRole('heading', { name: 'Version 3' })).toBeVisible();
+  // studio.spec adds versions to this shared project in parallel, so any version number will do.
+  await expect(page.getByRole('heading', { name: /^Version \d+/ })).toBeVisible();
   // The version's artifact list has loaded once the stage shows its model or says there is none.
   await expect(page.getByLabel('3D model').or(page.getByText(/No saved model/))).toBeVisible({ timeout: 30000 });
   await expect(page.getByRole('group', { name: 'Model view' })).toHaveCount(0);

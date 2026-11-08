@@ -27,7 +27,17 @@ feature name (or null). Studio reads it to name a picked face; it never computes
 
 **Pick**: one thing the user pointed at on the model in Studio: a body, a face, a circled area or a
 point. A pick carries its feature name from the face map when the face has one, and always its
-geometry, so the agent gets a description either way.
+geometry, so the agent gets a description either way. A circled area also carries its catch: every
+visible face (with its face-map id and feature) and corner point inside the drawn loop, on any body.
+
+**Note pin**: a short comment the user attaches to a spot on the model. A pin belongs to one saved
+version and is kept beside it in `.magic/pins/<version id>.json`, not in the version's files, so
+adding one never makes the project unsaved. Every request from that version carries its pins as
+`selection.pins`.
+
+**Measurement**: the distance and angle between two picks. Two parallel flat faces measure plane to
+plane on the face map's exact planes, the same B-rep reading the geometry gate's bbox probes use;
+other pairs measure centre to centre. The angle is between the faces' planes (0° parallel, 90° square).
 
 **Explode offset**: how far an instance moves in the fully exploded view, its ancestors' moves
 included. It's derived by the explode rule in `assembly/manifest.py` and scaled by Studio's slider.

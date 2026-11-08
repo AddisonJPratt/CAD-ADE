@@ -140,3 +140,21 @@ selection accent in 3D; hardware renders as steel, purchased components as a dar
 parts in the chosen finish. The explode slider scales the manifest's derived offsets; a one-line
 note says it is not a collision check. The tree is a treegrid: arrow keys move between rows, Tab
 reaches that row's toggles, Escape clears the selection.
+
+November 8 tools (#26): the viewport rail gains "Pin a note" and "Measure distance and angle" after
+"Circle an area", each a toggle that Escape leaves. A pin is a numbered ink marker on a short stem
+(the dimension label's ink, never orange: notes inform, they do not apply work); clicking it opens a
+small card with the note, where it sits, and Edit / Delete. A new pin asks for its note inline at
+the clicked spot. Measuring takes two clicks without Shift and says the reading in the status hint
+("Gap between parallel faces 13.50 mm · angle 0.0°") as well as on the model; the dimension label
+adds the angle only when the faces are not parallel; non-parallel pairs say so ("Faces at 90.0° ·
+centres 12.9 mm apart"). Measure picks highlight in stone, not orange, while the tool is on, and the
+dimension line is ink with end dots. The selection action bar steps aside while a tool is aiming; its
+"Note" became "Pin note" (a version pin at the selection, the one note system) and its "Measure"
+enters the measure tool with the same rule glyph. A lasso chip counts what it caught ("Circled area on
+riser · 2 faces, 8 corners", no "0 corners"); a loop that catches nothing says so and stays in the tool.
+Pins, the dimension and the selection bar sit beside the canvas's role=img, not inside it. Deleting a
+pin shows "Note deleted · Undo" for ten seconds. In the dark theme the marker is graphite in a cream
+ring so it reads on the light model finishes. The note draft flips to the marker's left near the
+stage's right edge and docks along the stage bottom on phones. The rule glyph (measure) is a
+faceted-glass rule with ticks on its measuring edge, mint like the other pointing tools.

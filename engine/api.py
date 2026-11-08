@@ -33,6 +33,8 @@
     POST /projects/versions              {"project", "message"}: save the current files as a version (201)
     POST /projects/rollback              {"project", "version", "wait"?}: restore a version's files as a
                                          new version, then re-run the gates (202, or 200 with "wait")
+    GET  /projects/pins?project=...&version=...  a version's note pins (engine/pins.py)
+    POST /projects/pins                  {"project", "version", "pins":[...]}: replace that version's pins
 
     Make mode (engine/make.py): Ask -> Make -> Prove -> Shelf
     GET  /make/form                      the holder templates, their measured ranges and materials
@@ -78,6 +80,7 @@ from .workspace import browse, choose_folder, is_project, list_projects, new_pro
 from .catalogue import BUILTIN, add_component, list_components, project_path
 from .parameters import parameters_of, accepted_brief_edit
 from .printers import PROFILE, project_printer, select_printer
+from .pins import pin_document, save_pins
 from .projects import (ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, project_parts_list,
                        run_project, verdict_artifacts)
 from .versions import (Conflict, create_project, list_versions, record_review, require_versioned,
@@ -362,6 +365,9 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/projects/version-artifacts":
             query = parse_qs(urlsplit(self.path).query)
             return self.guarded(lambda: self.version_artifact(query))
+        if path == "/projects/pins":
+            query = parse_qs(urlsplit(self.path).query)
+            return self.guarded(lambda: (HTTPStatus.OK, pin_document(query.get("project", [""])[0], query.get("version", [""])[0])))
         match = RUN_PATH.match(path)
         run = self.engine.get(match.group(1)) if match else None
         if not run:
@@ -455,7 +461,7 @@ class Handler(BaseHTTPRequestHandler):
                   "/workspace/projects": self.post_workspace_project, "/workspace/recent": self.post_recent,
                   "/workspace/choose-folder": self.post_choose_folder,
                   "/projects/versions": self.post_version, "/projects/rollback": self.post_rollback,
-                  "/projects/version-artifacts": self.post_version_artifacts,
+                  "/projects/version-artifacts": self.post_version_artifacts, "/projects/pins": self.post_pins,
                   "/make": self.post_make, "/make/print": self.post_make_print}
         proposal_match = re.fullmatch(r"/proposals/([0-9a-f]{32})/(reject|accept|interrupt|resume)", path)
         if proposal_match:
@@ -644,6 +650,10 @@ class Handler(BaseHTTPRequestHandler):
     def post_version_artifacts(self, body):
         version = rebuild_version_artifacts(body["project"], body["version"])
         return HTTPStatus.OK, {"version": version}
+
+    def post_pins(self, body):
+        save_pins(body["project"], body["version"], body["pins"])
+        return HTTPStatus.OK, pin_document(body["project"], body["version"])
 
     def post_catalogue(self, body):
         with self.engine.lock:

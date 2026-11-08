@@ -12,7 +12,10 @@ export type Pick = {
   /** From the harness face map: the named feature this pick lies on (null when the face is unnamed), the parameters
    *  driving that feature at their built values, the B-rep face, and for a body its feature names. */
   feature?: string | null; parameters?: FeatureParameters; face?: FaceRecord; features?: string[];
+  /** A lasso's catch (#26): every visible B-rep face and corner point inside the drawn loop, on any body. */
+  enclosed?: Enclosure;
 };
+export type Enclosure = { faces: { instance: string; face: FaceRecord }[]; points: { instance: string; point: Vec }[] };
 
 const round = (n: number) => Math.abs(n) < 0.05 ? '0.0' : n.toFixed(1);
 const toVec = (v: Vector3) => v.toArray() as Vec;

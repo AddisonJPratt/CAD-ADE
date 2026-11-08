@@ -21,6 +21,12 @@ open issue status alone is not evidence that code is missing.
   fix back to the designer once as a proposal the owner approves. The activity stream shows plan,
   the file being edited, each gate, the review and the reviewer's notes, with session time and the
   usage Claude Code reports (#28, ADR 0003).
+- Outline, note pin and measure tools (#26): the lasso's catch (every visible face and corner point
+  inside the loop, on every body) rides as `picks[].enclosed`; note pins are kept per version in
+  `.magic/pins/` (`GET`/`POST /projects/pins`) and sent as `selection.pins` with every request; the
+  Measure tool reads distance and angle between two faces, plane to plane on the face map, and
+  agrees with the geometry gate on `tests/fixtures/stepped_blocks.py` (Playwright and a committed
+  gate fixture in `tests/fixtures/measure/`).
 - Bounded parameter controls create structured proposals through the same lifecycle
   (#10). Values/ranges come from literal PARAMS; units/intent from brief metadata,
   falling back to the house-style comment on each PARAMS line. Out-of-range drafts are blocked inline.
@@ -33,7 +39,6 @@ open issue status alone is not evidence that code is missing.
 | #8 | Owner live demo/acceptance remains | Real Claude adapter; gate-passing opt-in M0 and interrupt evaluations |
 | #9 | Make / Studio / Mission Control over shared project state; current-version code, brief and report views | Studio plus existing separate proof and expert apps |
 | #12 | Per-claim evidence tiers and production export gating in the new app | Harness reports and verdicts |
-| #26 | Note pins, picked distance/angle tools beyond the two-pick measurement | Face picking, lasso, named features and the structured selection payload (#25) |
 | #11, #13 | Real printer/material profile integration and ElegooSlicer checks | Geometry printability gate; no physical validation |
 | #14–#18 | Guided Make/Shelf, print outcomes and approved calibration in the new app | Separate proof app and project versions |
 | #19, #20 | Provenance catalogue and general assembly gate | Standard-part library and assembly demos |

@@ -1,0 +1,5 @@
+{
+  "design": "stepped_blocks.py",
+  "brief": "tests/fixtures/stepped_blocks.yaml",
+  "dimensions": [{"name": "riser_height", "probe": {"probe": "bbox_z", "part": "riser"}, "measured": 13.5}]
+}
