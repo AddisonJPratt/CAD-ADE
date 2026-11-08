@@ -48,6 +48,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
 
 from harness.execute import run_worker
+from harness.pipeline import material_fits
 from harness.sweep import plan_samples
 
 from .proposal_session import ProposalSession
@@ -443,6 +444,8 @@ class Handler(BaseHTTPRequestHandler):
             return head(project)
         base = self.engine.change(project, prepare)
         try:
+            # Previews build with the same material fits an accepted run's gates use.
+            fits = material_fits(project_printer(draft))
             agent = ParameterEditAgent() if "parameter" in body else self.engine.agent
             proposal = agent.start(draft, body.get("brief"), body.get("selection"), body["parameter"] if "parameter" in body else body["message"])
         except Exception:
@@ -459,7 +462,7 @@ class Handler(BaseHTTPRequestHandler):
                 if cancel.is_set():
                     return {"ok": False, "interrupted": True}
             try:
-                return run_worker(draft / proposal["file"], out, cancel_event=cancel)
+                return run_worker(draft / proposal["file"], out, fits=fits, cancel_event=cancel)
             finally:
                 self.engine.execution.release()
         proposal["session"] = ProposalSession(ident, build, lambda: proposal["agent"].stream_events(proposal))
