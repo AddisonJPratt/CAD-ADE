@@ -293,7 +293,10 @@ test('Watermelon-adapted command search runs real Studio actions', async ({ page
 
 test('the header shows the Magic box brand and the favicon is served', async ({ page, request }) => {
   await page.goto('/');
-  const brand = page.getByRole('link', {name:'Magic CAD Studio'});
+  await expect(page).toHaveTitle('Magic CAD');
+  // The logo is a plain image named "Magic CAD": nothing to click, and not a Tab stop.
+  const brand = page.getByRole('img', {name:'Magic CAD', exact:true});
+  await expect(page.getByRole('link', {name:/Magic CAD/})).toHaveCount(0);
   const mark = brand.locator('svg.brand-mark'), wordmark = brand.locator('svg.brand-wordmark');
   await expect(mark).toBeVisible();
   await expect(wordmark).toBeVisible();
@@ -447,4 +450,37 @@ test('a picked face is named from the harness face map, survives a mode switch a
   await expect(page.getByRole('button', {name:'Accept change'})).toBeEnabled({timeout:120000});
   await page.getByRole('button', {name:'Reject change'}).click();
   await expect(page.getByRole('region', {name:'Proposed edit'})).toHaveCount(0);
+});
+
+test('creates a project without typing a path, lists it, and browses folders', async ({ page }) => {
+  test.skip(!process.env.MAGIC_PROJECTS_HOME, 'needs a scratch MAGIC_PROJECTS_HOME (tests/run.sh sets one)');
+  const name = `Picker ${Date.now()}`;
+  await page.goto('/');
+  await page.getByRole('button', { name: 'New project', exact: true }).first().click();
+  await expect(page.getByRole('radio', { name: /Box with lid/ })).toBeChecked();
+  await expect(page.getByText('Small two-part storage box: an open tray and a separate lid', { exact: false })).toBeInViewport();
+  await page.getByRole('button', { name: 'Create project' }).click();
+  await expect(page.getByText('Give the project a name.')).toBeVisible();
+  await expect(page.getByLabel('Name')).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByLabel('Project folder')).toHaveCount(0); // the typed-path fallback steps aside while naming
+  await page.getByLabel('Name').fill(name);
+  await page.getByRole('button', { name: 'Create project' }).click();
+  await expect(page.getByRole('heading', { name: 'Version 1' })).toBeVisible({ timeout: 60000 });
+  await expect(page.getByLabel('Project folder')).toHaveValue(new RegExp(name + '$'));
+
+  await page.goto('/');
+  await page.getByRole('button', { name: new RegExp(name) }).click();
+  await expect(page.getByRole('heading', { name: 'Version 1' })).toBeVisible({ timeout: 60000 });
+
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Browse', exact: true }).click();
+  // Browse starts in the projects home, where the new project is marked as a project.
+  await expect(page.locator('.picker-browse .picker-row.is-project', { hasText: name })).toBeVisible();
+  const here = await page.locator('.crumb .path').textContent();
+  await page.getByLabel('Up one folder').click();
+  await expect(page.locator('.crumb .path')).not.toHaveText(here!);
+  await page.getByRole('button', { name: 'Projects home' }).click();
+  await expect(page.locator('.crumb .path')).toHaveText(here!);
+  await page.locator('.picker-browse .picker-row.is-project', { hasText: name }).click();
+  await expect(page.getByRole('heading', { name: 'Version 1' })).toBeVisible({ timeout: 60000 });
 });

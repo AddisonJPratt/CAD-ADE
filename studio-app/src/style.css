@@ -310,14 +310,13 @@ header .mode-nav{display:flex;gap:4px;align-self:stretch;align-items:center}head
 
 /* Conversation column */
 .app.desk .conversation{display:grid;grid-template-rows:auto minmax(0,1fr) auto;min-height:0;background:var(--d-panel);border-right:1px solid var(--d-line)}
-.app.desk .conversation:has(> .project-open){grid-template-rows:auto}
+.app.desk .conversation:has(> .project-open){grid-template-rows:auto;overflow:auto;min-height:0}
 .app.desk .project-open{display:grid;gap:8px;padding:28px 22px;align-content:start}
 .app.desk .project-open h1{font-size:16px;font-weight:650;margin:0}
 .app.desk .project-open p{margin:0 0 10px;color:var(--d-ink-2);line-height:1.5}
 .app.desk .project-open label{font-size:12px;font-weight:600;margin:0;color:var(--d-ink-2)}
 .app.desk .project-open .open{display:flex;gap:6px}
-.app.desk .project-open input{flex:1;min-width:0;height:30px;padding:0 10px;border:1px solid var(--d-line-2);border-radius:7px;background:var(--d-bench);color:var(--d-ink);font-size:12.5px}
-.app.desk .project-open .primary-button{height:30px}
+.app.desk .project-open input{flex:1;min-width:0;height:32px;padding:0 10px;border:1px solid var(--d-line-2);border-radius:7px;background:var(--d-bench);color:var(--d-ink);font-size:12.5px}
 
 /* Verdict: plain words first, evidence one tap away */
 .app.desk .verdict-card{padding:16px 20px 14px;border-bottom:1px solid var(--d-line)}
@@ -611,3 +610,56 @@ body.resizing{cursor:col-resize;user-select:none}
 .printer-settings{border-bottom:1px solid #d2cec7;margin:0 0 24px;padding-bottom:16px}.printer-settings p{line-height:1.45}.printer-settings small,.printer-note{color:#58544d;font-size:.78rem}.printer-settings select{font:inherit;width:100%;padding:9px;border:1px solid #77716a;border-radius:4px;background:#fff;color:#1d1b18}.printer-settings select:focus-visible{outline:2px solid #1d1b18;outline-offset:3px}
 .app .printer-settings{border-top:1px solid var(--line);margin-top:20px;padding-top:16px}.app .printer-settings h3{font-size:.8125rem;font-weight:600;margin:0 0 6px}.app .printer-settings p{line-height:1.45;margin:0 0 10px}.app .printer-settings small,.app .printer-note{color:var(--muted);font-size:.75rem}.app .printer-settings label{display:block;font-size:.7rem;margin-bottom:4px}.app .printer-settings select{width:100%;padding:8px}.app .printer-settings .error:empty,.app .printer-note:empty{display:none}
 .app.desk .printer-settings{border-color:var(--d-line-2)}.app.desk .printer-settings small,.app.desk .printer-note{color:var(--d-ink-3);font-size:12px}.app.desk .printer-settings select{height:26px;border-radius:6px;border:1px solid var(--d-line-2);background:var(--d-bench);color:var(--d-ink);padding:0 6px;font-size:12px}
+/* Open field, final: one bordered container with the input and the action side by side (no overlap). */
+.app.desk .open-field{display:flex;align-items:center;gap:4px;height:32px;padding:0 4px 0 0;border:1px solid var(--d-line-2);border-radius:8px;background:var(--d-bench)}
+.app.desk .open-field:focus-within{border-color:var(--d-ink-3);box-shadow:0 0 0 3px var(--d-accent-soft)}
+.app.desk .open-field:has(input[aria-invalid=true]){border-color:var(--d-bad)}
+.app.desk .open-field input{position:static;z-index:auto;flex:1;min-width:0;height:100%;padding:0 4px 0 10px;border:0;border-radius:8px 0 0 8px;background:transparent;box-shadow:none}
+.app.desk .open-field input:focus-visible{outline:none;box-shadow:none;border:0}
+.app.desk .open-button{position:static;transform:none;z-index:auto;flex:none}
+/* The button is in the flow now, so the pressed nudge must not keep #60's -50% centring offset. */
+.app.desk .open-button:active:not(:disabled){transform:translateY(1px)}
+@media(max-width:760px){.app.desk .open-field{height:40px}}
+
+/* Project picker on the open screen (#66) */
+.app.desk .picker{display:grid;gap:12px;margin:4px 0 16px;min-width:0}
+.app.desk .picker>section,.app.desk .picker>form{min-width:0}
+.app.desk .picker-tabs{display:inline-flex;justify-self:start;gap:2px;padding:2px;border:1px solid var(--d-line);border-radius:8px;background:var(--d-bench)}
+.app.desk .picker-tab{height:26px;padding:0 11px;border:0;border-radius:6px;background:transparent;color:var(--d-ink-2);font-size:12.5px;text-align:center;transition:background-color .12s ease-out,color .12s ease-out}
+.app.desk .picker-tab:hover{color:var(--d-ink)}
+.app.desk .picker-tab[aria-pressed=true]{background:var(--d-raise);color:var(--d-ink);font-weight:600}
+.app.desk .picker-list{list-style:none;margin:0;padding:0;max-height:min(48vh,440px);overflow:auto;border:1px solid var(--d-line);border-radius:8px;background:var(--d-panel)}
+.app.desk .picker-list li+li{border-top:1px solid var(--d-line)}
+.app.desk .picker-row{width:100%;display:flex;align-items:center;gap:10px;padding:9px 12px;border:0;border-radius:0;background:transparent;color:var(--d-ink);text-align:left;font-size:13px;transition:background-color .12s ease-out}
+.app.desk .picker-row:hover:not(:disabled){background:var(--d-raise)}
+.app.desk .picker-row:focus-visible{outline:2px solid var(--d-accent);outline-offset:-2px}
+.app.desk .picker-row svg{width:16px;height:16px;flex:none;color:var(--d-ink-3)}
+.app.desk .picker-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:550}
+.app.desk .picker-meta{flex:none;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--d-ink-3);font-size:12px;font-variant-numeric:tabular-nums}
+.app.desk .picker-row.is-project .picker-meta{color:var(--d-ink);font-weight:600}
+.app.desk .project-open .picker-note{margin:0;font-size:12px;color:var(--d-ink-3)}
+.app.desk .picker .path,.app.desk .crumb .path{font-family:var(--font-2);font-size:12px;color:var(--d-ink-2);overflow-wrap:anywhere}
+.app.desk .picker-empty{display:grid;gap:10px;justify-items:start;padding:14px;border:1px dashed var(--d-line-2);border-radius:8px}
+.app.desk .project-open .picker-empty p{margin:0}
+.app.desk .picker-new{display:grid;gap:8px}
+.app.desk .picker-new fieldset{border:0;padding:0;margin:6px 0 0;min-width:0}
+.app.desk .picker-new legend{padding:0;margin:0 0 6px;font-size:12px;font-weight:600;color:var(--d-ink-2)}
+.app.desk .starter-list{max-height:min(40vh,360px);overflow:auto;border:1px solid var(--d-line);border-radius:8px;background:var(--d-panel)}
+.app.desk .project-open label.starter{display:flex;gap:10px;align-items:flex-start;padding:9px 12px;margin:0;cursor:pointer;font-size:13px;font-weight:400;color:var(--d-ink);transition:background-color .12s ease-out}
+.app.desk .starter+.starter{border-top:1px solid var(--d-line)}
+.app.desk .starter:hover{background:var(--d-raise)}
+.app.desk .starter:has(input:checked){background:var(--d-accent-soft)}
+.app.desk .project-open .starter input{flex:none;width:14px;height:14px;margin:2px 0 0;padding:0;border:0;accent-color:var(--d-accent)}
+.app.desk .starter b{display:block;font-weight:600}
+.app.desk .starter small{display:block;margin-top:2px;font-size:12px;line-height:1.4;color:var(--d-ink-3)}
+.app.desk .picker-actions{display:flex;align-items:center;gap:10px;margin-top:4px}
+.app.desk .picker-browse{display:grid;gap:10px}
+.app.desk .picker-browse>.primary-button{justify-self:start}
+.app.desk .crumb{display:flex;align-items:center;gap:6px;min-width:0}
+.app.desk .crumb .path{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.app.desk .crumb-home{flex:none;height:26px;padding:0 8px;font-size:12px}
+@media(max-width:760px){.app.desk .project-open input{height:40px}.app.desk .picker-tab{height:40px}.app.desk .crumb-home,.app.desk .crumb>.quiet-button{height:40px;min-width:40px}.app.desk .picker-list,.app.desk .starter-list{max-height:none}.app.desk .desk-workspace:has(.project-open) :is(.stage,.drawer-rail){display:none}}
+.app.desk .up-arrow{display:inline-flex;transform:rotate(-90deg)}
+.app.desk .project-open label.type-path{margin-top:8px}
+
+.app.desk .type-path-form{display:grid;gap:8px}

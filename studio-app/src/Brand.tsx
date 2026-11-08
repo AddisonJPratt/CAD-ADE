@@ -1,61 +1,64 @@
 import { useId } from 'react';
 
 // The Magic CAD brand (owner-approved, 7 November 2026). Static copies live in public/brand/.
-// Mark: the Magic box, a graphite box in true isometric (30° edges) whose lid floats just above the
-// base, with warm light spilling out of the gap. The glow is the brand's one non-action use of orange.
+// Mark: the Magic box, a graphite box in true isometric (30° edges). Its lid floats above the base and
+// swings open 20° on its back edge, so the lit inside shows: a box opening, never a cube with a band.
+// The glow is the brand's one non-action use of orange.
 
 export type BrandSurface = 'light' | 'dark';
 
 const BASE_LEFT = 'M29.36 59 64 79v28L29.36 87Z';
 const BASE_RIGHT = 'M64 79l34.64-20v28L64 107Z';
-const GAP = 'M29.36 53.4 64 73.4l34.64-20v5.6L64 79 29.36 59Z';
-const LID_LEFT = 'M29.36 44.6 64 64.6v8.8L29.36 53.4Z';
-const LID_RIGHT = 'M64 64.6l34.64-20v8.8L64 73.4Z';
-const LID_TOP = 'M64 24.6l34.64 20L64 64.6 29.36 44.6Z';
-// Edges: the lid's top silhouette, its front edges, the two edges lit by the gap, and the base outline.
-const RIM_TOP = 'M29.36 44.6 64 24.6l34.64 20';
-const RIM_LID = 'M29.36 44.6 64 64.6l34.64-20M64 64.6v8.8M29.36 44.6v8.8M98.64 44.6v8.8';
-const RIM_GLOW = 'M29.36 53.4 64 73.4l34.64-20M29.36 59 64 79l34.64-20';
+// The base's open top, full of light; the lid hides its back half.
+const OPENING = 'M64 39l34.64 20L64 79 29.36 59Z';
+const LID_LEFT = 'M34.06 28.74 68.7 48.74 66.09 58.51 31.45 38.51Z';
+const LID_RIGHT = 'M68.7 48.74 101.25 43.63 98.64 53.4 66.09 58.51Z';
+const LID_TOP = 'M66.61 23.63 101.25 43.63 68.7 48.74 34.06 28.74Z';
+// Edges: the lid's silhouette, its front edges, the rims lit from inside, and the base outline.
+const RIM_TOP = 'M34.06 28.74 66.61 23.63 101.25 43.63';
+const RIM_LID = 'M34.06 28.74 68.7 48.74 101.25 43.63M68.7 48.74 66.09 58.51M34.06 28.74 31.45 38.51M101.25 43.63 98.64 53.4';
+const RIM_INSIDE = 'M29.36 59 64 39l34.64 20';
+const RIM_GLOW = 'M31.45 38.51 66.09 58.51 98.64 53.4M29.36 59 64 79l34.64-20';
 const RIM_BASE = 'M29.36 59v28l34.64 20 34.64-20V59M64 79v28';
+const GRAPHITE = { top: ['#4f493f', '#3b362f'], left: ['#312d27', '#25221e'], right: ['#221f1c', '#171614'] };
 
-type Finish = { top: [string, string]; left: [string, string]; right: [string, string]; rim: string; rimTop: [number, number]; rimLid: [number, number]; rimBase: [number, number]; glow: number };
-// Light surfaces show the graphite box as approved. Dark surfaces lift the graphite and brighten the
-// rims so the outline still holds against the graphite header. Each rim is [opacity, width].
-const FINISH: Record<BrandSurface, Finish> = {
-  light: { top: ['#4f493f', '#3b362f'], left: ['#312d27', '#25221e'], right: ['#221f1c', '#171614'], rim: '#f3e7d3', rimTop: [.6, .9], rimLid: [.38, .85], rimBase: [.2, .9], glow: .9 },
-  dark: { top: ['#6a6256', '#524b41'], left: ['#433d35', '#36312b'], right: ['#312c27', '#26231f'], rim: '#f6ecdc', rimTop: [.85, 1], rimLid: [.55, .9], rimBase: [.38, .9], glow: .95 },
-};
-
-/** The Magic box. Decorative: the surrounding link or heading carries the accessible name. */
+/** The Magic box. Decorative: the element around it carries the accessible name.
+ *  On dark surfaces a 1 px pearl outline (it does not scale with the mark) keeps the graphite box
+ *  readable without lightening it; on light surfaces the box's own contrast carries it. */
 export function BrandMark({ surface, className }: { surface: BrandSurface; className?: string }) {
   const id = useId().replace(/[^\w-]/g, '');
-  const f = FINISH[surface];
   const url = (part: string) => `url(#${id}-${part})`;
-  return <svg className={className} viewBox="19 21 90 90" data-surface={surface} aria-hidden="true" focusable="false">
+  return <svg className={className} viewBox="20.3 20.3 90 90" data-surface={surface} aria-hidden="true" focusable="false">
     <defs>
-      <linearGradient id={`${id}-top`} x1="40" y1="30" x2="88" y2="60" gradientUnits="userSpaceOnUse"><stop stopColor={f.top[0]}/><stop offset="1" stopColor={f.top[1]}/></linearGradient>
-      <linearGradient id={`${id}-left`} x1="0" y1="46" x2="0" y2="106" gradientUnits="userSpaceOnUse"><stop stopColor={f.left[0]}/><stop offset="1" stopColor={f.left[1]}/></linearGradient>
-      <linearGradient id={`${id}-right`} x1="0" y1="46" x2="0" y2="106" gradientUnits="userSpaceOnUse"><stop stopColor={f.right[0]}/><stop offset="1" stopColor={f.right[1]}/></linearGradient>
-      <linearGradient id={`${id}-gap`} x1="0" y1="53" x2="0" y2="79" gradientUnits="userSpaceOnUse"><stop stopColor="#ffc47c"/><stop offset=".45" stopColor="#fff6e6"/><stop offset="1" stopColor="#ff9a52"/></linearGradient>
-      <linearGradient id={`${id}-lid-spill`} x1="0" y1="73" x2="0" y2="46" gradientUnits="userSpaceOnUse"><stop stopColor="#ff9a52" stopOpacity=".6"/><stop offset="1" stopColor="#ff9a52" stopOpacity="0"/></linearGradient>
+      <linearGradient id={`${id}-top`} x1="40" y1="26" x2="94" y2="48" gradientUnits="userSpaceOnUse"><stop stopColor={GRAPHITE.top[0]}/><stop offset="1" stopColor={GRAPHITE.top[1]}/></linearGradient>
+      <linearGradient id={`${id}-left`} x1="0" y1="30" x2="0" y2="106" gradientUnits="userSpaceOnUse"><stop stopColor={GRAPHITE.left[0]}/><stop offset="1" stopColor={GRAPHITE.left[1]}/></linearGradient>
+      <linearGradient id={`${id}-right`} x1="0" y1="30" x2="0" y2="106" gradientUnits="userSpaceOnUse"><stop stopColor={GRAPHITE.right[0]}/><stop offset="1" stopColor={GRAPHITE.right[1]}/></linearGradient>
+      <radialGradient id={`${id}-light`} cx="64" cy="61" r="30" gradientUnits="userSpaceOnUse"><stop stopColor="#fffaf1"/><stop offset=".45" stopColor="#ffe2b0"/><stop offset=".85" stopColor="#ffa25a"/><stop offset="1" stopColor="#f08a48"/></radialGradient>
+      <linearGradient id={`${id}-lid-spill`} x1="0" y1="58" x2="0" y2="30" gradientUnits="userSpaceOnUse"><stop stopColor="#ff9a52" stopOpacity=".6"/><stop offset="1" stopColor="#ff9a52" stopOpacity="0"/></linearGradient>
       <linearGradient id={`${id}-base-spill`} x1="0" y1="59" x2="0" y2="96" gradientUnits="userSpaceOnUse"><stop stopColor="#ff9a52" stopOpacity=".5"/><stop offset="1" stopColor="#ff9a52" stopOpacity="0"/></linearGradient>
-      <filter id={`${id}-bloom`} x="-.5" y="-1.5" width="2" height="4"><feGaussianBlur stdDeviation="4"/></filter>
+      <filter id={`${id}-bloom`} x="-.5" y="-.5" width="2" height="2"><feGaussianBlur stdDeviation="4"/></filter>
     </defs>
     <path d={BASE_LEFT} fill={url('left')}/>
     <path d={BASE_RIGHT} fill={url('right')}/>
     <path d={BASE_LEFT + BASE_RIGHT} fill={url('base-spill')}/>
-    <path d={GAP} fill="#ff9450" filter={url('bloom')} opacity=".9"/>
-    <path d={GAP} fill={url('gap')}/>
+    <path d={OPENING} fill="#ff9450" filter={url('bloom')} opacity=".9"/>
+    <path d={OPENING} fill={url('light')}/>
+    <path d={RIM_INSIDE} fill="none" stroke="#ffe3b5" strokeOpacity=".9" strokeWidth=".9" strokeLinejoin="round"/>
     <path d={LID_LEFT} fill={url('left')}/>
     <path d={LID_RIGHT} fill={url('right')}/>
     <path d={LID_LEFT + LID_RIGHT} fill={url('lid-spill')}/>
     <path d={LID_TOP} fill={url('top')}/>
-    <g fill="none" strokeLinejoin="round">
-      <path d={RIM_TOP} stroke={f.rim} strokeOpacity={f.rimTop[0]} strokeWidth={f.rimTop[1]}/>
-      <path d={RIM_LID} stroke={f.rim} strokeOpacity={f.rimLid[0]} strokeWidth={f.rimLid[1]}/>
-      <path d={RIM_GLOW} stroke="#ffe3b5" strokeOpacity={f.glow} strokeWidth=".9"/>
-      <path d={RIM_BASE} stroke={f.rim} strokeOpacity={f.rimBase[0]} strokeWidth={f.rimBase[1]}/>
-    </g>
+    {surface === 'dark'
+      ? <g fill="none" stroke="#f6ecdc" strokeWidth="1" strokeLinejoin="round">
+          <path d={RIM_TOP + RIM_BASE} strokeOpacity=".5" vectorEffect="non-scaling-stroke"/>
+          <path d={RIM_LID} strokeOpacity=".3" vectorEffect="non-scaling-stroke"/>
+        </g>
+      : <g fill="none" stroke="#f3e7d3" strokeLinejoin="round">
+          <path d={RIM_TOP} strokeOpacity=".6" strokeWidth=".9"/>
+          <path d={RIM_LID} strokeOpacity=".38" strokeWidth=".85"/>
+          <path d={RIM_BASE} strokeOpacity=".2" strokeWidth=".9"/>
+        </g>}
+    <path d={RIM_GLOW} fill="none" stroke="#ffe3b5" strokeOpacity=".9" strokeWidth=".9" strokeLinejoin="round"/>
   </svg>;
 }
 

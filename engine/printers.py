@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 from .projects import ProjectError, designs_of
+from .versions import git, is_versioned
 
 from library.printer_profiles import PROFILE
 
@@ -32,4 +33,9 @@ def select_printer(project, printer, material):
     if printer != PROFILE['id'] or material not in PROFILE['materials']:
         raise ProjectError('unknown printer or material')
     (project / SETTINGS).write_text(json.dumps({'printer': printer, 'material': material}, indent=2) + '\n')
+    if is_versioned(project) and git(project, 'status', '--porcelain', '--', SETTINGS).strip():
+        # Save the choice as its own version: an unsaved printer.json would block rollback and
+        # proposals. Only this file is committed; other unsaved edits stay unsaved.
+        git(project, 'add', '--', SETTINGS)
+        git(project, 'commit', '--quiet', '--message', f'Set material to {material}', '--', SETTINGS)
     return project_printer(project)
