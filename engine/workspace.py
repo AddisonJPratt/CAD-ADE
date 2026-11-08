@@ -9,12 +9,15 @@ engine supplies what the open screen shows:
     starters()         the repo designs a new project can start from
     new_project(name, starter)   <home>/<name> as version 1
     browse(folder)     one folder's visible subfolders, with project folders marked
+    choose_folder()    the macOS Finder folder panel, shown by the engine on this Mac
 
 Everything stays on this computer. browse lists folder names only, never file contents.
 """
 import json
 import os
 import re
+import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -169,3 +172,25 @@ def browse(folder=None):
     parent = target.parent if target.parent != target else None
     return {"path": str(target), "parent": str(parent) if parent else None,
             "project": is_project(target), "home": str(home()), "entries": entries}
+
+
+CHOOSE = ["-e", "on run argv", "-e", "activate",
+          "-e", "POSIX path of (choose folder with prompt (item 1 of argv) default location (POSIX file (item 2 of argv)))",
+          "-e", "end run"]
+
+
+def choose_folder(prompt="Choose a Magic CAD project folder"):
+    """Show the native macOS folder panel. Returns the chosen folder, or None if cancelled."""
+    if sys.platform != "darwin":
+        raise ProjectError("the Finder folder panel is only available on macOS; use Browse")
+    start = home() if home().is_dir() else Path.home()
+    try:
+        done = subprocess.run(["osascript", *CHOOSE, prompt, str(start)], capture_output=True, text=True, timeout=900)
+    except subprocess.TimeoutExpired:
+        return None
+    if done.returncode:
+        if "-128" in done.stderr:  # the user pressed Cancel
+            return None
+        raise ProjectError("the Finder folder panel could not open: " + done.stderr.strip()[:300])
+    chosen = done.stdout.strip()
+    return Path(chosen).resolve() if chosen else None
