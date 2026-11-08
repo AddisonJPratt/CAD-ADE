@@ -15,7 +15,8 @@ from .report import write_reports
 from .sweep import run_sweep
 
 GATE_NAMES = ["1 Execute", "2 Geometry", "3 Printability", "4 Renders", "Sweep", "5 Exports"]
-PRODUCED = ("*.stl", "*.step", "report.json", "report.md", "sweep.json", "sweep.md")
+PRODUCED = ("*.stl", "*.step", "*.faces.json", "report.json", "report.md", "sweep.json", "sweep.md")
+EXPORTED = ("stl", "step", "faces")  # keys of a worker part entry that Gate 5 keeps
 MESH_VOLUME_REL = 0.01  # STL may differ from the B-rep by facet error, no more
 
 
@@ -112,7 +113,7 @@ def finish(report, out, stem="report", events=QUIET):
     report["claims"] = claims_for_report(report)
     # Production files must not survive a failed gate, including export verification.
     if stem == "report" and not report["pass"]:
-        for pattern in ("*.stl", "*.step"):
+        for pattern in ("*.stl", "*.step", "*.faces.json"):
             for artifact in out.glob(pattern):
                 artifact.unlink()
         report.pop("exports", None)
@@ -231,7 +232,7 @@ def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=1
         ok = True
         files = []
         for part in result["parts"]:
-            for key in ("stl", "step"):
+            for key in EXPORTED:
                 target = out / Path(part[key]).name
                 shutil.copy2(part[key], target)
                 ok = ok and sha(part[key]) == sha(target) and target.stat().st_size > 0

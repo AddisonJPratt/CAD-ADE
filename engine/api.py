@@ -14,8 +14,12 @@
     GET  /runs/<id>/artifacts/<path>     a file from the project's outputs folder (STL, STEP, PNG, report)
 
     GET  /projects/parameters?project=...&design=...  literal defaults/ranges and brief units
-    POST /proposals                      {"project", "selection":{"design"}, "parameter":{"name","value"}}
-                                         explicit parameter edit, held for acceptance like a chat edit
+    POST /proposals                      {"project", "message", "selection"?} a chat request to the agent, or
+                                         {"project", "parameter":{"name","value"}, "selection"?} an explicit
+                                         parameter edit; both are held for acceptance. selection is
+                                         {"design", "picks":[{instance, kind, feature, description, point,
+                                         normal, centroid, area, ...}], "measurement"?} and is handed to the
+                                         agent as sent; GET /proposals/<id> echoes it back
     POST /projects                       {"folder", "from_design"}: a new project as version 1 (201)
     GET  /projects/printer?project=...   current printer and material
     POST /projects/printer               {"project", "material", "printer"?}: select project settings
@@ -429,7 +433,8 @@ class Handler(BaseHTTPRequestHandler):
             dimensions = {side: [part["bbox"]["size"] for part in parts]
                           for side, parts in session.previews.items()}
             return {"id": session.id, "state": session.state, "error": session.error,
-                    "changes": proposal["changes"], "previews": previews, "preview_dimensions": dimensions}
+                    "changes": proposal["changes"], "previews": previews, "preview_dimensions": dimensions,
+                    "selection": proposal.get("selection")}
 
     def post_proposal(self, body):
         project = require_versioned(body["project"])

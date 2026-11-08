@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { BufferAttribute, BufferGeometry, DoubleSide, EdgesGeometry, Vector3 } from 'three';
+import type { FaceRecord } from './Features';
 
 export type PickKind = 'body' | 'face' | 'area' | 'point';
 export type Vec = [number, number, number];
@@ -8,6 +9,8 @@ export type Pick = {
   point: Vec; normal: Vec; centroid: Vec;
   area?: number; flat?: boolean; region?: Float32Array; geometry: BufferGeometry;
   note?: string; locked?: boolean; loop?: Float32Array;
+  /** From the harness face map: the named feature this pick lies on (null when the face is unnamed), the B-rep face, and for a body its feature names. */
+  feature?: string | null; face?: FaceRecord; features?: string[];
 };
 
 const round = (n: number) => Math.abs(n) < 0.05 ? '0.0' : n.toFixed(1);
@@ -99,18 +102,44 @@ function facing([x, y, z]: Vec) {
   return Math.abs(value) > 0.97 ? name : `mostly ${name}`;
 }
 
+const title = (name: string) => name.replace(/^./, c => c.toUpperCase());
+
+/** Chip text: the feature's name when the harness named the face, otherwise where the pick is. */
 export function label(pick: Pick) {
-  const base = pick.kind === 'body' ? `Body ${pick.body}` : pick.kind === 'area' ? `Circled area on ${pick.body}` : pick.kind === 'point' ? `Point on ${pick.body}` : `${pick.flat === false ? 'Surface' : 'Face'} on ${pick.body} · ${facing(pick.normal).split(' (')[0]}`;
+  const name = pick.feature ? title(pick.feature) : null;
+  const base = pick.kind === 'body' ? `Body ${pick.body}`
+    : pick.kind === 'area' ? `Circled area on ${name ? `${pick.feature}, ${pick.body}` : pick.body}`
+    : pick.kind === 'point' ? `Point on ${name ? `${pick.feature}, ${pick.body}` : pick.body}`
+    : name ? `${name} · ${pick.body}` : `${pick.flat === false ? 'Surface' : 'Face'} on ${pick.body} · ${facing(pick.normal).split(' (')[0]}`;
   return pick.locked ? `Keep: ${base}` : base;
 }
 
-/** What the assistant receives. Positions and directions only until the harness exports feature names. */
+/** What the assistant reads: the named feature when the harness exported one, else the face's geometry. */
 export function describe(pick: Pick) {
   const [x, y, z] = pick.centroid.map(round);
-  const what = pick.kind === 'body' ? `the whole body "${pick.body}"`
-    : pick.kind === 'point' ? `a point on body "${pick.body}" at (${pick.point.map(round).join(', ')}) mm`
-    : `${pick.kind === 'area' ? 'an area circled' : pick.flat === false ? 'a curved surface patch' : 'a flat face'} on body "${pick.body}" facing ${facing(pick.normal)}, area ≈ ${Math.round(pick.area || 0)} mm², centred at (${x}, ${y}, ${z}) mm`;
+  const named = pick.feature ? `the "${pick.feature}" feature of body "${pick.body}"` : null;
+  const what = pick.kind === 'body' ? `the whole body "${pick.body}"${pick.features?.length ? ` (named features: ${pick.features.join(', ')})` : ''}`
+    : pick.kind === 'point' ? `a point on ${named || `body "${pick.body}"`} at (${pick.point.map(round).join(', ')}) mm`
+    : `${pick.kind === 'area' ? 'an area circled' : pick.flat === false ? 'a curved surface patch' : 'a flat face'} on ${named || `body "${pick.body}"`} facing ${facing(pick.normal)}, area ≈ ${Math.round(pick.area || 0)} mm², centred at (${x}, ${y}, ${z}) mm`;
   return `${pick.locked ? 'KEEP UNCHANGED: ' : ''}${what}${pick.note ? ` (note: "${pick.note}")` : ''}`;
+}
+
+/** The structured selection sent with a request: what the engine hands the agent adapter as-is. */
+export type SelectionPayload = {
+  design: string;
+  picks: { instance: string; kind: PickKind; feature: string | null; features?: string[]; face: number | null; description: string;
+    point: Vec; normal: Vec; centroid: Vec; area: number | null; flat: boolean | null; note: string | null; locked: boolean }[];
+  measurement: { value: number; kind: string; from: Vec; to: Vec } | null;
+};
+const mm = (v: Vec): Vec => v.map(n => Math.round(n * 100) / 100) as Vec;
+export function selectionPayload(design: string, picks: Pick[], measured: ReturnType<typeof measure> | null): SelectionPayload {
+  return {
+    design,
+    picks: picks.map(pick => ({ instance: pick.body, kind: pick.kind, feature: pick.feature ?? null, ...(pick.kind === 'body' ? { features: pick.features ?? [] } : {}),
+      face: pick.face?.id ?? null, description: describe(pick), point: mm(pick.point), normal: mm(pick.normal), centroid: mm(pick.centroid),
+      area: pick.area == null ? null : Math.round(pick.area * 10) / 10, flat: pick.flat ?? null, note: pick.note ?? null, locked: !!pick.locked })),
+    measurement: measured ? { value: Math.round(measured.value * 100) / 100, kind: measured.kind, from: mm(measured.from), to: mm(measured.to) } : null,
+  };
 }
 
 /* ---------- Drawing ---------- */

@@ -19,7 +19,8 @@ Designs are parametric build123d Python; the harness (`magic.py`) verifies them.
 - Units: mm. Z is print-up; a design is modelled in its print orientation with its base on z=0.
 - `PARAMS` at the top of the file, each with unit, range and one-line intent in a comment.
 - Every feature is derived from PARAMS or `library/standard_parts.json`, never from hard-coded numbers.
-- Name features in comments and variables; set `.label` on the returned solids.
+- Name features in comments and variables; set `.label` on the returned solids. Wrap a cutter
+  or boss in `feature("name", shape)` from `library` so Studio can name its faces when picked.
 - Fillet before boolean where possible.
 - Use `library/` helpers before writing custom geometry.
 

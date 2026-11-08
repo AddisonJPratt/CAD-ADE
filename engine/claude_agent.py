@@ -44,7 +44,7 @@ class ClaudeCodeAgent(AgentAdapter):
         brief_file = Path(project) / 'briefs' / f'{design.stem}.yaml'
         context = {'request':message, 'selection':selection, 'brief':brief or (brief_file.read_text() if brief_file.is_file() else None),
                    'parameters':parameters_of(project,design.name), 'source':design.read_text()}
-        return {'file':f'designs/{design.name}', 'source':design.read_text(), 'changes':[],
+        return {'file':f'designs/{design.name}', 'source':design.read_text(), 'changes':[], 'selection':selection,
                 'workspace':str(project), 'context':context, 'interrupted':False,
                 'process':None, 'process_lock':threading.Lock()}
 

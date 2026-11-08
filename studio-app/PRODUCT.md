@@ -38,9 +38,14 @@ presented as a design review or a print.
   upgrades a claim.
 - Never send a print job; printer actions always need the user's confirmation.
 - No weapon or firearm components; original designs only.
-- Every exposed control must operate a supported function. Assembly, motion, selection tools and
-  sketching are roadmap capabilities and must not appear as working tools until they exist.
-- Undecided: the selection tools (part, surface, lasso, note pin, measure) are planned but not built.
+- Every exposed control must operate a supported function. Assembly, motion and sketching are
+  roadmap capabilities and must not appear as working tools until they exist.
+- Selection (#25): a click picks a face, double-click a body, the lasso an area. A picked face is
+  named from the face map the harness exports beside each STL (`<part>.faces.json`, from the
+  design's `feature(name, shape)` calls); an unnamed face is described by where it faces, its area
+  and its centre. The selection stays through Make / Studio / Mission Control and rides with the
+  next request as `selection.picks`, which the engine hands to the agent adapter unchanged.
+- Undecided: note pins and the picked distance/angle tools beyond the two-pick measurement (#26).
 
 ## Evidence on Hand
 - Real test fixtures: `tests/fixtures/good_two_parts.py` (two blocks) and the curved cable-clip
