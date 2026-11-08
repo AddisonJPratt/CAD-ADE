@@ -1,0 +1,14 @@
+name: stepped_blocks
+function: Test fixture for Studio's measure tool; the riser height is a gate-measured gap between two visible faces.
+hard_dimensions: {riser_height: 13.5}
+measures:
+  riser_height: {probe: bbox_z, part: riser}
+interfaces: []
+soft_preferences: []
+assumptions: []
+expected_solids: 2
+params:
+  base_side: {value: 40.0, min: 30.0, max: 50.0, unit: mm, intent: Base footprint side}
+  base_height: {value: 8.0, min: 5.0, max: 12.0, unit: mm, intent: Base thickness}
+  riser_side: {value: 22.0, min: 15.0, max: 25.0, unit: mm, intent: Riser footprint side}
+  riser_height: {value: 13.5, min: 10.0, max: 20.0, unit: mm, intent: Riser height above the ledge}

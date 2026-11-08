@@ -1,5 +1,5 @@
 import { useId, type ReactNode } from 'react';
-export type IconName = 'orbit'|'pan'|'fitModel'|'display'|'grid'|'shaded'|'front'|'top'|'side'|'iso'|'zoomIn'|'zoomOut'|'reset'|'eyeOff'|'search'|'browser'|'inspector'|'parameters'|'cube'|'folder'|'layers'|'eye'|'chat'|'history'|'download'|'fit'|'wire'|'sun'|'moon'|'check'|'arrow'|'close'|'selectBody'|'selectFace'|'pin'|'minus'|'lasso';
+export type IconName = 'orbit'|'pan'|'fitModel'|'display'|'grid'|'shaded'|'front'|'top'|'side'|'iso'|'zoomIn'|'zoomOut'|'reset'|'eyeOff'|'search'|'browser'|'inspector'|'parameters'|'cube'|'folder'|'layers'|'eye'|'chat'|'history'|'download'|'fit'|'wire'|'sun'|'moon'|'check'|'arrow'|'close'|'selectBody'|'selectFace'|'pin'|'minus'|'lasso'|'measure';
 
 // True isometric cube on the 24-unit grid (30° edges, 9.5-unit sides), shared by every view glyph.
 const HEX = 'M12 2.5 20.25 7.25v9.5L12 21.5l-8.25-4.75v-9.5Z';
@@ -79,14 +79,16 @@ const paths: Record<IconName, ReactNode> = {
  // Selection tools: what you point at rides into the next request.
  selectBody:<><path d={MINI}/><path d={MINI_SEAMS}/><path d="M4 8V4h4m8 0h4v4M4 16v4h4"/><path d="M14.6 13.4 21 15.8l-2.8 1.2-1.2 2.8Z"/></>,
  selectFace:<><path d={HEX}/><path d={SEAMS}/><path d="M14.6 13.4 21 15.8l-2.8 1.2-1.2 2.8Z"/></>,
- pin:<><path d="M12 21.5s-6.5-6-6.5-11.25a6.5 6.5 0 0 1 13 0C18.5 15.5 12 21.5 12 21.5Z"/><circle cx="12" cy="10.25" r="2.25"/></>
+ pin:<><path d="M12 21.5s-6.5-6-6.5-11.25a6.5 6.5 0 0 1 13 0C18.5 15.5 12 21.5 12 21.5Z"/><circle cx="12" cy="10.25" r="2.25"/></>,
+ // A rule laid across the view, ticks on its measuring edge: distance and angle between two picks.
+ measure:<><path d="M3 16.2 16.2 3 21 7.8 7.8 21Z"/><path d="m5.64 13.56 1.41 1.41M8.28 10.92l2.26 2.26M10.92 8.28l1.41 1.41M13.56 5.64l2.26 2.26"/></>
 };
 
 // Hue carries meaning: stone = camera views, mint = navigation, violet = display, amber = workspace.
 type IconTone = 'sky'|'mint'|'amber'|'violet'|'neutral';
 const tones:Partial<Record<IconName,IconTone>> = {
  front:'sky',top:'sky',side:'sky',iso:'sky',cube:'sky',
- lasso:'mint',selectBody:'mint',selectFace:'mint',pin:'mint',
+ lasso:'mint',selectBody:'mint',selectFace:'mint',pin:'mint',measure:'mint',
  orbit:'mint',pan:'mint',zoomIn:'mint',zoomOut:'mint',fit:'mint',fitModel:'mint',check:'mint',
  display:'violet',shaded:'violet',wire:'violet',grid:'violet',reset:'violet',moon:'violet',
  browser:'amber',inspector:'amber',parameters:'amber',folder:'amber',layers:'amber',chat:'amber',history:'amber',download:'amber',sun:'amber'
@@ -124,7 +126,8 @@ const glass:Partial<Record<IconName,Glass>> = {
  selectBody:{body:MINI,hi:MINI_TOP,lo:MINI_RIGHT},
  selectFace:{clear:HEX,hi:TOP},
  lasso:{clear:'M12 4.5c4.7 0 8.25 2.2 8.25 5s-3.55 5-8.25 5-8.25-2.2-8.25-5 3.55-5 8.25-5Z'},
- pin:{body:'M12 21.5s-6.5-6-6.5-11.25a6.5 6.5 0 0 1 13 0C18.5 15.5 12 21.5 12 21.5Z'}
+ pin:{body:'M12 21.5s-6.5-6-6.5-11.25a6.5 6.5 0 0 1 13 0C18.5 15.5 12 21.5 12 21.5Z'},
+ measure:{body:'M3 16.2 16.2 3 21 7.8 7.8 21Z'}
 };
 
 export function Icon({name,tone}: {name:IconName;tone?:IconTone|'material'}) {

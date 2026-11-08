@@ -45,7 +45,10 @@ presented as a design review or a print.
   design's `feature(name, shape)` calls); an unnamed face is described by where it faces, its area
   and its centre. The selection stays through Make / Studio / Mission Control and rides with the
   next request as `selection.picks`, which the engine hands to the agent adapter unchanged.
-- Undecided: note pins and the picked distance/angle tools beyond the two-pick measurement (#26).
+- Outline, note pin and measure (#26): the lasso also sends every visible face and corner point it
+  encloses (`picks[].enclosed`); note pins are notes on one saved version (kept in `.magic/pins/`,
+  never in the project's files) and go with every request as `selection.pins`; the Measure tool
+  gives distance and angle between two faces, matching the geometry gate's reading within 0.1 mm.
 
 ## Evidence on Hand
 - Real test fixtures: `tests/fixtures/good_two_parts.py` (two blocks) and the curved cable-clip
