@@ -32,6 +32,25 @@ Opt-in real-runtime evaluations (not ordinary tests):
 .venv/bin/python evals/run_m0.py --project /tmp/fresh-m0-eval --interrupt
 ```
 
+The same two runs as an opt-in unittest (skipped unless the variable is set):
+
+```sh
+MAGIC_REAL_CLAUDE=1 .venv/bin/python -m unittest tests.test_claude_real
+```
+
+The ordinary suite (`tests.test_claude_adapter`) drives the adapter against a local
+stream-json fixture instead of the model: proposal held until accept, interrupt/resume
+kills the CLI process group, timeout, unsupported request, missing CLI, an unavailable
+CAD MCP server, a CLI error result (such as logged out), a result with no structured
+edit, the four-method adapter interface, and that the app passes no key, token or
+settings override and injects no auth environment into the CLI.
+
+Re-recorded on November 8 (Claude Code 2.1.319): real proposal `thickness` 8→9 mm with
+skill read and `library_lookup`, gates passed, version 2 saved; real interrupt left
+source, briefs and versions unchanged. Claude Code leaves an empty
+`~/.claude/projects/<proposal folder>/memory` directory per proposal even with
+`--no-session-persistence`; it holds no credentials or transcript.
+
 Recorded on November 6: real Claude proposal 8→9 mm, both CAD services connected,
 skill reads and hardware library lookup observed, acceptance passed all gates and
 sweep and saved version 2. Real interruption left source/brief/version IDs unchanged.
