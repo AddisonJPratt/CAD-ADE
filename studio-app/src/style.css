@@ -664,3 +664,68 @@ body.resizing{cursor:col-resize;user-select:none}
 .app.desk .project-open label.type-path{margin-top:8px}
 
 .app.desk .type-path-form{display:grid;gap:8px}
+
+/* Assembly view (#21): the tree docks on the viewport's right; the model keeps the room. */
+.app.desk .stage-views{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.app.desk .model-view-switch{background:color-mix(in srgb,var(--d-bench) 70%,transparent)}
+.app.desk .assembly-panel{position:absolute;top:48px;right:12px;z-index:4;width:272px;max-height:calc(100% - 128px);display:flex;flex-direction:column;background:var(--d-panel);border:1px solid var(--d-line);border-radius:10px;box-shadow:0 6px 18px var(--d-shadow);color:var(--d-ink)}
+.app.desk .assembly-panel #assembly-body{display:flex;flex-direction:column;min-height:0}
+.app.desk .assembly-panel #assembly-body[hidden]{display:none}
+.app.desk .assembly-heading{display:flex;align-items:baseline;gap:8px;padding:10px 6px 8px 12px}
+.app.desk .assembly-heading h2{margin:0;font-size:13px;font-weight:650;letter-spacing:.005em}
+.app.desk .assembly-count{flex:1;min-width:0;font-size:11.5px;color:var(--d-ink-3);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app.desk .assembly-collapse{align-self:center;display:grid;place-items:center;width:24px;height:24px;min-height:24px;padding:0;border:0;border-radius:6px;background:transparent;color:var(--d-ink-3)}
+.app.desk .assembly-collapse:hover{background:var(--d-raise);color:var(--d-ink)}
+.app.desk .assembly-collapse svg{width:14px;height:14px}
+.app.desk :is(.assembly-warning,.assembly-isolated){margin:0 12px 8px;font-size:12px;line-height:1.4}
+.app.desk .assembly-warning{color:var(--d-bad)}
+.app.desk .assembly-isolated{color:var(--d-ink-2)}
+.app.desk :is(.assembly-warning,.assembly-isolated) button{display:inline;min-height:0;padding:0;border:0;background:none;color:var(--d-ink);font-size:inherit;text-decoration:underline;text-underline-offset:2px}
+.app.desk .assembly-row.is-ghost .assembly-label{color:var(--d-ink-2);font-style:italic}
+.app.desk .assembly-tree{overflow:auto;min-height:0;padding:0 4px 6px;border-top:1px solid var(--d-line);padding-top:4px}
+.app.desk .assembly-row{position:relative;display:flex;align-items:center;gap:2px;border-radius:7px;padding-left:calc(var(--depth) * 14px)}
+/* A hairline guide shows which part a child hangs off. */
+.app.desk .assembly-row[aria-level="2"]::before,.app.desk .assembly-row[aria-level="3"]::before,.app.desk .assembly-row[aria-level="4"]::before{content:"";position:absolute;top:2px;bottom:2px;left:calc(var(--depth) * 14px - 6px);width:1px;background:var(--d-line-2)}
+.app.desk .assembly-row:hover{background:color-mix(in srgb,var(--d-raise) 60%,transparent)}
+.app.desk .assembly-row.selected{background:var(--d-accent-soft)}
+.app.desk .assembly-name-cell{flex:1;min-width:0}
+.app.desk .assembly-name{display:grid;width:100%;gap:1px;padding:5px 6px 5px 8px;min-height:0;border:0;border-radius:7px;background:transparent;color:var(--d-ink);text-align:left}
+.app.desk .assembly-label{font-size:12.5px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app.desk .assembly-name small{font-size:11px;line-height:1.25;color:var(--d-ink-3)}
+.app.desk .assembly-row.selected .assembly-label{font-weight:600}
+.app.desk .assembly-row.is-hidden .assembly-label{color:var(--d-ink-3)}
+.app.desk .assembly-row.is-hidden .assembly-label{text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--d-ink-3) 60%,transparent)}
+.app.desk .assembly-actions{display:flex;flex:none;gap:1px;padding-right:2px}
+.app.desk .assembly-actions button{display:grid;place-items:center;width:24px;height:24px;min-height:24px;padding:0;border:0;border-radius:6px;background:transparent;color:var(--d-ink-3);opacity:0;transition:opacity .12s ease-out}
+.app.desk .assembly-actions button svg{width:14px;height:14px}
+.app.desk .assembly-actions .assembly-eye{opacity:.6}
+.app.desk .assembly-row:is(:hover,:focus-within,.selected) .assembly-actions button,.app.desk .assembly-actions button[aria-pressed=true]{opacity:1}
+.app.desk .assembly-actions button:disabled{opacity:.35!important;cursor:not-allowed}
+.app.desk .assembly-actions button:disabled:hover{background:transparent;color:var(--d-ink-3)}
+.app.desk .assembly-actions button:hover{background:var(--d-raise);color:var(--d-ink)}
+.app.desk .assembly-actions button[aria-pressed=true]{background:var(--d-accent-soft);color:var(--d-ink);box-shadow:inset 0 0 0 1px var(--d-ink-2)}
+.app.desk .assembly-explode{display:grid;grid-template-columns:auto minmax(0,1fr) 3.2em;align-items:center;gap:10px;padding:10px 12px 4px;border-top:1px solid var(--d-line)}
+.app.desk .assembly-explode label{margin:0;font-size:12px;font-weight:600;color:var(--d-ink-2)}
+.app.desk .assembly-explode input{width:100%;margin:0;padding:0;border:0;background:transparent;accent-color:var(--d-ink-2);height:24px}
+.app.desk .assembly-explode output{font-size:12px;color:var(--d-ink-2);text-align:right;font-variant-numeric:tabular-nums}
+.app.desk .assembly-foot{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:4px 8px 10px 12px}
+.app.desk .assembly-foot p{margin:3px 0 0;font-size:11px;line-height:1.4;color:var(--d-ink-3);max-width:24ch}
+.app.desk .assembly-foot .quiet-button{flex:none;height:24px;min-height:24px;padding:0 8px;border-radius:6px;font-size:12px}
+.app.desk .assembly-foot .quiet-button:hover:not(:disabled){background:var(--d-raise);color:var(--d-ink)}
+.app.desk .assembly-foot .quiet-button:disabled{color:color-mix(in srgb,var(--d-ink-3) 60%,transparent);cursor:not-allowed}
+.app.desk .assembly-panel :is(button,input):focus-visible{outline:2px solid var(--d-accent);outline-offset:-2px}
+@media(hover:none){.app.desk .assembly-actions button{opacity:1}}
+@media(max-width:760px){
+  .app.desk .assembly-panel{top:auto;bottom:16px;right:16px;left:16px;width:auto;max-height:58%}
+  .app.desk .assembly-foot{align-items:center;padding-top:0}
+  .app.desk .assembly-foot p{max-width:none}
+  .app.desk .assembly-explode{padding-top:4px}
+  .app.desk .assembly-panel #assembly-body{overflow:auto}
+  .app.desk .assembly-explode input{height:40px}
+  .app.desk .assembly-actions button,.app.desk .assembly-collapse{width:36px;height:36px;opacity:1}
+  .app.desk .assembly-panel.collapsed{left:auto;width:auto}
+  .app.desk .stage:has(.assembly-panel) .select-hint{display:none}
+  .app.desk .assembly-name{padding:8px 6px 8px 8px}
+  .app.desk .assembly-foot .quiet-button{height:36px}
+}
+@media(prefers-reduced-motion:reduce){.app.desk .assembly-actions button{transition:none}}
