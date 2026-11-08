@@ -35,6 +35,8 @@ class ScriptedFakeAgent(AgentAdapter):
         session['selection'] = selection  # echoed by GET /proposals/<id>, so a test can see it arrived
         for pick in picks_of(selection):
             session['events'].append({'type': 'plan', 'message': f"Selected: {pick}"})
+        for pin in picks_of(selection, 'pins'):
+            session['events'].append({'type': 'plan', 'message': f"Pinned: {pin}"})
         return session
 
     def stream_events(self, session):
@@ -50,9 +52,9 @@ class ScriptedFakeAgent(AgentAdapter):
         session['interrupted'] = False
 
 
-def picks_of(selection):
-    """One line per pick in a selection payload, as Studio describes it, or nothing."""
-    picks = selection.get('picks') if isinstance(selection, dict) else None
+def picks_of(selection, key='picks'):
+    """One line per pick (or, with key='pins', per note pin) in a selection payload, as Studio describes it, or nothing."""
+    picks = selection.get(key) if isinstance(selection, dict) else None
     if not isinstance(picks, list):
         return []
     return [p['description'] for p in picks if isinstance(p, dict) and isinstance(p.get('description'), str)]

@@ -664,6 +664,49 @@ body.resizing{cursor:col-resize;user-select:none}
 .app.desk .project-open label.type-path{margin-top:8px}
 
 .app.desk .type-path-form{display:grid;gap:8px}
+/* Note pins and the measure tool (#26). A pin is a numbered ink marker standing on its spot, like the
+   dimension label: notes are information, so they stay out of the orange that applies work. */
+.app.desk .stage.aiming canvas{cursor:crosshair}
+/* The model is the image; pins, the dimension and the selection bar are controls beside it, not inside role=img. */
+.app.desk .canvas-view{position:absolute;inset:0}
+.app.desk .canvas-overlay{position:absolute;inset:0;pointer-events:none;overflow:clip}
+/* overflow:hidden on the canvas wrapper still scrolls when something inside takes focus; clip never does. */
+.app.desk .canvas-view>div{overflow:clip!important}
+.app.desk .pin{position:relative;transform:translate(-50%,calc(-100% - 5px));font:12px/1.35 var(--font-1);color:var(--d-ink)}
+.app.desk .pin-marker{display:inline-grid;place-items:center;width:24px;height:24px;min-height:24px;padding:0;border:0;border-radius:50%;background:var(--d-ink);color:var(--d-panel);font:600 11.5px/1 var(--font-1);font-variant-numeric:tabular-nums;box-shadow:0 0 0 2px var(--d-panel),0 4px 10px var(--d-shadow);cursor:pointer}
+.app.desk button.pin-marker::after,.app.desk .pin-draft .pin-marker::after{content:"";position:absolute;left:50%;top:100%;width:2px;height:5px;margin-left:-1px;background:var(--d-ink)}
+.app.desk .pin .pin-marker{position:relative}
+.app.desk .pin-marker:hover,.app.desk .pin-marker[aria-expanded=true]{box-shadow:0 0 0 2px var(--d-panel),0 0 0 3.5px var(--d-ink),0 4px 10px var(--d-shadow)}
+.app.desk .pin-marker:focus-visible{outline:2px solid var(--d-ink);outline-offset:3px}
+.app.desk .pin-card{position:absolute;left:32px;top:-4px;width:max-content;max-width:240px;padding:8px 10px 6px;border-radius:9px;background:var(--d-panel);box-shadow:inset 0 0 0 1px var(--d-line-2),0 6px 18px var(--d-shadow)}
+.app.desk .pin-card.flip{left:auto;right:32px}
+.app.desk .pin-card p{margin:0;overflow-wrap:anywhere;text-wrap:pretty}
+.app.desk .pin-card small{display:block;margin-top:3px;color:var(--d-ink-3);font-size:11px}
+.app.desk .pin-actions{display:flex;gap:2px;margin:6px -4px 0}
+.app.desk .pin-actions button,.app.desk .pin-draft button,.app.desk .pin-undo button{display:inline-flex;align-items:center;justify-content:center;gap:4px;height:24px;min-height:24px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--d-ink-2);font:12px var(--font-1);cursor:pointer}
+.app.desk .pin-actions button:hover,.app.desk .pin-draft .pin-cancel:hover,.app.desk .pin-undo button:hover{color:var(--d-ink);background:var(--d-raise)}
+.app.desk .pin-draft{position:relative;display:flex;align-items:center;gap:4px;padding:2px;border-radius:9px;background:color-mix(in srgb,var(--d-panel) 94%,transparent);box-shadow:inset 0 0 0 1px var(--d-line-2),0 6px 18px var(--d-shadow);transform:translate(-14px,calc(-100% - 5px))}
+.app.desk .pin-draft.flip{flex-direction:row-reverse;transform:translate(calc(-100% + 14px),calc(-100% - 5px))}
+.app.desk .pin-draft .pin-marker{position:relative;flex:none;margin:0 2px;cursor:default}
+.app.desk .pin-draft input{width:220px;height:24px;padding:0 8px;border:0;border-radius:6px;background:var(--d-bench);color:var(--d-ink);font:12px var(--font-1);outline:none;box-shadow:inset 0 0 0 1px var(--d-line-2)}
+.app.desk .pin-draft input::placeholder{color:var(--d-ink-3)}
+.app.desk .pin-draft input:focus{box-shadow:inset 0 0 0 1px var(--d-ink-3),0 0 0 3px var(--d-accent-soft)}
+.app.desk .pin-draft button[type=submit]{color:var(--d-ink);background:var(--d-raise)}
+.app.desk .pin-draft button[type=submit]:disabled{color:var(--d-ink-3);cursor:not-allowed}
+.app.desk .pin-draft .pin-cancel{width:24px;padding:0}
+.app.desk .pin-draft svg{width:14px;height:14px}
+.app.desk .pin-draft.docked{position:absolute;left:16px;right:16px;bottom:96px;z-index:7;transform:none}
+.app.desk .pin-draft.docked .pin-marker::after{display:none}
+.app.desk .pin-draft.docked input{flex:1;width:auto;min-width:0}
+.app.desk .pin-actions button:focus-visible,.app.desk .pin-draft button:focus-visible,.app.desk .pin-undo button:focus-visible{outline:2px solid var(--d-ink-3);outline-offset:1px}
+.app.desk .pin-error,.app.desk .pin-undo{position:absolute;top:66px;left:50%;transform:translateX(-50%);z-index:4;margin:0;padding:4px 10px;border-radius:7px;background:var(--d-panel);box-shadow:inset 0 0 0 1px var(--d-line-2),0 4px 12px var(--d-shadow);font-size:12px}
+.app.desk .pin-error{color:var(--d-bad)}
+.app.desk .pin-undo{display:flex;align-items:center;gap:6px;padding:2px 2px 2px 10px;color:var(--d-ink-2)}
+.app.desk .pin-undo button{color:var(--d-ink);background:var(--d-raise)}
+@media(max-width:760px){.app.desk .pin-marker{width:30px;height:30px}.app.desk .pin-draft input{height:34px}.app.desk .pin-draft button,.app.desk .pin-actions button,.app.desk .pin-undo button{height:34px;min-height:34px}.app.desk .pin-draft .pin-cancel{width:34px}.app.desk .pin-card{max-width:min(240px,calc(100vw - 96px))}}
+/* Dark theme: an ink marker would be cream on the light model finishes; a graphite disc in a cream ring reads on all three. */
+.app.desk.dark .pin-marker{background:var(--d-panel);color:var(--d-ink);box-shadow:0 0 0 2px var(--d-ink),0 4px 10px var(--d-shadow)}
+.app.desk.dark .pin-marker:hover,.app.desk.dark .pin-marker[aria-expanded=true]{box-shadow:0 0 0 2px var(--d-ink),0 0 0 4px var(--d-panel),0 4px 10px var(--d-shadow)}
 
 /* Assembly view (#21): the tree docks on the viewport's right; the model keeps the room. */
 .app.desk .stage-views{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
