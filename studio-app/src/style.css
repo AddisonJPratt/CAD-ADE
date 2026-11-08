@@ -651,7 +651,9 @@ body.resizing{cursor:col-resize;user-select:none}
 .app.desk .up-arrow{display:inline-flex;transform:rotate(-90deg)}
 .app.desk .project-open label.type-path{margin-top:8px}
 
-/* Live progress: one row per step; the running step shimmers (#66) */
+/* Live progress: one row per step; the running step shimmers (#66).
+   The background-clip:text sweep is the owner-requested loading shimmer (like Claude Code),
+   shown only while a step runs, never as static decoration. */
 .app.desk .progress-row{display:flex;align-items:center;gap:8px;min-width:0}
 .app.desk .progress-row .shimmer-text{min-width:0;overflow-wrap:anywhere}
 .app.desk .progress-row.note{color:var(--d-ink-2)}
@@ -665,7 +667,7 @@ body.resizing{cursor:col-resize;user-select:none}
 .app.desk .progress-row.pass .progress-status{color:var(--d-ok)}
 .app.desk .progress-row.fail .progress-status{color:var(--d-bad)}
 .app.desk .progress-row.fail .shimmer-text{color:var(--d-bad)}
-.app.desk .progress-row.other .progress-status{color:var(--d-wait)}
+.app.desk .progress-row.other .progress-status{color:var(--d-ink-2)}
 .app.desk .progress-row.live .progress-mark{background:var(--d-accent);animation:progress-pulse 1.2s ease-in-out infinite}
 .app.desk .progress-row.live .shimmer-text{color:transparent;background:linear-gradient(100deg,var(--d-ink-2) 0%,var(--d-ink-2) 38%,var(--d-accent) 50%,var(--d-ink-2) 62%,var(--d-ink-2) 100%) 0 0/300% 100% no-repeat;-webkit-background-clip:text;background-clip:text;animation:progress-shimmer 2s linear infinite}
 @keyframes progress-shimmer{from{background-position:100% 0}to{background-position:0 0}}
@@ -676,4 +678,5 @@ body.resizing{cursor:col-resize;user-select:none}
 .app.desk .finder-button:hover:not(:disabled){border-color:var(--d-accent);background:color-mix(in srgb,var(--d-raise) 80%,var(--d-accent))}
 .app.desk .finder-button:disabled{color:var(--d-ink-3);cursor:progress}
 .app.desk .finder-button svg{width:18px;height:18px;flex:none;color:var(--d-accent)}
-.app.desk .project-open .picker-notice{margin:0;font-size:12px;color:var(--d-wait)}
+.app.desk .project-open .picker-notice{display:flex;gap:8px;align-items:baseline;margin:0;font-size:12px;color:var(--d-ink-2)}
+.app.desk .project-open .picker-notice::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:var(--d-wait);transform:translateY(-1px)}

@@ -101,7 +101,8 @@ test('fake agent previews, rejects and accepts a change', async ({ page, request
   await expect(page.getByText('size: 24 → 26').first()).toBeVisible({ timeout: 120000 });
   await page.getByRole('button', { name: 'Accept change' }).click();
   await expect(page.getByText('Previous: passed · Now: passed')).toBeVisible({ timeout: 180000 });
-  await expect(page.getByText('3 Printability: PASS')).toBeVisible();
+  await expect(page.locator('.gate-progress .progress-row', { hasText: '3 Printability' })).toHaveClass(/pass/);
+  await expect(page.locator('.gate-progress .progress-row', { hasText: '3 Printability' }).locator('.progress-status')).toHaveText('PASS');
   await expect(page.getByRole('heading', { name: 'Version 5' })).toBeVisible();
 });
 
