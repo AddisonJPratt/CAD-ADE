@@ -388,3 +388,36 @@ test('the Settings drawer shows the project printer and changes the material for
   await page.getByLabel('Material').selectOption('PLA');
   await expect(page.getByText('Material set to PLA for future checks.')).toBeVisible();
 });
+
+test('creates a project without typing a path, lists it, and browses folders', async ({ page }) => {
+  test.skip(!process.env.MAGIC_PROJECTS_HOME, 'needs a scratch MAGIC_PROJECTS_HOME (tests/run.sh sets one)');
+  const name = `Picker ${Date.now()}`;
+  await page.goto('/');
+  await page.getByRole('button', { name: 'New project', exact: true }).first().click();
+  await expect(page.getByRole('radio', { name: /Box with lid/ })).toBeChecked();
+  await expect(page.getByText('Small two-part storage box: an open tray and a separate lid', { exact: false })).toBeInViewport();
+  await page.getByRole('button', { name: 'Create project' }).click();
+  await expect(page.getByText('Give the project a name.')).toBeVisible();
+  await expect(page.getByLabel('Name')).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByLabel('Project folder')).toHaveCount(0); // the typed-path fallback steps aside while naming
+  await page.getByLabel('Name').fill(name);
+  await page.getByRole('button', { name: 'Create project' }).click();
+  await expect(page.getByRole('heading', { name: 'Version 1' })).toBeVisible({ timeout: 60000 });
+  await expect(page.getByLabel('Project folder')).toHaveValue(new RegExp(name + '$'));
+
+  await page.goto('/');
+  await page.getByRole('button', { name: new RegExp(name) }).click();
+  await expect(page.getByRole('heading', { name: 'Version 1' })).toBeVisible({ timeout: 60000 });
+
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Browse', exact: true }).click();
+  // Browse starts in the projects home, where the new project is marked as a project.
+  await expect(page.locator('.picker-browse .picker-row.is-project', { hasText: name })).toBeVisible();
+  const here = await page.locator('.crumb .path').textContent();
+  await page.getByLabel('Up one folder').click();
+  await expect(page.locator('.crumb .path')).not.toHaveText(here!);
+  await page.getByRole('button', { name: 'Projects home' }).click();
+  await expect(page.locator('.crumb .path')).toHaveText(here!);
+  await page.locator('.picker-browse .picker-row.is-project', { hasText: name }).click();
+  await expect(page.getByRole('heading', { name: 'Version 1' })).toBeVisible({ timeout: 60000 });
+});
