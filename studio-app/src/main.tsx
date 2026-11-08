@@ -6,6 +6,7 @@ import { Box3, BufferGeometry, Mesh, PMREMGenerator, PerspectiveCamera, Raycaste
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import './style.css';
+import './fonts.css';
 import { Evidence, type EvidenceDesign } from './Evidence';
 import { Catalogue } from './Catalogue';
 import { Icon } from './icons';
