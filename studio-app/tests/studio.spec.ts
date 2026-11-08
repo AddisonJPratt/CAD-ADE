@@ -101,7 +101,8 @@ test('fake agent previews, rejects and accepts a change', async ({ page, request
   await expect(page.getByText('size: 24 → 26').first()).toBeVisible({ timeout: 120000 });
   await page.getByRole('button', { name: 'Accept change' }).click();
   await expect(page.getByText('Previous: passed · Now: passed')).toBeVisible({ timeout: 180000 });
-  await expect(page.getByText('3 Printability: PASS')).toBeVisible();
+  await expect(page.locator('.gate-progress .progress-row', { hasText: '3 Printability' })).toHaveClass(/pass/);
+  await expect(page.locator('.gate-progress .progress-row', { hasText: '3 Printability' }).locator('.progress-status')).toHaveText('PASS');
   await expect(page.getByRole('heading', { name: 'Version 5' })).toBeVisible();
 });
 
@@ -336,7 +337,7 @@ test('modes preserve the project and selected version, and Mission Control shows
   await expect(page.getByText(/stays open in Studio/)).toBeVisible();
   await page.getByRole('button', { name: 'Studio', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Version 2' })).toBeVisible();
-  await expect(page.getByLabel('Project folder')).toHaveValue(process.env.MAGIC_TEST_PROJECT!);
+  await expect(page.locator('.project-switch summary')).toHaveAttribute('title', process.env.MAGIC_TEST_PROJECT!);
 });
 
 test('catalogue remains available when version details fail', async ({ page }) => {
@@ -467,7 +468,7 @@ test('creates a project without typing a path, lists it, and browses folders', a
   await page.getByLabel('Name').fill(name);
   await page.getByRole('button', { name: 'Create project' }).click();
   await expect(page.getByRole('heading', { name: 'Version 1' })).toBeVisible({ timeout: 60000 });
-  await expect(page.getByLabel('Project folder')).toHaveValue(new RegExp(name + '$'));
+  await expect(page.locator('.project-switch summary')).toHaveText(name);   // the header names the project, not its path
 
   await page.goto('/');
   await page.getByRole('button', { name: new RegExp(name) }).click();
@@ -484,4 +485,41 @@ test('creates a project without typing a path, lists it, and browses folders', a
   await expect(page.locator('.crumb .path')).toHaveText(here!);
   await page.locator('.picker-browse .picker-row.is-project', { hasText: name }).click();
   await expect(page.getByRole('heading', { name: 'Version 1' })).toBeVisible({ timeout: 60000 });
+});
+
+test('Choose a folder in Finder opens a project, explains a non-project folder, and ignores Cancel', async ({ page }) => {
+  // The engine shows the real macOS panel; here its answer is stubbed so no window opens.
+  const project = process.env.MAGIC_TEST_PROJECT!;
+  const answers = [{ path: null, project: false }, { path: project + '/designs', project: false }, { path: project, project: true }];
+  await page.route('**/api/workspace/choose-folder', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(answers.shift()) }));
+  await page.goto('/');
+  const finder = page.getByRole('button', { name: 'Choose a folder in Finder…' });
+  await finder.click();                       // Cancel: nothing changes
+  await expect(finder).toBeEnabled();
+  await expect(page.getByRole('heading', { name: 'Open a project' })).toBeVisible();
+  await finder.click();                       // a folder that is not a project
+  await expect(page.getByRole('status').filter({ hasText: 'That folder is not a project' })).toBeVisible();
+  await expect(page.locator('.crumb .path')).toContainText('designs');
+  await finder.click();                       // a project opens
+  await expect(page.getByRole('heading', { name: /Version \d/ })).toBeVisible({ timeout: 60000 });
+});
+
+test('the header switcher shows the project by name and switches through the picker', async ({ page, request }) => {
+  test.skip(!process.env.MAGIC_PROJECTS_HOME, 'needs a scratch MAGIC_PROJECTS_HOME (tests/run.sh sets one)');
+  const other = `Switch ${Date.now()}`;
+  expect((await request.post('/api/workspace/projects', { data: { name: other, starter: 'wall_bracket' } })).ok()).toBeTruthy();
+  const project = process.env.MAGIC_TEST_PROJECT!;
+  await page.goto('/');
+  await page.getByLabel('Project folder').fill(project);
+  await page.getByRole('button', { name: 'Open project' }).click();
+  await expect(page.getByRole('heading', { name: /Version \d/ })).toBeVisible({ timeout: 60000 });
+  const name = project.split('/').filter(Boolean).pop()!;
+  await page.locator('.project-switch summary').click();
+  const switcher = page.locator('.project-switch .switcher');
+  await expect(switcher.locator('.switch-current')).toHaveText(new RegExp(`${name}\\s*Open now`));
+  await expect(switcher.getByLabel('Project folder')).toHaveValue('');      // no long path shown
+  await expect(switcher.getByRole('button', { name: 'Choose a folder in Finder…' })).toBeVisible();
+  await switcher.getByRole('button', { name: new RegExp(other) }).click();
+  await expect(page.locator('.project-switch summary')).toHaveText(other);
+  await expect(switcher).toHaveCount(0);
 });

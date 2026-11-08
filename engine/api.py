@@ -17,6 +17,7 @@
     GET  /workspace/starters             repo designs a new project can start from
     GET  /workspace/browse?path=...      a folder's subfolders with projects marked (default: ~)
     POST /workspace/projects             {"name", "starter"}: <projects home>/<name> as version 1 (201)
+    POST /workspace/choose-folder        {}: show the macOS Finder folder panel; {"path"|null, "project"}
     POST /workspace/recent               {"project"}: remember a project as opened
     GET  /projects/parameters?project=...&design=...  literal defaults/ranges and brief units
     POST /proposals                      {"project", "message", "selection"?} a chat request to the agent, or
@@ -73,7 +74,7 @@ from . import make
 from .proposal_session import ProposalSession
 from .agents import ScriptedFakeAgent, ParameterEditAgent
 from .reviewer import ScriptedFakeReviewer, review_context, send_back_message
-from .workspace import browse, list_projects, new_project, remember, starters
+from .workspace import browse, choose_folder, is_project, list_projects, new_project, remember, starters
 from .catalogue import BUILTIN, add_component, list_components, project_path
 from .parameters import parameters_of, accepted_brief_edit
 from .printers import PROFILE, project_printer, select_printer
@@ -451,6 +452,7 @@ class Handler(BaseHTTPRequestHandler):
         path = urlsplit(self.path).path
         routes = {"/proposals": self.post_proposal, "/catalogue": self.post_catalogue, "/projects/printer": self.post_printer, "/runs": self.post_run, "/projects": self.post_project,
                   "/workspace/projects": self.post_workspace_project, "/workspace/recent": self.post_recent,
+                  "/workspace/choose-folder": self.post_choose_folder,
                   "/projects/versions": self.post_version, "/projects/rollback": self.post_rollback,
                   "/projects/version-artifacts": self.post_version_artifacts,
                   "/make": self.post_make, "/make/print": self.post_make_print}
@@ -657,6 +659,11 @@ class Handler(BaseHTTPRequestHandler):
     def post_workspace_project(self, body):
         folder = new_project(body.get("name"), body.get("starter"))
         return HTTPStatus.CREATED, {"project": str(folder), "versions": list_versions(folder)}
+
+    def post_choose_folder(self, body):
+        chosen = choose_folder()
+        return HTTPStatus.OK, {"path": str(chosen) if chosen else None,
+                               "project": bool(chosen) and is_project(chosen)}
 
     def post_recent(self, body):
         return HTTPStatus.OK, {"project": str(remember(body["project"]))}
