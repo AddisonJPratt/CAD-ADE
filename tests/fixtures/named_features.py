@@ -18,10 +18,11 @@ def build(size, height, pocket_depth, hole_dia):
     # Feature: the plate, base on z=0
     plate = Box(size, size, height, align=(Align.CENTER, Align.CENTER, Align.MIN))
     # Feature: lid pocket, a square recess half the plate's width, centred on the top face
-    pocket = feature("lid pocket", Pos(0, 0, height) * Box(size / 2, size / 2, 2 * pocket_depth))
+    pocket = feature("lid pocket", Pos(0, 0, height) * Box(size / 2, size / 2, 2 * pocket_depth),
+                     params=("pocket_depth",))
     # Feature: mount hole, vertical through-hole in one corner, one diameter clear of the pocket
     at = size / 2 / 2 + hole_dia
-    hole = feature("mount hole", Pos(at, at, 0) * Cylinder(hole_dia / 2, 2 * height))
+    hole = feature("mount hole", Pos(at, at, 0) * Cylinder(hole_dia / 2, 2 * height), params=("hole_dia",))
     plate = plate - pocket - hole
     plate.label = "plate"
     return plate

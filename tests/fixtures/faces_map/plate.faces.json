@@ -4,6 +4,14 @@
   "lid pocket",
   "mount hole"
  ],
+ "parameters": {
+  "lid pocket": {
+   "pocket_depth": 3.0
+  },
+  "mount hole": {
+   "hole_dia": 4.0
+  }
+ },
  "faces": [
   {
    "id": 0,

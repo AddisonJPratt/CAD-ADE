@@ -70,6 +70,32 @@ fails. Review the diff, then refresh it:
 XDG_CACHE_HOME=/tmp/cad-ade-cache .venv/bin/python -m assembly.manifest --refresh-fixture
 ```
 
+## Assembly instructions
+
+`assembly/instructions.py` turns the manifest into build instructions, in one of two styles
+the user picks:
+
+- **illustrated** (default): one section per step with a rendered image of that stage (what is
+  already built in grey, the parts this step adds in Studio's orange, backed out along their joint
+  with dashed arrows to their seats), the step text, the hardware callout (e.g. `2 × M3
+  socket-head screw, 12 mm`) and the tool;
+- **checklist**: one compact row per step with a tick box and the same text, callout and tool.
+
+Both render one step list (`instructions.steps`) read from the manifest's `steps`, so they agree
+step for step and cannot drift from the CAD. Every stage uses one camera, chosen per document as
+the corner view that shows the most of the parts being added. Each export is a standalone HTML
+file (images inline, no network) plus a PDF printed from that same file by headless
+Chrome/Chromium (found on the usual paths or Playwright's cache, or set `MAGIC_CHROME`).
+
+```
+.venv/bin/python magic.py assembly assembly/holder_clip.py --project . --out runs/holder_clip-assembly
+.venv/bin/python magic.py instructions runs/holder_clip-assembly [--style checklist] [--out dir] [--no-pdf]
+```
+
+`samples/` holds the holder's instructions in both styles, generated this way, for review.
+The steps inherit the manifest's disclaimer: they illustrate the assembly, they are not a
+physically tested procedure.
+
 ## Illustrative demo
 
 `demo.get_demo(project_root)` is one **illustrative, read-only example**, not a general
@@ -97,7 +123,7 @@ review of placements and updating the snapshot; do not just replace the hashes.
 Run tests from the project root:
 
 ```
-XDG_CACHE_HOME=/tmp/cad-ade-cache .venv/bin/python -m unittest assembly.test_demo assembly.test_assembly assembly.test_manifest -v
+XDG_CACHE_HOME=/tmp/cad-ade-cache .venv/bin/python -m unittest assembly.test_demo assembly.test_assembly assembly.test_manifest assembly.test_instructions -v
 .venv/bin/python tests/test_assembly_api.py
 ```
 

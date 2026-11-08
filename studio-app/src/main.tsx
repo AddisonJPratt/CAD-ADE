@@ -6,6 +6,7 @@ import { Box3, BufferGeometry, Mesh, PMREMGenerator, PerspectiveCamera, Raycaste
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import './style.css';
+import './fonts.css';
 import { Evidence, type EvidenceDesign } from './Evidence';
 import { Catalogue } from './Catalogue';
 import { Icon } from './icons';
@@ -17,9 +18,10 @@ import { ViewportTools, DEFAULT_VIEW, MATERIALS, type ViewStyle, type ToolMode }
 import { Verdict } from './Verdict';
 import { Highlight, circled, describe, loopArea, regionAt, selectionPayload, type Enclosure, type Pick } from './Selection';
 import { MAX_NOTE, describePin, enclosed, measureBetween, measureSentence, measureText, toolLabel as label, withTools, type Pin } from './Tools';
-import { faceAt, parseFaceMap, type FaceMap } from './Features';
+import { faceAt, featureParameters, parseFaceMap, type FaceMap } from './Features';
 import { PartsList } from './PartsList';
 import { ProjectPicker } from './ProjectPicker';
+import { MakeMode } from './make/MakeMode';
 
 // The assistant's name in the interface. One place, so the owner can rename it.
 export const ASSISTANT = 'Drafter';
@@ -302,11 +304,11 @@ function App() {
   const makePick = (kind: Pick['kind'], body: string, geometry: BufferGeometry, point: Vector3, faceIndex?: number | null, normal?: Vector3): Pick => {
     const map = faceMaps[body]; const at = point.toArray() as Pick['point'];
     const base = { id: `pick-${++pickCount.current}`, kind, body, geometry, point: at };
-    if (kind === 'face' && faceIndex != null) { const r = regionAt(geometry, faceIndex, point); const face = faceAt(map, at, r.normal.toArray() as Pick['normal'], r.flat); return { ...base, region: r.region, area: r.area, flat: r.flat, normal: r.normal.toArray() as Pick['normal'], centroid: r.centroid.toArray() as Pick['centroid'], feature: face?.feature ?? null, face: face ?? undefined }; }
+    if (kind === 'face' && faceIndex != null) { const r = regionAt(geometry, faceIndex, point); const face = faceAt(map, at, r.normal.toArray() as Pick['normal'], r.flat); return { ...base, region: r.region, area: r.area, flat: r.flat, normal: r.normal.toArray() as Pick['normal'], centroid: r.centroid.toArray() as Pick['centroid'], feature: face?.feature ?? null, parameters: featureParameters(map, face), face: face ?? undefined }; }
     geometry.computeBoundingBox(); const c = geometry.boundingBox!.getCenter(new Vector3());
     if (kind === 'body') return { ...base, normal: (normal?.toArray() || [0, 0, 1]) as Pick['normal'], centroid: c.toArray() as Pick['centroid'], features: map?.features ?? [] };
     const face = faceAt(map, at, null, null);
-    return { ...base, normal: (normal?.toArray() || [0, 0, 1]) as Pick['normal'], centroid: c.toArray() as Pick['centroid'], feature: face?.feature ?? null, face: face ?? undefined };
+    return { ...base, normal: (normal?.toArray() || [0, 0, 1]) as Pick['normal'], centroid: c.toArray() as Pick['centroid'], feature: face?.feature ?? null, parameters: featureParameters(map, face), face: face ?? undefined };
   };
   const add = (next: Pick, extend: boolean) => { setPicks(current => extend ? [...current.filter(p => !(p.kind === next.kind && p.body === next.body && p.kind === 'body')), next] : [next]); };
   const interact = (body: string) => ({
@@ -334,7 +336,7 @@ function App() {
     {
       const centroid = hit.centroid.toArray() as Pick['point'];
       const face = faceAt(faceMaps[hit.body], centroid, null, null);
-      const next: Pick = { id: `pick-${++pickCount.current}`, kind: 'area', body: hit.body, geometry: hit.geometry, region: hit.region, loop: hit.loop ? new Float32Array(hit.loop.flatMap(v => v.toArray())) : undefined, area: hit.area, flat: false, point: centroid, centroid, normal: hit.normal.toArray() as Pick['normal'], feature: face?.feature ?? null, face: face ?? undefined, enclosed: hit.enclosed };
+      const next: Pick = { id: `pick-${++pickCount.current}`, kind: 'area', body: hit.body, geometry: hit.geometry, region: hit.region, loop: hit.loop ? new Float32Array(hit.loop.flatMap(v => v.toArray())) : undefined, area: hit.area, flat: false, point: centroid, centroid, normal: hit.normal.toArray() as Pick['normal'], feature: face?.feature ?? null, parameters: featureParameters(faceMaps[hit.body], face), face: face ?? undefined, enclosed: hit.enclosed };
       setPicks(current => extend ? [...current, next] : [next]);
     }
     setNavigation('orbit');
@@ -397,7 +399,7 @@ function App() {
             {designs.length > 1 && <div className="part-picker"><label htmlFor="design">Part</label><select id="design" value={design} onChange={e => setDesign(e.target.value)} disabled={proposalBusy}>{designs.map(name => <option key={name} value={name}>{niceName(name)}</option>)}</select></div>}
             <label htmlFor="request" className="sr-only">Change request</label>
             <div className="composer">
-              {picks.length > 0 && <ul className="pick-chips" aria-label="Selected on the model">{picks.map(p => <li key={p.id}><span>{label(p)}</span><button type="button" aria-label={`Remove ${label(p)}`} onClick={() => setPicks(c => c.filter(x => x.id !== p.id))}><Icon name="close"/></button></li>)}</ul>}
+              {picks.length > 0 && <ul className="pick-chips" aria-label="Selected on the model">{picks.map(p => <li key={p.id}><span title={label(p)}>{label(p)}</span><button type="button" aria-label={`Remove ${label(p)}`} onClick={() => setPicks(c => c.filter(x => x.id !== p.id))}><Icon name="close"/></button></li>)}</ul>}
               <textarea id="request" rows={2} value={message} placeholder={picks.length ? 'What should change here?' : runtime === 'claude' ? 'Make the wall 0.5 mm thicker' : 'size 24'} onChange={e => setMessage(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); e.currentTarget.form?.requestSubmit(); } }} disabled={proposalBusy}/>
               <div className="composer-footer"><small>{pins.length ? `${pins.length} pinned ${pins.length === 1 ? 'note goes' : 'notes go'} with every request` : picks.length ? 'Selection rides along with its feature names and positions' : 'Click the model to point at a part'}</small><ToolHint text="Propose change (Enter)"><button className="composer-send" aria-label="Propose change" disabled={proposalBusy || opening || !selected?.current || !message.trim()}><Icon name="arrow"/></button></ToolHint></div>
             </div>
@@ -444,7 +446,7 @@ function App() {
           </Html>}
           {anchor && !proposal && !pinning && !measuring && !pinDraft && <Html portal={overlay as React.RefObject<HTMLElement>} position={anchor.kind === 'body' ? anchor.centroid : anchor.point} zIndexRange={[30, 20]} style={{ pointerEvents: 'auto' }}>
             <div className="selection-bar" role="toolbar" aria-label="Selection actions" onPointerDown={e => e.stopPropagation()}>
-              <span className="selection-name">{picks.length > 1 ? `${picks.length} selected` : label(anchor)}</span>
+              <span className="selection-name" title={picks.length > 1 ? picks.map(label).join('; ') : label(anchor)}>{picks.length > 1 ? `${picks.length} selected` : label(anchor)}</span>
               <button type="button" onClick={focusComposerSoon}><Icon name="chat"/>Ask</button>
               <button type="button" title={measured ? 'Change the distance on the model' : 'Measure distance and angle to another face'} aria-pressed={!!measured} onClick={() => measured ? setMeasureEdit(measured.value.toFixed(1)) : setNavigation('measure')}><Icon name="measure"/>Measure</button>
               <button type="button" title="Pin a note here; notes stay with this version" onClick={() => startPin(anchor.point, anchor.normal, anchor.body, anchor.feature ?? null, anchor.face?.id ?? null)}><Icon name="pin"/>Pin note</button>
@@ -464,7 +466,8 @@ function App() {
         {selected && drawer === 'parameters' && <>{designs.length > 1 && <div className="parameter-design"><label htmlFor="parameter-design">Part</label><select id="parameter-design" value={design} disabled={proposalBusy} onChange={e => setDesign(e.target.value)}>{designs.map(name => <option key={name} value={name}>{niceName(name)}</option>)}</select></div>}<ParameterPanel project={project} design={design} version={selected.id} current={selected.current} busy={proposalBusy || opening} onPropose={(name, value) => requestProposal({name, value})}/>{printer && <section className="printer-settings" aria-labelledby="printer-heading"><h3 id="printer-heading">Printer</h3><p>{printer.profile.name}<br/><small>{printer.profile.build_volume_mm.join(' × ')} mm · {printer.profile.nozzle_mm} mm nozzle</small></p><label htmlFor="material">Material</label><select id="material" aria-describedby="material-help material-error" value={printer.material} disabled={savingMaterial || opening || proposalBusy} onChange={e => changeMaterial(e.target.value)}>{Object.keys(printer.profile.materials).map(material => <option key={material} value={material}>{material}</option>)}</select><p id="material-help" className="printer-note">For future checks; existing version verdicts do not change. Fit clearances are uncalibrated. Save a version to keep this setting in the timeline.</p><p id="material-error" role="alert" className="error">{materialError}</p><p role="status" className="printer-note">{materialNotice}</p></section>}</>}
       </aside>
     </section>
-    {mode !== 'Studio' && <section className={mode === 'Mission Control' ? 'expert' : 'make-mode'}><h1>{mode}</h1>{!selected ? <p>Open a project in Studio to get started.</p> : <><p className="version-context">{project} · Version {selected.number}</p>{mode === 'Make' ? <p>Make is not available yet. Return to Studio to inspect your project and its versions.</p> : <>{detailsError && <p role="alert">Could not load this version: {detailsError}</p>}{!details && !detailsError && <p role="status">Loading version details…</p>}{details && <><section><h2>Brief card</h2>{details.briefs.length ? details.briefs.map(file => <div key={file.name}><h3>{file.name}</h3><pre>{file.content}</pre></div>) : <p>No brief card was saved with this version.</p>}</section><section><h2>Gate report</h2>{details.report ? details.report.designs.map(design => <div key={design.design}><h3>{design.design}</h3><ul className="gate-list">{design.gates.map(gate => <li key={gate.name}><strong>{gate.name}</strong><span><i aria-hidden="true" className={`mark ${gate.status === 'PASS' ? 'pass' : gate.status === 'FAIL' || gate.status === 'ERROR' ? 'fail' : 'pending'}`} />{gate.status}</span><p>{gate.detail}</p></li>)}</ul><details><summary>Full report</summary><pre>{JSON.stringify(details.report, null, 2)}</pre></details></div>) : <p>No gate report is saved for this version.</p>}</section><section><h2>Design code</h2>{details.designs.map(file => <div key={file.name}><h3>{file.name.split('/').pop()}</h3><pre><code>{file.content}</code></pre></div>)}</section></>}<PartsList project={project}/><Catalogue project={project}/></>}</>}</section>}
+    {mode === 'Make' && <MakeMode project={project} version={selected?.id || ''} onOpen={(path, studio) => { open(undefined, path); if (studio) setMode('Studio'); }}/>}
+    {mode === 'Mission Control' && <section className="expert"><h1>{mode}</h1>{!selected ? <p>Open a project in Studio to get started.</p> : <><p className="version-context">{project} · Version {selected.number}</p>{<>{detailsError && <p role="alert">Could not load this version: {detailsError}</p>}{!details && !detailsError && <p role="status">Loading version details…</p>}{details && <><section><h2>Brief card</h2>{details.briefs.length ? details.briefs.map(file => <div key={file.name}><h3>{file.name}</h3><pre>{file.content}</pre></div>) : <p>No brief card was saved with this version.</p>}</section><section><h2>Gate report</h2>{details.report ? details.report.designs.map(design => <div key={design.design}><h3>{design.design}</h3><ul className="gate-list">{design.gates.map(gate => <li key={gate.name}><strong>{gate.name}</strong><span><i aria-hidden="true" className={`mark ${gate.status === 'PASS' ? 'pass' : gate.status === 'FAIL' || gate.status === 'ERROR' ? 'fail' : 'pending'}`} />{gate.status}</span><p>{gate.detail}</p></li>)}</ul><details><summary>Full report</summary><pre>{JSON.stringify(details.report, null, 2)}</pre></details></div>) : <p>No gate report is saved for this version.</p>}</section><section><h2>Design code</h2>{details.designs.map(file => <div key={file.name}><h3>{file.name.split('/').pop()}</h3><pre><code>{file.content}</code></pre></div>)}</section></>}<PartsList project={project}/><Catalogue project={project}/></>}</>}</section>}
     <footer className="app-status"><span>{project ? 'Engine connected' : 'Ready to open a project'}</span><span>{proposal ? 'Reviewing proposed change' : selected ? `Version ${selected.number} · ${shownModels.length} bodies` : 'Magic CAD'}</span><span>mm · Local workspace</span></footer>
   </main>;
 }

@@ -1,5 +1,10 @@
 # First Proof
 
+> Superseded by Make mode in the Studio app (`studio-app/`, Make tab; engine side in
+> `engine/make.py`, tests in `tests/test_make.py`). Makes there are ordinary engine projects
+> with versions, so the Shelf, Studio and Mission Control share them. This app is kept, unchanged,
+> until Make mode has been used for a real print; its data folder is not migrated.
+
 Start from the project root with `.venv/bin/python proof/server.py`, then open
 http://127.0.0.1:8766. The server listens on the local machine only. A make runs
 all harness gates and can take several minutes; only a passing run exposes an STL.

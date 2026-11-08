@@ -376,7 +376,8 @@ header .mode-nav{display:flex;gap:4px;align-self:stretch;align-items:center}head
 .app.desk .composer-note,.app.desk .composer-form .error{margin:0 2px;font-size:12px;color:var(--d-ink-3)}
 .app.desk .composer-form .error,.app.desk .project-open .error{color:var(--d-bad)}
 .app.desk .pick-chips{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px}
-.app.desk .pick-chips li{display:inline-flex;align-items:center;gap:2px;height:24px;padding:0 2px 0 9px;border-radius:999px;background:var(--d-accent-soft);color:var(--d-ink);font-size:12px;border:1px solid color-mix(in srgb,var(--d-accent) 40%,transparent)}
+.app.desk .pick-chips li{display:inline-flex;align-items:center;gap:2px;height:24px;padding:0 2px 0 9px;border-radius:999px;background:var(--d-accent-soft);color:var(--d-ink);font-size:12px;border:1px solid color-mix(in srgb,var(--d-accent) 40%,transparent);max-width:100%}
+.app.desk .pick-chips span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .app.desk .pick-chips button{display:grid;place-items:center;width:20px;height:20px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--d-ink-2)}
 .app.desk .pick-chips button:hover{background:var(--d-raise)}
 .app.desk .pick-chips svg{width:12px;height:12px}
@@ -585,7 +586,7 @@ body.resizing{cursor:col-resize;user-select:none}
 .app.desk .lasso-layer path{fill:color-mix(in srgb,var(--d-accent) 12%,transparent);stroke:var(--d-accent);stroke-width:1.5;stroke-dasharray:5 4;stroke-linejoin:round}
 .app.desk .select-hint{top:42px;font-size:11.5px;color:var(--d-ink-3)}
 .app.desk .selection-bar{display:flex;align-items:center;gap:1px;padding:2px;margin:10px 0 0 10px;border-radius:9px;background:color-mix(in srgb,var(--d-panel) 92%,transparent);box-shadow:inset 0 0 0 1px var(--d-line-2),0 6px 18px var(--d-shadow);white-space:nowrap;font:12px/1 Seravek,"Segoe UI",sans-serif;color:var(--d-ink)}
-.app.desk .selection-name{padding:0 8px 0 7px;color:var(--d-ink-3);font-size:11.5px;max-width:22ch;overflow:hidden;text-overflow:ellipsis}
+.app.desk .selection-name{padding:0 8px 0 7px;color:var(--d-ink-3);font-size:11.5px;max-width:22ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .app.desk .selection-bar>button,.app.desk .note-form button{display:inline-flex;align-items:center;gap:4px;height:24px;min-height:24px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--d-ink-2);font-size:12px;cursor:pointer}
 .app.desk .selection-bar>button:hover:not(:disabled){color:var(--d-ink);background:var(--d-raise)}
 .app.desk .selection-bar>button[aria-pressed=true]{color:var(--d-ink);background:var(--d-raise)}

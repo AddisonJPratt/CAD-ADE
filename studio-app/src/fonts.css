@@ -1,0 +1,14 @@
+/* Text face (owner, 8 Nov): Atkinson Hyperlegible Next, Braille Institute, SIL OFL 1.1 (fonts/OFL.txt).
+   Drawn for legibility: distinct letterforms (I l 1, O 0, rn m) suit measurements and part names.
+   Self-hosted, latin subset, so the app still loads nothing from the network.
+
+   The interface asked for weight one step lighter than its stylesheets say. Rather than rewrite
+   every weight, this family maps requested weights onto lighter files:
+   up to 549 -> Regular 400, 550-699 -> Medium 500, 700 and up -> SemiBold 600.
+   So body stays 400, a 500 label reads as regular, and 600/650 headings read as medium. */
+@font-face{font-family:"Magic Text";src:url("./fonts/atkinson-hyperlegible-next-latin-400-normal.woff2") format("woff2");font-weight:1 549;font-style:normal;font-display:swap}
+@font-face{font-family:"Magic Text";src:url("./fonts/atkinson-hyperlegible-next-latin-500-normal.woff2") format("woff2");font-weight:550 699;font-style:normal;font-display:swap}
+@font-face{font-family:"Magic Text";src:url("./fonts/atkinson-hyperlegible-next-latin-600-normal.woff2") format("woff2");font-weight:700 1000;font-style:normal;font-display:swap}
+:root{--font-1:"Magic Text",Seravek,"Segoe UI Variable Text","Segoe UI",sans-serif}
+/* No faux bold or slant when a weight or style falls outside the files above. */
+:root{font-synthesis:none}
