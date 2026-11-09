@@ -24,9 +24,10 @@ material in the printer profile (`library/printer_profiles.py`) gives each class
 clearance; a joint names its class and never its own number. Uncalibrated until print results say
 otherwise.
 
-**Evidence tier**: how far a claim is proven: `computed` (a gate checked the model) or `needs
-physical test` (only a print can tell). A joint stays at `needs physical test` until a print
-result for that joint type and material is recorded, then reads `print tested`.
+**Evidence tier**: how far a claim is proven: `computed` (a gate checked the model), `needs
+physical test` (only a print can tell) or `physically tested` (a recorded print result, #15). A
+joint stays at `needs physical test` until a print result rates that joint type in that material;
+then it is `physically tested`, PASS only if the latest rating was perfect.
 
 **Feature**: a named region of a part that a design declares while building, by wrapping the
 cutter or boss that makes it in `library.feature(name, shape)`. The harness names every face of

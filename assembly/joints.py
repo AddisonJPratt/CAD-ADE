@@ -385,7 +385,9 @@ def overhang_added(inst):
 
 
 def tier(row):
-    """needs physical test, until a print result for this joint type and material says it fit."""
+    """(tier, status, evidence) of a joint's physical claim, from the print results recorded so far
+    (#15's calibration events): needs physical test until a print rated this joint type in this
+    material; then physically tested, PASS only if the latest rating was perfect."""
     events = []
     try:
         from engine.make import calibration_dir
@@ -393,10 +395,18 @@ def tier(row):
         events = [json.loads(p.read_text()) for p in sorted(folder.glob('*.json'))] if folder.is_dir() else []
     except Exception:
         pass
-    good = [e for e in events if e.get('joint_type') == row['type'] and e.get('material') == row['material']
-            and e.get('result') == 'perfect']
-    return ('print tested', f'{len(good)} recorded print(s) fit') if good else (
-        'needs physical test', 'no print result recorded for this joint and material')
+    rated = []
+    for e in events:
+        if e.get('material') != row['material']:
+            continue
+        fits = e.get('fits') or [{'id': e.get('joint_type'), 'result': e.get('result')}]
+        rated += [(e.get('ts', ''), f['result']) for f in fits
+                  if row['type'] in (f.get('id'), e.get('joint_type')) and f.get('result')]
+    if not rated:
+        return 'needs physical test', 'NOT TESTED', 'no print result recorded for this joint and material'
+    when, result = max(rated)
+    return ('physically tested', 'PASS' if result == 'perfect' else 'FAIL',
+            f"{len(rated)} print result(s) recorded; latest {result.replace('_', ' ')}{', ' + when[:10] if when else ''}")
 
 
 def check(asm, fasteners):
@@ -457,7 +467,7 @@ def check(asm, fasteners):
                 mine = [f for f in fasteners if f['screw'] in c['screws']]
                 row['clearance_holes'] = [h['dia'] for f in mine for h in f['clearance_holes']]
                 problems += [p for f in mine for p in f['problems']]
-            row['tier'], row['evidence'] = tier(c)
+            row['tier'], row['physical'], row['evidence'] = tier(c)
             row['problems'], row['pass'] = problems, not problems
             rows.append(row)
     return rows

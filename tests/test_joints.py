@@ -174,13 +174,18 @@ class GateTest(unittest.TestCase):
         self.assertEqual((claim['tier'], claim['status']), ('needs physical test', 'NOT TESTED'))
         events = Path(self.calibration.name) / 'events'
         events.mkdir(parents=True, exist_ok=True)
-        (events / 'one.json').write_text(json.dumps({'joint_type': 'snap_fit', 'material': 'PLA', 'result': 'perfect'}))
+        # #15's event shape: a template joint type plus each rated fit.
+        (events / 'one.json').write_text(json.dumps({'ts': '2026-11-08T12:00:00+00:00', 'joint_type': 'holder_clip',
+                                                     'material': 'PLA', 'result': 'perfect',
+                                                     'fits': [{'id': 'snap_fit', 'result': 'perfect'}]}))
+        (events / 'petg.json').write_text(json.dumps({'ts': '2026-11-09T12:00:00+00:00', 'joint_type': 'snap_fit',
+                                                      'material': 'PETG', 'result': 'too_tight'}))
         try:
             again = evaluate(FIXTURE / 'assembly.py', FIXTURE)
         finally:
             shutil.rmtree(events)
         claim = next(c for c in again['claims'] if c['claim'].startswith('Joint '))
-        self.assertEqual(claim['tier'], 'print tested')
+        self.assertEqual((claim['tier'], claim['status']), ('physically tested', 'PASS'))
 
     def test_manifest_carries_the_joint_and_its_fit(self):
         with tempfile.TemporaryDirectory() as out:

@@ -341,8 +341,7 @@ def finish(report):
                          'detail': c['detail']} for c in report['checks']]
     for joint in report.get('joints') or []:
         report['claims'].append({'claim': f"Joint {joint['id']}: {joint['label']} fit and retention",
-                                 'tier': joint['tier'], 'status': 'NOT TESTED' if joint['tier'] == 'needs physical test'
-                                 else 'PRINT TESTED', 'detail': joint['evidence']})
+                                 'tier': joint['tier'], 'status': joint['physical'], 'detail': joint['evidence']})
     report['claims'].append({'claim': 'Physical assembly, fit and retention', 'tier': 'needs physical test',
                              'status': 'NOT TESTED', 'detail': 'Hardware is a simplified envelope; nothing was assembled.'})
     report['gate'] = {'name': GATE, 'status': 'PASS' if report['pass'] else 'FAIL',

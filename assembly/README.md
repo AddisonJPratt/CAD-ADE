@@ -63,12 +63,14 @@ The gate's **Joints** check, per joint:
 |---|---|
 | Fit | the gap between the two parts around each site, measured with manifold3d `min_gap` on meshes reloaded from STL, is the profile clearance for the joint's fit class within 2 × the STL tolerance |
 | Printability | the joint adds no more unsupported overhang to either part, in its print frame, than `print_rules.overhang_tolerance_mm2` |
-| Snap-fit | prong root strain under `max_strain`; barb taller than the clearance (it retains); slot wide enough for the prongs to close |
-| Living hinge | web, measured through the part, between one and two nozzle widths; PLA carries a fatigue note |
+| Snap-fit | prong root strain (D-section far fibre, 3·c·d/L²) under the layer-bond `max_strain`; barb taller than the clearance (it retains); slot wide enough for the prongs to close |
+| Living hinge | web, measured through the part, two to four layers at the profile's 0.2 mm process; PLA carries a fatigue note |
+| Print-in-place hinge | turned each way in 5° steps on reloaded meshes, the leaves stay clear (≤ 0.1 mm³ overlap) through the declared swing |
 | Screw + insert | the fastener rules above |
 
-Each joint adds a claim at the `needs physical test` tier until a print result for that joint
-type and material is recorded as `perfect` in the calibration events (`engine/make.py`). The
+Each joint adds a claim at the `needs physical test` tier until a print result (#15's calibration
+events, `engine/make.py`) rates that joint type in that material; it is then `physically tested`,
+PASS only if the latest rating was perfect. The
 manifest carries part-to-part joints with their `fit` (class, material, clearance, measured gap,
 tier); the child (the part declared later) explodes back along the way it went on, except a
 print-in-place hinge's leaf, which prints assembled. `tests/fixtures/assembly_joints` has one

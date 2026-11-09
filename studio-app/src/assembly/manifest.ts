@@ -37,7 +37,7 @@ export interface JointFit {
   material: string;
   clearance_mm: number;      // per side, from the printer profile for the material
   measured_mm: number | null; // the gap the assembly gate measured
-  tier: 'needs physical test' | 'print tested';
+  tier: 'needs physical test' | 'physically tested';
 }
 
 export interface ExplodeRow { instance: string; direction: Vec3; distance: number; offset: Vec3 }

@@ -83,7 +83,7 @@
                                "material": {"type": "string"},
                                "clearance_mm": {"type": "number"},
                                "measured_mm": {"type": ["number", "null"]},
-                               "tier": {"enum": ["needs physical test", "print tested"]}}}
+                               "tier": {"enum": ["needs physical test", "physically tested"]}}}
       }
     },
     "explode": {

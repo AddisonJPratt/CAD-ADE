@@ -41,7 +41,7 @@ export function JointList({ manifest }: { manifest: AssemblyManifest }) {
         <span className="joint-name">{jointLabel(j.role)}</span>
         <span className="joint-parts">{name(j.child)} to {name(j.parent)}</span>
         <small>{fitText(j.fit)}{j.fit.measured_mm !== null ? `; measured ${j.fit.measured_mm.toFixed(2)}\u00a0mm` : ''}</small>
-        <span className={`joint-tier${j.fit.tier === 'print tested' ? ' tested' : ''}`}>{j.fit.tier === 'print tested' ? 'Print tested' : 'Needs physical test'}</span>
+        <span className={`joint-tier${j.fit.tier === 'physically tested' ? ' tested' : ''}`}>{j.fit.tier === 'physically tested' ? 'Physically tested' : 'Needs physical test'}</span>
       </li>)}
     </ul>
   </section>;
