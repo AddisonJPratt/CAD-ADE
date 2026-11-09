@@ -13,6 +13,8 @@ from build123d import Align, Axis, Box, Plane, Polygon, Pos, Vector, extrude
 
 from library import feature, standard_parts
 
+EXPECTED_SOLIDS = 2     # stand and slot gauge, as evals/briefs/phone_stand.yaml has it
+
 PARAMS = {
     # name: (default, min, max)    all mm
     "width": (80.0, 60.0, 110.0),        # base width along Y (hard dimension)

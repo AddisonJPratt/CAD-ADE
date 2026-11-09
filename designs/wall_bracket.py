@@ -68,9 +68,9 @@ def build(width, shelf_depth, wall_height, thickness, wall_hole_spacing, shelf_h
     wall_hole = counterbored_hole(SCREW, depth=t, teardrop=True)
 
     def head_of(cutter):
-        span = cutter.bounding_box().size
-        return cutter & Pos(0, 0, -cb_depth) * Box(span.X, span.Y, cb_depth + t,
-                                                   align=(Align.CENTER, Align.CENTER, Align.MIN))
+        box = cutter.bounding_box()   # off-centre in Y for a teardrop, whose peak must stay in
+        return cutter & Pos(box.center().X, box.center().Y, -cb_depth) * Box(
+            box.size.X, box.size.Y, cb_depth + t, align=(Align.CENTER, Align.CENTER, Align.MIN))
 
     # Feature: shelf screw holes, centred on the free shelf leg; mouth up, so no overhang.
     shelf_x = (t + inner_radius + shelf_depth) / 2
