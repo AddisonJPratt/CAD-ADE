@@ -9,7 +9,8 @@ the same folders, versions and verdicts:
            size(project, ask)     the template sized to the measurements, as the next version;
                                   the caller queues the gates on it
     Prove  proof(project, ver)    the version's make record, verdict, files and print outcome
-           record_print(...)      a physical fit result; it may adjust the next clearance
+           record_print(...)      a physical result: each fit rated, optional caliper readings
+                                  and photo; the primary fit may adjust the next clearance (#15)
     Shelf  shelf()                every project with its version history and print outcomes
 
 A make record (make.json) is versioned with the project's source, so every version knows what it
@@ -19,7 +20,13 @@ log and prints/PRINT_LOG.md are rebuilt (reconcile()).
 
 Only a version whose six gates all PASS with exactly one exported STL is "proven"; anything else,
 including a NOT RUN gate, never offers a print file or takes a print result.
+
+A recorded print upgrades the version's matching claims (harness.evidence.apply_print): each rated
+fit becomes physically tested, each caliper reading a physically tested measurement. Readings and
+photos are evidence only; nothing but the primary fit's rating ever moves a clearance.
 """
+import base64
+import binascii
 import hashlib
 import json
 import math
@@ -32,6 +39,8 @@ from pathlib import Path
 
 import yaml
 
+from harness.evidence import PHYSICAL_CLAIM, apply_print
+from library import standard_parts
 from library.printer_profiles import PROFILE
 
 from .parameters import _read, parameter_edit
@@ -49,6 +58,13 @@ LENGTH_RANGE = (1.0, 2000.0)
 GATES = ["1 Execute", "2 Geometry", "3 Printability", "4 Renders", "Sweep", "5 Exports"]
 RESULTS = {"perfect": "Perfect", "too_tight": "Too tight", "too_loose": "Too loose", "broke": "It broke"}
 STEP_MM = {"too_tight": 0.2, "too_loose": -0.2}
+# The fits a maker rates, per template. The first is primary: its rating drives the clearance.
+FITS = {"holder_clip": [("grip", "Clip around the object")], "holder_cradle": [("seat", "Object in the cradle")]}
+SCREW_FIT = ("screws", "Screws in the mounting holes")
+MEASURE_RANGE = (0.0, 1000.0)  # mm, exclusive low: a caliper reading of a printed feature
+PHOTO_TYPES = {"image/jpeg": (".jpg", (b"\xff\xd8\xff",)), "image/png": (".png", (b"\x89PNG\r\n\x1a\n",)),
+               "image/webp": (".webp", (b"RIFF",))}
+PHOTO_MAX = 6 * 1024 * 1024  # bytes, decoded; Studio downsizes photos well below this
 LOCK = threading.RLock()
 
 
@@ -233,6 +249,120 @@ def describe(ask):
     return f"{r['width']:g} × {r['depth']:g} × {r['height']:g} mm"
 
 
+def fits(ask):
+    """The fits this make's holder offers, primary first."""
+    rows = [*FITS[ask["joint_type"]], SCREW_FIT]
+    return [{"id": i, "label": label, "primary": n == 0} for n, (i, label) in enumerate(rows)]
+
+
+def features(ask):
+    """Named features a maker can measure with calipers, with their modelled size (mm), derived
+    from the make record and standard_parts the same way the template derives them."""
+    r, c = ask["readings"], ask["clearance_used_mm"]
+    rows = ([("bore", "Clip bore", r["diameter"] + 2 * c)] if ask["shape"] == "round" else
+            [("inner_width", "Cradle inner width", r["width"] + 2 * c), ("inner_depth", "Cradle inner depth", r["depth"] + c)])
+    rows.append(("screw_hole", "Screw hole", standard_parts()["screws"]["M3"]["clearance"]))
+    return [{"id": i, "label": label, "modelled_mm": round(value, 3)} for i, label, value in rows]
+
+
+def _rated(ask, result, given):
+    """The maker's ratings -> [{id, label, primary, result, result_label}], offered order."""
+    offered = fits(ask)
+    given = {} if given is None else given
+    if not isinstance(given, dict):
+        raise ProjectError("Send the fit ratings as an object.")
+    primary = offered[0]
+    if result is not None:
+        if primary["id"] in given and given[primary["id"]] != result:
+            raise ProjectError("Send one result for each fit.")
+        given = {**given, primary["id"]: result}
+    known = {f["id"] for f in offered}
+    for key, value in given.items():
+        if key not in known:
+            raise ProjectError("That fit is not part of this holder.")
+        if value not in RESULTS:
+            raise ProjectError("Choose a fit result for each fit you rate.")
+    if primary["id"] not in given:
+        raise ProjectError("Choose a fit result.")
+    return [{**f, "result": given[f["id"]], "result_label": RESULTS[given[f["id"]]]} for f in offered if f["id"] in given]
+
+
+def _measured(ask, readings):
+    """Optional caliper readings {feature id: mm} -> rows with the modelled size and difference."""
+    readings = {} if readings is None else readings
+    if not isinstance(readings, dict):
+        raise ProjectError("Send the measurements as an object.")
+    named = {f["id"]: f for f in features(ask)}
+    rows = []
+    for key, value in readings.items():
+        if key not in named:
+            raise ProjectError("That feature is not part of this holder.")
+        if value is None or (isinstance(value, str) and not value.strip()):
+            continue
+        try:
+            value = float(value)
+        except (TypeError, ValueError):
+            value = math.nan
+        low, high = MEASURE_RANGE
+        if not math.isfinite(value) or not low < value <= high:
+            raise ProjectError(f"Enter the {named[key]['label'].lower()} in millimetres, up to {high:g}.")
+        rows.append({"id": key, "label": named[key]["label"], "modelled_mm": named[key]["modelled_mm"],
+                     "measured_mm": value, "difference_mm": round(value - named[key]["modelled_mm"], 3)})
+    order = list(named)
+    return sorted(rows, key=lambda row: order.index(row["id"]))
+
+
+def _photo(data):
+    """An optional photo as a data URL -> (bytes, suffix), or None. Only real JPEG, PNG or WebP."""
+    if data is None or data == "":
+        return None
+    match = re.fullmatch(r"data:(image/[a-z]+);base64,([A-Za-z0-9+/=\s]+)", data) if isinstance(data, str) else None
+    if not match or match.group(1) not in PHOTO_TYPES:
+        raise ProjectError("Attach the photo as a JPEG, PNG or WebP image.")
+    if len(match.group(2)) > PHOTO_MAX * 4 // 3 + 4:
+        raise ProjectError(f"The photo is too large; keep it under {PHOTO_MAX // (1024 * 1024)} MB.")
+    try:
+        raw = base64.b64decode(match.group(2), validate=False)
+    except (binascii.Error, ValueError):
+        raise ProjectError("Attach the photo as a JPEG, PNG or WebP image.")
+    suffix, magic = PHOTO_TYPES[match.group(1)]
+    if len(raw) > PHOTO_MAX:
+        raise ProjectError(f"The photo is too large; keep it under {PHOTO_MAX // (1024 * 1024)} MB.")
+    if not raw.startswith(magic) or (suffix == ".webp" and raw[8:12] != b"WEBP"):
+        raise ProjectError("Attach the photo as a JPEG, PNG or WebP image.")
+    return raw, suffix
+
+
+def event_fits(event, ask):
+    """An event's rated fits; events from before #15 hold one result for the primary fit."""
+    if event.get("fits"):
+        return event["fits"]
+    primary = fits(ask)[0]
+    return [{**primary, "result": event["result"], "result_label": RESULTS[event["result"]]}]
+
+
+def claims_after_print(project, version_id, claims):
+    """A version's claims with its recorded print applied; unchanged when nothing was printed.
+    Cheap when there is no print: the event file is checked before the make record is read."""
+    event = outcome(project, version_id)
+    if not event:
+        return claims
+    ask = record(project, version_id)
+    if not ask:
+        return claims
+    return apply_print(claims, fits(ask), {**event, "fits": event_fits(event, ask)})
+
+
+def photo_path(project, ref):
+    """The stored photo of a version's print, or None."""
+    project = require_versioned(project)
+    event = outcome(project, find_version(project, ref)["id"])
+    if not event or not event.get("photo"):
+        return None
+    path = (calibration_dir() / event["photo"]).resolve()
+    return path if path.parent == calibration_dir() / "photos" and path.is_file() else None
+
+
 def _full_verdict(project, version_id):
     return _read_json(Path(project) / STATE / "verdicts" / f"{version_id}.json", None)
 
@@ -276,6 +406,14 @@ def proof(project, ref):
     ask = record(project, version["id"])
     proven, stl, render, failure = judge(_full_verdict(project, version["id"]))
     result = outcome(project, version["id"])
+    verdict = _full_verdict(project, version["id"]) or {}
+    claims = [c for d in verdict.get("designs", []) for c in d.get("claims", [])]
+    if ask and verdict and not any(c["tier"] in ("needs physical test", "physically tested") for c in claims):
+        claims.append(dict(PHYSICAL_CLAIM))  # a verdict from before evidence tiers still owes a print
+    if result and ask:
+        result = {**result, "fits": event_fits(result, ask), "measurements": result.get("measurements", []),
+                  "photo": result.get("photo")}
+        claims = apply_print(claims, fits(ask), result)
     next_clearance = None
     if ask:
         name, declared = template(ask["shape"])
@@ -284,7 +422,8 @@ def proof(project, ref):
             "proven": proven, "stl": stl, "render": render, "failure": failure,
             "gates": [{"name": g["name"], "status": g["status"], "detail": g.get("detail", "")}
                       for d in (_full_verdict(project, version["id"]) or {}).get("designs", []) for g in d["gates"]],
-            "outcome": result, "next_clearance_mm": next_clearance,
+            "outcome": result, "next_clearance_mm": next_clearance, "claims": claims,
+            "fits": fits(ask) if ask else [], "features": features(ask) if ask else [],
             "can_remake": bool(ask and next_clearance is not None and ask.get("clearance_used_mm") != next_clearance
                                and version["current"])}
 
@@ -314,23 +453,32 @@ def reconcile():
                 continue
             verdict = (f"adjust clearance by {e['adjustment_mm']} mm" if e["adjustment_mm"]
                        else "recorded; no clearance adjustment")
+            rated = e.get("fits") or [{"label": e["joint_type"], "result": e["result"]}]
+            measured = "; ".join(f"{m['label']} {m['modelled_mm']:g} mm modelled, {m['measured_mm']:g} mm measured "
+                                 f"({m['difference_mm']:+g} mm)" for m in e.get("measurements", [])) or "not recorded"
+            broken = [f["label"] for f in rated if f["result"] == "broke"]
             entry = (f"\n{marker}\n## {e['ts'][:10]} — {e['template']} — {e['printer']}, {e['material']}, nozzle {PROFILE['nozzle_mm']} mm\n"
-                     f"- Modelled vs measured: not recorded\n"
-                     f"- Fit results: {e['joint_type']}: {RESULTS[e['result']]}, per-side clearance {e['clearance_used_mm']} mm\n"
-                     f"- Failures: {'reported broken; review needed' if e['result'] == 'broke' else 'not recorded'}\n"
-                     f"- Verdict: {verdict}\n")
+                     f"- Project: {e.get('project_name') or Path(e['project']).name}, version {e['version_number']}\n"
+                     f"- Modelled vs measured: {measured}\n"
+                     f"- Fit results: {e['joint_type']}, per-side clearance {e['clearance_used_mm']} mm: "
+                     + "; ".join(f"{f['label']}: {RESULTS[f['result']]}" for f in rated) + "\n"
+                     f"- Failures: {(', '.join(broken) + ' reported broken; review needed') if broken else 'not recorded'}\n"
+                     + (f"- Photo: {e['photo']}\n" if e.get("photo") else "")
+                     + f"- Verdict: {verdict}\n")
             with log.open("a") as stream:
                 stream.write(entry)
             existing += entry
         return profile
 
 
-def record_print(project, ref, result):
-    """A physical print's fit, once per proven version. Too tight or too loose moves the next
-    clearance for that template by 0.2 mm, but only while the profile is the one the print used
-    and the new value stays in the tested range; otherwise it is kept for review, unapplied."""
-    if result not in RESULTS:
-        raise ProjectError("Choose a fit result.")
+def record_print(project, ref, result=None, fits=None, measurements=None, photo=None):
+    """A physical print, once per proven version: each fit rated (the primary one required),
+    optional caliper readings of named features and an optional photo. Too tight or too loose on
+    the primary fit moves the next clearance for that template by 0.2 mm, but only while the
+    profile is the one the print used and the new value stays in the tested range; otherwise it is
+    kept for review, unapplied. Readings and the photo never change a clearance."""
+    if result is not None and result not in RESULTS:
+        raise ProjectError("Choose a fit result for each fit you rate.")
     project = require_versioned(project)
     version = find_version(project, ref)
     with LOCK:
@@ -343,6 +491,10 @@ def record_print(project, ref, result):
         path = calibration_dir() / "events" / f"{key}.json"
         if path.exists():
             raise Conflict("A fit result has already been recorded for this print.")
+        rated = _rated(ask, result, fits)
+        readings = _measured(ask, measurements)
+        picture = _photo(photo)
+        result = rated[0]["result"]
         requested = STEP_MM.get(result, 0)
         _, declared = template(ask["shape"])
         current = adjustment(ask["joint_type"])
@@ -353,12 +505,22 @@ def record_print(project, ref, result):
         reason = None if allowed else (
             "The saved calibration has changed since this print; review this result before adjusting it."
             if not fresh else "Requested adjustment exceeds the tested clearance range.")
-        event = {"ts": datetime.now(timezone.utc).isoformat(), "project": str(project),
+        stored = None
+        if picture:
+            stored = f"photos/{key}{picture[1]}"
+            target = calibration_dir() / stored
+            target.parent.mkdir(parents=True, exist_ok=True)
+            temp = target.with_name(target.name + "." + uuid.uuid4().hex + ".tmp")
+            temp.write_bytes(picture[0])
+            os.replace(temp, target)
+        event = {"ts": datetime.now(timezone.utc).isoformat(), "project": str(project), "project_name": project.name,
                  "key": key, "version": version["id"], "version_number": version["number"], "object": ask["object"],
                  "template": ask["template"], "joint_type": ask["joint_type"], "material": ask["material"],
                  "printer": PROFILE["name"], "clearance_used_mm": ask["clearance_used_mm"], "result": result,
                  "adjustment_mm": requested if allowed else 0,
-                 "review_needed": result == "broke" or not allowed, "adjustment_reason": reason}
+                 "review_needed": any(f["result"] == "broke" for f in rated) or not allowed, "adjustment_reason": reason,
+                 "fits": [{k: f[k] for k in ("id", "label", "primary", "result", "result_label")} for f in rated],
+                 "measurements": readings, "photo": stored}
         # One atomic event is the record; everything else is rebuilt from the events.
         _write_json(path, event)
         reconcile()

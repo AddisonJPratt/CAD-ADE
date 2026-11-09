@@ -19,9 +19,9 @@ All design choices below come from design_constants.planter_pot, where each one'
 """
 import math
 
-from build123d import Align, Axis, Box, Cylinder, Plane, Polygon, Rot, revolve
+from build123d import Align, Axis, Box, Compound, Cylinder, Plane, Polygon, Rot, revolve
 
-from library import standard_parts
+from library import feature, standard_parts
 
 PARAMS = {
     # name: (default, min, max)    mm unless noted
@@ -104,12 +104,11 @@ def build(rim_dia, height, taper_deg, wall):
     pot = pot.fillet(wall, [nearest_circle(pot, floor_r, floor_z)])
 
     # Feature: drain hole through the floor.
-    pot -= Cylinder(drain_dia / 2, floor_z, align=(Align.CENTER, Align.CENTER, Align.MIN))
+    pot -= feature("drain hole", Cylinder(drain_dia / 2, floor_z, align=(Align.CENTER, Align.CENTER, Align.MIN)))
     # Feature: radial drain grooves under the floor, from the drain out past the foot edge.
-    for k in range(choice["drain_grooves"]):
-        angle = 2 * 180 * k / choice["drain_grooves"]
-        pot -= Rot(0, 0, angle) * Box(rim_dia, choice["groove_bridge"], groove_depth,
-                                     align=(Align.MIN, Align.CENTER, Align.MIN))
+    groove = Box(rim_dia, choice["groove_bridge"], groove_depth, align=(Align.MIN, Align.CENTER, Align.MIN))
+    pot -= feature("drain groove", Compound([Rot(0, 0, 2 * 180 * k / choice["drain_grooves"]) * groove
+                                             for k in range(choice["drain_grooves"])]))
 
     pot.label = "pot"
     return pot

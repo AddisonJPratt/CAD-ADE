@@ -5,6 +5,11 @@ print-result integrations may add stronger evidence only when they have it.
 """
 
 
+PHYSICAL = "Physical fit and performance"
+PHYSICAL_CLAIM = {"claim": PHYSICAL, "tier": "needs physical test", "status": "NOT TESTED",
+                  "detail": "No physical print result recorded."}
+
+
 def claims_for_report(report):
     claims = [{"claim": gate["name"], "tier": "computed", "status": gate["status"],
                "detail": gate["detail"]} for gate in report["gates"]]
@@ -23,8 +28,7 @@ def claims_for_report(report):
         claims.append({"claim": f"Sweep sample: {row['label']}", "tier": "computed",
                        "status": "PASS" if row["pass"] else "FAIL",
                        "detail": "; ".join(row["problems"]) or "Sample passed geometry checks."})
-    claims.append({"claim": "Physical fit and performance", "tier": "needs physical test",
-                   "status": "NOT TESTED", "detail": "No physical print result recorded."})
+    claims.append(dict(PHYSICAL_CLAIM))
     return claims
 
 
@@ -61,3 +65,37 @@ def apply_slice(claims, result):
                 else c for c in claims]
     return [*upgraded, {"claim": "Slice", "tier": "slicer-checked", "status": "PASS",
                         "detail": f"{setup}: {found}. 3MF: {result['three_mf']}."}]
+
+
+
+
+def apply_print(claims, offered, outcome):
+    """Claims after a recorded print (#15). The generic needs-physical-test claim becomes one claim
+    per fit the holder offers: physically tested (PASS only for a perfect fit) where the maker rated
+    it, still needs a physical test where they did not. Caliper readings are physically tested
+    evidence with status RECORDED: they are kept, never judged or used to calibrate.
+    offered: [{"id", "label"}]; outcome: {"ts", "fits": [{"id", "result", "result_label"}], "measurements"}."""
+    if not outcome or not any(c["claim"] == PHYSICAL and c["tier"] == "needs physical test" for c in claims):
+        return claims
+    rated = {f["id"]: f for f in outcome.get("fits", [])}
+    when = outcome["ts"][:10]
+    physical = []
+    for fit in offered:
+        got = rated.get(fit["id"])
+        physical.append({"claim": f"Physical fit: {fit['label']}", "tier": "physically tested",
+                         "status": "PASS" if got["result"] == "perfect" else "FAIL",
+                         "detail": f"{got['result_label']} on a real print, recorded {when}."} if got else
+                        {"claim": f"Physical fit: {fit['label']}", "tier": "needs physical test",
+                         "status": "NOT TESTED", "detail": "Not rated when the print was recorded."})
+    for row in outcome.get("measurements", []):
+        physical.append({"claim": f"Measured: {row['label']}", "tier": "physically tested", "status": "RECORDED",
+                         "detail": f"Modelled {row['modelled_mm']:g} mm; measured {row['measured_mm']:g} mm "
+                                   f"({row['difference_mm']:+g} mm), {when}."})
+    out = []
+    for claim in claims:
+        if claim["claim"] == PHYSICAL and claim["tier"] == "needs physical test":
+            out.extend(physical)
+            physical = []
+        else:
+            out.append(claim)
+    return out

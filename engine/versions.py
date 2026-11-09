@@ -185,8 +185,10 @@ def verdict_of(project, version_id):
     if not path.is_file():
         return None
     verdict = json.loads(path.read_text())
+    from .make import claims_after_print  # a recorded print upgrades matching claims (#15)
     summary = {"pass": verdict["pass"], "finished": verdict.get("finished"),
-               "designs": [{"design": d["design"], "pass": d["pass"], "claims": d.get("claims", [])}
+               "designs": [{"design": d["design"], "pass": d["pass"],
+                            "claims": claims_after_print(project, version_id, d.get("claims", []))}
                            for d in verdict["designs"]]}
     if verdict.get("assembly"):
         entry = verdict["assembly"]

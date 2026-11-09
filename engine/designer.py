@@ -133,9 +133,12 @@ def feedback_of(attempt, mode, report, workspace):
             lines.append(f"  sweep sample {row['label']} failed: {'; '.join(map(str, row.get('problems', [])))[:300]}")
         if (detail.get("sweep") or {}).get("dead_params"):
             lines.append(f"  dead params (no effect between min and max): {detail['sweep']['dead_params']}")
-        renders = sorted((Path(workspace) / OUTPUTS / Path(entry["design"]).stem / "renders").glob("*.png"))
-        if renders:
-            lines.append("  renders to look at: " + ", ".join(str(p) for p in renders[:6]))
+        out = Path(workspace) / OUTPUTS / Path(entry["design"]).stem
+        images = sorted((out / "renders").glob("*.png")) + sorted((out / "eyes").glob("*.png"))  # Eyes (#79)
+        if images:
+            lines.append("  images to look at: " + ", ".join(str(p) for p in images[:12]))
+        if (out / "eyes" / "eyes.json").is_file():
+            lines.append(f"  per-part metrics (bbox, overhang shares, min wall): {out / 'eyes' / 'eyes.json'}")
     if report.get("assembly"):
         for gate in report["assembly"]["gates"]:
             lines.append(f"{ASSEMBLY}: {gate['status']} {gate['name']}: {gate['detail']}")

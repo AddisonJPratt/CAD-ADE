@@ -37,6 +37,7 @@ def check(name, condition, detail=""):
 
 
 def code_of(result):
+    result = getattr(result, "structured_content", result)   # run_check returns a CallToolResult
     return (result.get("error") or {}).get("code")
 
 
@@ -70,7 +71,7 @@ def test_paths():
         check(f"measure_file rejects {label}", code_of(srv.measure_file(raw)) == "path_outside_project")
     check("min_gap rejects ../", code_of(srv.min_gap("../a.stl", BRACKET_STL)) == "path_outside_project")
     check("min_gap rejects ../ second arg", code_of(srv.min_gap(BRACKET_STL, "../a.stl")) == "path_outside_project")
-    escape = srv.run_check("../evil.py")
+    escape = srv.run_check("../evil.py").structured_content
     check("run_check rejects ../ as structured failure", escape["pass"] is False and code_of(escape) == "path_outside_project")
     check("NUL byte is a structured error", code_of(srv.measure_file("a\x00b.stl")) == "invalid_path")
     check("missing file is a structured error", code_of(srv.measure_file("runs/nothing.stl")) == "not_found")
@@ -193,6 +194,54 @@ def test_run_check_failures():
             out.rmdir()
 
 
+def test_run_check_artefacts():
+    """Eyes (#79): a check hands back the harness's renders as images, plus paths and metrics."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    saved = srv.run_harness
+    out = ROOT / "runs" / "hang-check"
+    try:
+        out.mkdir(exist_ok=True)
+        pngs = {}
+        for name in ("iso", "top", "front", "side", "heatmap", "section", "thin"):
+            pngs[name] = out / f"{name}.png"
+            plt.imsave(pngs[name], [[0.0, 1.0], [1.0, 0.0]])
+        art = {"views": {v: str(pngs[v]) for v in ("iso", "top", "front", "side")},
+               "overhang_heatmap": str(pngs["heatmap"]), "design_section": str(pngs["section"]),
+               "sections": [{"name": "thinnest wall", "axis": "Z", "offset": 1.0, "path": str(pngs["thin"])}],
+               "face_maps": {"part": str(out / "part.faces.json")}, "manifest": str(out / "eyes.json"),
+               "metrics": {"part": {"min_wall_mm": 1.2}}}
+        report = {"pass": False, "gates": [{"name": "3 Printability", "status": "FAIL"}], "artefacts": art}
+
+        def fake(args, timeout):
+            (out / "report.json").write_text(json.dumps(report))
+            return {"returncode": 1, "stdout": "", "stderr": "", "timed_out": False, "error": None, "seconds": 1.0}
+        srv.run_harness = fake
+        plain = srv.harness_check("tests/fixtures/hang.py")
+        check("artefacts: paths and metrics come back on a failing check", plain["pass"] is False
+              and plain["artefacts"]["metrics"]["part"]["min_wall_mm"] == 1.2
+              and plain["artefacts"]["views"]["iso"] == "runs/hang-check/iso.png", str(plain.get("artefacts"))[:200])
+        call = srv.run_check("tests/fixtures/hang.py")
+        images = [c for c in call.content if c.type == "image"]
+        check("artefacts: run_check result carries the renders inline", len(images) == 7
+              and all(i.mime_type == "image/png" for i in images), str(len(images)))
+        texts = [c.text for c in call.content if c.type == "text"]
+        check("artefacts: each image is captioned", any("overhang heatmap" in t for t in texts)
+              and any("thinnest wall" in t for t in texts), str(texts)[:300])
+        check("artefacts: structured content unchanged", call.structured_content == plain)
+        report.pop("artefacts")
+        call = srv.run_check("tests/fixtures/hang.py")
+        check("artefacts: no images when the harness made none", not [c for c in call.content if c.type == "image"]
+              and call.structured_content["artefacts"] is None)
+    finally:
+        srv.run_harness = saved
+        for leftover in sorted(out.rglob("*"), reverse=True) if out.exists() else []:
+            leftover.rmdir() if leftover.is_dir() else leftover.unlink()
+        if out.exists():
+            out.rmdir()
+
+
 async def protocol():
     from mcp import Client, StdioServerParameters
     params = StdioServerParameters(command=str(srv.PYTHON), args=[str(SERVER_FILE)], cwd="/")
@@ -211,11 +260,16 @@ async def protocol():
         check("protocol: library_lookup", call.structured_content["matches"][0]["name"] == "608")
         call = await client.call_tool("measure_file", {"path": "../x.stl"})
         check("protocol: escape comes back as data", call.structured_content["error"]["code"] == "path_outside_project")
+        call = await client.call_tool("run_check", {"design": "../evil.py"})
+        check("protocol: run_check's CallToolResult keeps structured content", not call.is_error
+              and call.structured_content["error"]["code"] == "path_outside_project"
+              and call.structured_content["artefacts"] is None)
+        check("protocol: run_check documents its artefacts", "overhang heatmap" in by_name["run_check"].description)
 
 
 if __name__ == "__main__":
     for test in (test_listing, test_measure, test_paths, test_min_gap, test_library, test_eval_status,
-                 test_run_check_failures):
+                 test_run_check_failures, test_run_check_artefacts):
         print(f"--- {test.__name__}")
         test()
     print("--- protocol")

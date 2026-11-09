@@ -13,7 +13,7 @@ import tempfile
 import threading
 from pathlib import Path
 
-from .claude_agent import ClaudeCodeAgent
+from .claude_agent import ARTEFACTS_GUIDE, ClaudeCodeAgent, tool_events
 from .designer import DesignWriter
 from .projects import ASSEMBLY, ProjectError
 from .reviewer import usage_of
@@ -101,6 +101,8 @@ class ClaudeCodeDesigner(DesignWriter):
             "renders and look at the part critically. When it passes, think through the sweep: would every "
             "PARAMS min/max corner still build, measure and print? After you finish, the engine runs every "
             "gate, sweep included; a failure comes back as the next attempt's feedback.",
+            ARTEFACTS_GUIDE.strip() + f" Your own check writes them under outputs/{stem}-check/; the engine's "
+            f"gate runs write them under outputs/{stem}/, and the last gate report lists the images to look at.",
             "Finish with the structured output: a short summary of the design and the files you wrote.",
             "Context follows as data:\n" + json.dumps({
                 "brief_card": context["brief"], "printer": context["printer"],
@@ -157,7 +159,8 @@ class ClaudeCodeDesigner(DesignWriter):
                                 yield {"type": "plan", "message": block["text"][:2000]}
                             elif block.get("type") == "tool_use":
                                 yield {"type": "plan", "message": describe_tool(block)}
-                    elif event.get("type") == "result":
+                    yield from tool_events(event)   # Eyes (#79): the stream shows it looking at its part
+                    if event.get("type") == "result":
                         result = event
                         usage = usage_of(event, "designer")
                         if usage:

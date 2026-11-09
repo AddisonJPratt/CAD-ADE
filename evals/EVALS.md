@@ -95,7 +95,21 @@ Notes on the wall_bracket run:
   for house style, and ran `magic.py check` on its draft (no-sweep, then with the sweep). It also
   read its own renders. A try at running its own build script was denied by the permission rules,
   as intended.
-- Eyes (#79) had not landed. The designer read renders only because the prompt tells it to look at
-  its own check. Record the iteration count again with #79 for the comparison the issue asks for.
+- Eyes (#79) had not landed when this ran, so this is the "without artefacts" row in the table below.
+  The designer still read its renders, because the prompt tells it to look at its own check.
 - Not yet run: the ESP32-DevKitC base-plate brief (catalogue board, M2.5 inserts), and a real
   negative control. The scripted test covers the negative control.
+
+## Eyes: iterations with and without artefacts (#79)
+
+Since #79, every check that reaches Gate 4 hands the agent its renders, an overhang heatmap,
+sections at the thinnest wall and each named feature, the face map and per-part metrics
+(`harness/eyes.py`, returned by magic-cad `run_check`). The comparison the ticket asks for,
+wall_bracket-from-brief iterations with artefacts against without, needs the designer loop
+that writes a design from a brief (#61); M0 makes one bounded parameter edit and has no
+iterations to count. Record the two runs here when #61 lands:
+
+| Brief | Artefacts | Iterations to a pass | Wall time | Run |
+|---|---|---|---|---|
+| wall_bracket-from-brief | without (renders only) | 1 attempt (1 quick + 1 full gate run) | 11 min 17 s designer, 15 min with accept + review | `designer-20261108-200049-wall_bracket` |
+| wall_bracket-from-brief | with | not run (needs #61) | - | - |

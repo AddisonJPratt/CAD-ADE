@@ -45,6 +45,12 @@ type Props = {
 
 export function Verdict({ number, verdict, review, assistant, lastReady, onFix, onShowVersion, onEvidence }: Props) {
   const readings = verdict ? readVerdict(verdict.designs || []) : [];
+  // A recorded print (#15) turns the fit claims physically tested; until then nothing physical is implied.
+  const printed = (verdict?.designs || []).flatMap(d => d.claims || []).filter(c => c.tier === 'physically tested' && c.claim.startsWith('Physical fit: '));
+  const perfect = printed.filter(c => c.status === 'PASS').length;
+  // A tight or loose fit is calibration, not a failed check; only a broken part reads as a failure.
+  const broke = printed.some(c => c.detail.startsWith('It broke'));
+  const physical = printed.length ? `Real print: ${perfect} of ${printed.length} rated fits perfect` : 'Real print: fit and strength not tested';
   const failed = readings.find(r => r.status === 'fail');
   const passed = readings.filter(r => r.status === 'pass').length;
   // A failing design review blocks "done" language even when every gate is green.
@@ -52,7 +58,7 @@ export function Verdict({ number, verdict, review, assistant, lastReady, onFix, 
   return <section className={`verdict-card ${state}`} aria-labelledby="verdict-title">
     <h1 id="verdict-title"><span className="verdict-version">Version {number}</span>
       <span className="verdict-headline">{state === 'ready' ? 'Ready to print' : state === 'rework' ? 'Prints, but needs rework' : state === 'blocked' ? 'Not ready to print' : 'Not checked yet'}</span></h1>
-    {state === 'ready' && <p>All {readings.length} computer checks passed. {review ? `The design review scored it ${review.total}/20 (${review.band}).` : 'The design has not been reviewed.'} Nobody has printed it yet, so real-world fit and strength are untested.</p>}
+    {state === 'ready' && <p>All {readings.length} computer checks passed. {review ? `The design review scored it ${review.total}/20 (${review.band}).` : 'The design has not been reviewed.'} {printed.length ? `A real print was recorded: ${perfect} of ${printed.length} rated fits were perfect. The full evidence has each one.` : 'Nobody has printed it yet, so real-world fit and strength are untested.'}</p>}
     {state === 'rework' && review && <p>All {readings.length} computer checks passed, but the independent design review scored it {review.total}/20 ({review.band}). Its fixes are in the conversation.</p>}
     {state === 'blocked' && failed && <p>{failed.text}. {explain(failed.detail)}</p>}
     {state === 'blocked' && !failed && <p>A check failed. Open the evidence to see which one.</p>}
@@ -62,7 +68,7 @@ export function Verdict({ number, verdict, review, assistant, lastReady, onFix, 
       <ul>{readings.map(r => <li key={r.key} className={r.status}>
         <span className="glyph" aria-hidden="true"><Icon name={r.status === 'pass' ? 'check' : r.status === 'fail' ? 'close' : 'minus'}/></span>
         <span>{r.status === 'skipped' ? `${r.text} (not reached)` : r.text}</span></li>)}
-        <li className="untested"><span className="glyph" aria-hidden="true"><Icon name="minus"/></span><span>Real print: fit and strength not tested</span></li>
+        <li className={!printed.length ? 'untested' : perfect === printed.length ? 'pass' : broke ? 'fail' : 'untested'}><span className="glyph" aria-hidden="true"><Icon name={!printed.length ? 'minus' : perfect === printed.length ? 'check' : broke ? 'close' : 'minus'}/></span><span>{physical}</span></li>
       </ul>
     </details>}
     <div className="verdict-actions">

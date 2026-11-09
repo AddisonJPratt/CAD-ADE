@@ -92,6 +92,27 @@ class FaceMapTest(unittest.TestCase):
         # The top face has the pocket in its middle: its sample point still lies on the face itself.
         self.assertGreater(max(abs(top['centre'][0]), abs(top['centre'][1])), 9.0)
 
+    def test_a_thin_ring_face_samples_a_point_on_the_ring_not_in_its_hole(self):
+        # A wall's top rim round a lid rebate: no fixed parametric sample lands on a 1.2 mm ring,
+        # and its parametric centre lies on the rebate cutter, which would misname the rim.
+        from build123d import Axis, Box
+        from harness.worker import EDGE_CLEARANCE, point_on
+        ring = Box(100, 60, 5) - Box(97.6, 57.6, 5)
+        top = ring.faces().sort_by(Axis.Z)[-1]
+        point = point_on(top)
+        self.assertTrue(top.is_inside(point))
+        self.assertTrue(all(edge.distance_to(point) > EDGE_CLEARANCE for edge in top.edges()))
+
+    def test_a_feature_named_on_two_cutters_is_listed_once_and_names_both(self):
+        # Two gears each declaring their "axle bore": one entry in the list, both bores named.
+        from build123d import Box, Cylinder, Pos
+        from harness.worker import face_map
+        bores = [Pos(x, 0, 0) * Cylinder(1, 10) for x in (-5, 5)]
+        part = Box(20, 8, 4) - bores[0] - bores[1]
+        built = face_map('gears', part, [('axle bore', bores[0]), ('axle bore', bores[1])])
+        self.assertEqual(built['features'], ['axle bore'])
+        self.assertEqual(sum(f['feature'] == 'axle bore' for f in built['faces']), 2)
+
     def test_the_committed_fixture_matches_a_fresh_export(self):
         self.assertEqual(rounded(json.loads(FACE_MAP.read_text())), rounded(self.map),
                          'tests/fixtures/faces_map/plate.faces.json is stale: review the change and copy the new export over it')

@@ -172,5 +172,18 @@ class ClaudeAdapterContractTest(unittest.TestCase):
     def test_cli_error_result_points_at_login_without_changing_source(self):
         self.assertIn('claude auth status', self.propose_error('--cli-error'))
 
+    def test_designer_is_told_about_artefacts_and_its_looks_are_streamed(self):
+        """Eyes (#79): the prompt documents the harness artefacts; reading one shows in the event stream."""
+        from pathlib import Path
+        prompt_file = Path(self.tmp.name) / 'prompt.txt'
+        self.runtime.command.extend(['--looks', '--prompt-file', str(prompt_file)])
+        session = self.runtime.start(self.project, None, {}, 'increase size')
+        messages = [e.get('message', '') for e in self.runtime.stream_events(session)]
+        prompt = prompt_file.read_text()
+        for words in ('renders/iso.png', 'overhang heatmap', 'thinnest wall', 'faces.json', 'eyes.json'):
+            self.assertIn(words, prompt)
+        self.assertIn('Reading its own render: iso.png', messages)
+        self.assertIn('Looked at 2 harness images', messages)
+
     def test_result_without_structured_edit_is_an_error(self):
         self.assertIn('no structured parameter edit', self.propose_error('--no-structured'))
