@@ -140,6 +140,23 @@ class FaceMapTest(unittest.TestCase):
         self.assertEqual(feature_parameters(), {})
 
 
+class GearTeethNamesTest(unittest.TestCase):
+    """A naming-only shape with hundreds of faces names the gear's flanks, and the map stays quick."""
+
+    def test_both_gears_name_their_teeth_and_hub(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result = run_worker(ROOT / 'designs/gear_pair.py', tmp)
+            self.assertTrue(result['ok'], result.get('traceback'))
+            for part in result['parts']:
+                faces = json.loads(Path(part['faces']).read_text())['faces']
+                named = [f['feature'] for f in faces]
+                self.assertGreater(named.count('teeth'), 100, part['name'])
+                self.assertIn('hub', named, part['name'])
+                # The flat faces stay off the teeth: the naming shape runs past them.
+                flats = [f for f in faces if f['kind'] == 'plane' and abs(f['normal'][2]) > 0.99]
+                self.assertNotIn('teeth', [f['feature'] for f in flats], part['name'])
+
+
 class FeatureParameterGateTest(unittest.TestCase):
     """The harness fails a design whose feature tags name a parameter PARAMS does not declare."""
 
