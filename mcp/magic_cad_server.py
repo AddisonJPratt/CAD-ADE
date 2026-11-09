@@ -16,7 +16,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from evals.run_evals import PYTHON, discover, read_report, run_harness
-from mcp.server.mcpserver import MCPServer
+from mcp.server.mcpserver import Image, MCPServer
+from mcp_types import CallToolResult, TextContent
 
 DESIGNS_DIR = ROOT / "designs"
 BRIEFS_DIR = ROOT / "briefs"
@@ -112,7 +113,49 @@ def list_eval_briefs() -> dict[str, Any]:
 
 def check_failure(code, message, report_path=None, exit_code=None, seconds=None, brief=None):
     return {"pass": False, "gates": [], "report_path": report_path, "brief": brief,
-            "exit_code": exit_code, "seconds": seconds, "error": {"code": code, "message": message}}
+            "exit_code": exit_code, "seconds": seconds, "error": {"code": code, "message": message},
+            "artefacts": None}
+
+
+def project_paths(value):
+    """Artefact paths relative to the project root, so the agent can Read them; other values unchanged."""
+    if isinstance(value, dict):
+        return {k: project_paths(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [project_paths(v) for v in value]
+    if isinstance(value, str) and value.startswith(str(ROOT) + os.sep):
+        return relative(value)
+    return value
+
+
+def artefact_images(artefacts):
+    """(caption, path) for each image the harness wrote, in reading order."""
+    if not isinstance(artefacts, dict):
+        return []
+    shown = [(f"{name} view", path) for name, path in (artefacts.get("views") or {}).items()]
+    shown.append(("overhang heatmap (downward faces by angle from straight down; red needs support)",
+                  artefacts.get("overhang_heatmap")))
+    shown.append(("design's own section plane", artefacts.get("design_section")))
+    shown += [(f"section through {s.get('name')} ({s.get('axis')}={s.get('offset')})", s.get("path"))
+              for s in artefacts.get("sections") or [] if isinstance(s, dict)]
+    found = []
+    for caption, path in shown:
+        try:
+            file = existing_file(path) if isinstance(path, str) else None
+        except ToolError:
+            file = None
+        if file is not None and file.suffix.lower() == ".png":
+            found.append((caption, file))
+    return found
+
+
+def with_images(result):
+    """The check result as structured data, plus each harness image inline with a caption."""
+    content = [TextContent(type="text", text=json.dumps(result, indent=1))]
+    for caption, file in artefact_images(result.get("artefacts")):
+        content.append(TextContent(type="text", text=f"{caption}: {relative(file)}"))
+        content.append(Image(path=file).to_image_content())
+    return CallToolResult(content=content, structured_content=result)
 
 
 def resolve_design(design):
@@ -155,7 +198,8 @@ def harness_check(design, timeout=CHECK_TIMEOUT):
         return check_failure("inconsistent_result", f"exit {outcome['returncode']} but report pass={report['pass']}",
                              str(report_file), **context)
     result = {"pass": report["pass"], "gates": [{"name": g["name"], "status": g["status"]} for g in gates],
-              "report_path": str(report_file), "error": None, **context}
+              "report_path": str(report_file), "error": None, **context,
+              "artefacts": project_paths(report.get("artefacts"))}
     if not brief:
         result["warning"] = "no brief found: hard dimensions were not checked"
     return result
@@ -169,8 +213,14 @@ def run_check(design: str) -> dict[str, Any]:
     design: a name in designs/ ("wall_bracket") or a .py path inside the project. Writes to
     runs/<stem>-check/. Uses the brief from briefs/ or evals/briefs/ when one exists. A pass is
     a gate result: exports are not kept, and a design is only verified by `magic.py run`.
+
+    Whenever the build got as far as the renders (pass or fail), the result also carries the
+    harness artefacts: `artefacts` holds paths (iso/top/front/side views, overhang heatmap,
+    sections at the thinnest wall and each named feature, face maps, eyes.json) and per-part
+    metrics (bbox, volume, overhang shares, min wall, unsupported area), and the images
+    themselves follow inline. Look at them before the next edit. They are read-only.
     """
-    return harness_check(design)
+    return with_images(harness_check(design))
 
 
 def bbox_mm(low, high):

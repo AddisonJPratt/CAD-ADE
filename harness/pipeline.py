@@ -8,6 +8,7 @@ from .brief import BriefError, load_brief
 from .execute import run_worker
 from .geometry import check_geometry, pairwise_overlaps
 from .evidence import claims_for_report
+from .eyes import FOLDER as EYES_FOLDER, write_artefacts
 from .lint import lint_design
 from .printability import check_stl, DEFAULT_BUILD_VOLUME
 from .render import render_all
@@ -48,6 +49,7 @@ def clear_outputs(out):
         for stale in out.glob(pattern):
             stale.unlink()
     shutil.rmtree(out / "renders", ignore_errors=True)
+    shutil.rmtree(out / EYES_FOLDER, ignore_errors=True)
 
 
 def sha(path):
@@ -207,6 +209,7 @@ def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=1
         report["renders"] = renders
         add_gate(report, "4 Renders", all(Path(f).stat().st_size > 0 for f in renders),
                  f"{len(renders)} PNGs from reloaded STL", ev)
+        attach_artefacts(report, result["parts"], printed, renders, out, title)
         if not printable:
             return finish(report, out, events=ev), report
 
@@ -240,6 +243,16 @@ def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=1
         add_gate(report, "5 Exports", ok, ", ".join(files), ev)
         report["exports"] = files
     return finish(report, out, events=ev), report
+
+
+def attach_artefacts(report, parts, printed, renders, out, title):
+    """Eyes (#79): instruments for the agent. Read-only; a failure here is reported, never a gate."""
+    views = dict(zip(("iso", "front", "top", "side"), renders))
+    try:
+        report["artefacts"] = write_artefacts(parts, printed, views, renders[4], out, title)
+    except Exception as err:   # an instrument must not change a verdict either way
+        report["artefacts"] = None
+        report["artefacts_error"] = f"{type(err).__name__}: {err}"
 
 
 def sweep_only(design, brief_path=None, out=None, samples=None, timeout=180):

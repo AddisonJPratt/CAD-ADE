@@ -19,6 +19,12 @@ build123d = 'failed' if '--mcp-down' in sys.argv else 'connected'
 print(json.dumps({'type':'system', 'subtype':'init', 'mcp_servers':[
     {'name':'magic-cad','status':'connected'}, {'name':'build123d','status':build123d}]}), flush=True)
 print(json.dumps({'type':'assistant','message':{'content':[{'type':'text','text':'Inspecting the selected design'}]}}), flush=True)
+if '--looks' in sys.argv:  # the agent reads a render, then gets a tool result carrying two images (#79)
+    print(json.dumps({'type':'assistant','message':{'content':[
+        {'type':'tool_use','id':'t1','name':'Read','input':{'file_path':'runs/good_two_parts-check/renders/iso.png'}}]}}), flush=True)
+    image = {'type':'image','source':{'type':'base64','media_type':'image/png','data':'iVBORw0KGgo='}}
+    print(json.dumps({'type':'user','message':{'content':[
+        {'type':'tool_result','tool_use_id':'t2','content':[{'type':'text','text':'iso'}, image, image]}]}}), flush=True)
 if '--cli-error' in sys.argv:  # e.g. not logged in: the CLI reports an error result and exits non-zero
     print(json.dumps({'type':'result','is_error':True,'result':'Invalid API key · Please run /login'}),flush=True)
     raise SystemExit(1)
