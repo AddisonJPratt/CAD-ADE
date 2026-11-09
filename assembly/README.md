@@ -23,6 +23,7 @@ See `holder_clip.py` (the demo below as an assembly file) and
 | Assembly file | lint passes; every instance builds and every joint connects |
 | Collisions | no instance pair overlaps by more than 0.1 mm³, except an insert in its host and a screw in its insert |
 | Fasteners | clearance hole from the ISO 273 medium clearance to that + 2 × the sliding fit; into an insert, at least 1.5 × the thread diameter engaged and the tip short of the hole floor and the insert hole's depth; into a substrate, the screw reaches past the part (and no further than `max_depth`, when given) |
+| Joints | each part-to-part joint's measured gap is its material's profile clearance; see Joints below |
 | Derived entries | the parts list and assembly order are derived from the assembly; each names every instance exactly once |
 
 The fastener rules are uncalibrated starting values, like the clearance table in
@@ -33,6 +34,49 @@ computed check, not a physical assembly test.
 .venv/bin/python magic.py assembly assembly/holder_clip.py --project .
 .venv/bin/python magic.py assembly tests/fixtures/assembly_stack/assembly.py
 ```
+
+### Joints (#54)
+
+`asm.join(kind, a, b)` joins two printed parts. The joint lives in the assembly file: its geometry
+(`library/joints.py`, sizes in `library/joints.json`) is added to and cut from the two parts at
+assembly time, in each part's print frame, so neither design repeats it.
+
+| Joint | Fit class | Geometry | Placed |
+|---|---|---|---|
+| `snap_fit` | sliding | split barbed peg on one part, grooved socket in the other | sites found on the face contact |
+| `press_fit` | press | chamfered pin, cone-ended hole | sites found on the face contact |
+| `dovetail` | sliding | tail and a socket that runs out of the part | `at=` frame |
+| `print_in_place_hinge` | print-in-place | three cone-interface knuckles, printed assembled | `at=` frame |
+| `living_hinge` | (web thickness) | the design's own notch (`living_hinge_notch`) | `at=` under the web |
+| `screw_insert` | sliding (clearance hole) | heat-set inserts and screws through matching seats | the parts' own holes |
+
+The clearance is the project's material's per-side value for the joint's fit class from the
+printer profile (the CLAUDE.md table), never a number in the assembly file. Without `at=`, a
+snap-fit or press fit uses the largest face-to-face contact between the parts, puts its sites at
+least a socket and a wall inside the contact's edges with enough of the socket's part behind them,
+as far apart as it can, and puts the peg on the part it grows straight up from as printed.
+Every mating surface is vertical or at the 44° print slope, so sockets print opening up or down.
+
+The gate's **Joints** check, per joint:
+
+| Rule | |
+|---|---|
+| Fit | the gap between the two parts around each site, measured with manifold3d `min_gap` on meshes reloaded from STL, is the profile clearance for the joint's fit class within 2 × the STL tolerance |
+| Printability | the joint adds no more unsupported overhang to either part, in its print frame, than `print_rules.overhang_tolerance_mm2` |
+| Snap-fit | prong root strain under `max_strain`; barb taller than the clearance (it retains); slot wide enough for the prongs to close |
+| Living hinge | web, measured through the part, between one and two nozzle widths; PLA carries a fatigue note |
+| Screw + insert | the fastener rules above |
+
+Each joint adds a claim at the `needs physical test` tier until a print result for that joint
+type and material is recorded as `perfect` in the calibration events (`engine/make.py`). The
+manifest carries part-to-part joints with their `fit` (class, material, clearance, measured gap,
+tier); the child (the part declared later) explodes back along the way it went on, except a
+print-in-place hinge's leaf, which prints assembled. `tests/fixtures/assembly_joints` has one
+assembly file per joint type.
+
+In Studio, pick a face on each of two parts and ask "Join these two parts with a snap-fit" (or a
+press fit): `engine/joins.py` proposes the one-line `assembly.py` edit and previews the assembly
+through this gate before anything is kept.
 
 ### Parts list
 

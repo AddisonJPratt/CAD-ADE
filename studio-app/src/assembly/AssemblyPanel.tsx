@@ -2,6 +2,7 @@
 // exploded-view slider. A treegrid, so each row can hold its own buttons and still be a tree.
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import { Icon } from '../icons';
+import { JointList } from './joints';
 import type { AssemblyManifest } from './manifest';
 import { assemblyRows, displayOf, type AssemblyViewState, type ViewAction } from './view';
 
@@ -71,6 +72,7 @@ export function AssemblyPanel({ manifest, view, dispatch, startOpen = true, onSh
           onChange={e => dispatch({ type: 'explode', amount: Number(e.target.value) / 100 })}/>
         <output htmlFor="assembly-explode">{explode}%</output>
       </div>
+      <JointList manifest={manifest}/>
       <div className="assembly-foot">
         <p>Parts move along their joints. Not a collision check.</p>
         <button type="button" className="quiet-button" disabled={!changed} onClick={() => dispatch({ type: 'showAll' })}>Show all</button>

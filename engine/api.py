@@ -25,7 +25,9 @@
                                          parameter edit; both are held for acceptance. selection is
                                          {"design", "picks":[{instance, kind, feature, parameters, description, point,
                                          normal, centroid, area, ...}], "measurement"?} and is handed to the
-                                         agent as sent; GET /proposals/<id> echoes it back
+                                         agent as sent; GET /proposals/<id> echoes it back. A message asking to
+                                         join the two picked parts ("join these with a snap-fit") is proposed by
+                                         engine/joins.py as an assembly.py edit, previewed through the assembly gate
     POST /projects                       {"folder", "from_design"}: a new project as version 1 (201)
     GET  /projects/printer?project=...   current printer and material
     POST /projects/printer               {"project", "material", "printer"?}: select project settings
@@ -75,6 +77,7 @@ from harness.sweep import plan_samples
 from . import make
 from .proposal_session import ProposalSession
 from .agents import ScriptedFakeAgent, ParameterEditAgent
+from .joins import JoinAgent, preview_assembly, requested_joint
 from .reviewer import ScriptedFakeReviewer, review_context, send_back_message
 from .workspace import browse, choose_folder, is_project, list_projects, new_project, remember, starters
 from .catalogue import BUILTIN, add_component, list_components, project_path
@@ -528,7 +531,8 @@ class Handler(BaseHTTPRequestHandler):
         try:
             # Previews build with the same material fits an accepted run's gates use.
             fits = material_fits(project_printer(draft))
-            agent = ParameterEditAgent() if "parameter" in body else self.engine.agent
+            agent = (ParameterEditAgent() if "parameter" in body else
+                     JoinAgent() if requested_joint(body.get("message")) else self.engine.agent)
             proposal = agent.start(draft, body.get("brief"), body.get("selection"), body["parameter"] if "parameter" in body else body["message"])
         except Exception:
             shutil.rmtree(folder, ignore_errors=True)
@@ -545,6 +549,8 @@ class Handler(BaseHTTPRequestHandler):
                 if cancel.is_set():
                     return {"ok": False, "interrupted": True}
             try:
+                if proposal.get("kind") == "assembly":   # a joint (#54): the assembly gate is the preview
+                    return preview_assembly(draft, out)
                 return run_worker(draft / proposal["file"], out, fits=fits, cancel_event=cancel)
             finally:
                 self.engine.execution.release()
@@ -611,8 +617,9 @@ class Handler(BaseHTTPRequestHandler):
                 raise
             proposal["state"] = "accepted"
             run = self.engine.queue(project, *options)
-            run.review_request = {"file": proposal["file"], "changes": proposal["changes"],
-                                  "round": proposal.get("review_round", 0)}
+            # The design reviewer reads a design file; an assembly edit gets the gates' verdict only.
+            run.review_request = None if proposal.get("kind") == "assembly" else {
+                "file": proposal["file"], "changes": proposal["changes"], "round": proposal.get("review_round", 0)}
             run.send_back = lambda message: self.post_proposal(
                 {"project": str(project), "message": message, "selection": {"design": Path(proposal["file"]).name}},
                 origin={"run": run.id, "round": run.review_request["round"] + 1}, ignore=run)[1]["id"]

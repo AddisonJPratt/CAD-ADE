@@ -26,6 +26,7 @@ import { parseManifest, type AssemblyManifest } from './assembly/manifest';
 import { INITIAL_VIEW, viewReducer } from './assembly/view';
 import { AssemblyScene, SCENE_ACCENT } from './assembly/AssemblyScene';
 import { AssemblyPanel } from './assembly/AssemblyPanel';
+import { JointChangeSummary, type JointChange } from './assembly/joints';
 import { MakeMode } from './make/MakeMode';
 import { ProgressLines } from './ProgressLines';
 
@@ -43,7 +44,7 @@ function StudioEnvironment({light=100}:{light?:number}) {
   useEffect(() => { scene.environmentIntensity = 0.65 * light / 100; invalidate(); }, [scene,light,invalidate]);
   return null;
 }
-type Change = { parameter:string; old:number; new:number };
+type Change = { parameter:string; old:number|string; new:number|string } & Partial<JointChange>;
 type Proposal = { id:string; changes:Change[]; origin?:{run:string; round:number}|null; message?:string|null; previews:{before:string[]; after:string[]}; preview_dimensions:{before:number[][]; after:number[][]} };
 type SourceFile = { name: string; content: string };
 type Gate = { name: string; status: string; detail: string };
@@ -414,7 +415,7 @@ function App() {
             {proposal && <section className="turn assistant review" aria-label="Proposed edit">
               <span className="who">{ASSISTANT}</span>
               <h3 role="status">Proposed change ready to review</h3>
-              <div className="review-diff"><span className="review-part">{niceName(design)}</span>{proposal.changes.map(c => <strong key={c.parameter}>{c.parameter}: <del>{c.old}</del> <span aria-label="to">→</span> <ins>{c.new}</ins></strong>)}</div>
+              <div className="review-diff">{proposal.changes[0]?.kind === 'joint' ? <JointChangeSummary change={proposal.changes[0] as JointChange}/> : <><span className="review-part">{niceName(design)}</span>{proposal.changes.map(c => <strong key={c.parameter}>{c.parameter}: <del>{c.old}</del> <span aria-label="to">→</span> <ins>{c.new}</ins></strong>)}</>}</div>
               <p className="review-note">Previews are unchecked. Keeping the change saves a new version and runs the checks.</p>
               {readySides.length < 2 && !previewFailed && <p role="status" className="review-note">Loading both previews…</p>}
               {previewFailed && <p role="alert">A preview could not be loaded. Discard the change and propose it again to retry.</p>}

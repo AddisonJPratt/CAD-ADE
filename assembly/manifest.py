@@ -15,6 +15,10 @@ The tree and joints come from the assembly file's connections:
 - `press(insert, host, ...)`: the insert hangs off its host by a prismatic `press` joint.
 - a screw through a part into an insert pressed into another part clamps the two: the clamped
   part hangs off the insert's host by a `fixed` `clamp` joint along the screw axis.
+- `join(kind, a, b)` (#54): the later-declared part hangs off the other by a joint whose role is
+  the joint kind: `prismatic` along the way it goes on (snap_fit, press_fit, dovetail) or
+  `revolute` about the hinge axis (print_in_place_hinge). Its `fit` names the fit class,
+  material, profile clearance, the gap the gate measured, and the evidence tier.
 Everything else is a root.
 
 Explode rule (derived, deterministic; never hand-written):
@@ -26,7 +30,7 @@ Explode rule (derived, deterministic; never hand-written):
    out of the same base), so they never overlap when exploded.
 4. Offsets accumulate down the tree: a lid carries its screws. `offset` is the full-explode
    displacement in the assembly frame; Studio scales it by a 0..1 slider.
-Roots stay put.
+Roots stay put, and so does a print-in-place hinge's leaf: it prints assembled.
 """
 import hashlib
 import json
@@ -43,7 +47,8 @@ GAP_RATIO = 0.25      # explode gap as a fraction of the part's own extent
 GAP_MIN = 5.0         # mm: smallest explode gap, so thin parts still separate visibly
 SAME_WAY = 0.99       # cosine above which two explode directions count as the same
 UNIT = 1e-6           # tolerance on unit-length vectors and quaternions
-TOOLS = {'press': 'soldering iron', 'fastener': 'hex key'}
+TOOLS = {'press': 'soldering iron', 'fastener': 'hex key', 'press_fit': 'vise'}
+CAPTIVE = ('print_in_place_hinge',)   # printed assembled: the explode leaves it seated
 DISCLAIMER = ('Hardware is a simplified envelope (no threads or sockets). Exploded offsets and steps '
               'illustrate how the parts go together; they are not a collision-checked tool path or a '
               'motion simulation. Fit, retention and strength are not physically tested.')
@@ -79,7 +84,8 @@ def explode(nodes):
     for n in nodes:
         visit(n['id'])
 
-    plain = {n['id']: 0.0 if n['parent'] is None else n['extent'] + gap(n['extent']) for n in nodes}
+    plain = {n['id']: 0.0 if n['parent'] is None or n.get('role') in CAPTIVE else n['extent'] + gap(n['extent'])
+             for n in nodes}
     distance = dict(plain)
     for n in nodes:
         if n['parent'] is not None and n.get('role') == 'clamp':
@@ -135,15 +141,18 @@ def _source(inst):
     return f"library/standard_parts.json#{table}/{spec['size']}"
 
 
-def tree(asm):
+def tree(asm, report=None):
     """(parent of each instance, joints) derived from the assembly's connections."""
+    from build123d import Vector
+    from .joints import child_of, manifest_axis
     from .model import axis_of
     parent = {ident: None for ident in asm.instances}
     joints = []
-    def join(child, host, kind, role, origin, axis):
+    def join(child, host, kind, role, origin, axis, travel=None, fit=None):
         parent[child] = host
         joints.append({'id': f'{child}_{role}', 'type': kind, 'role': role, 'parent': host, 'child': child,
-                       'origin': _vec(origin, 6), 'axis': _vec(axis), 'rest': 0.0, 'range': None})
+                       'origin': _vec(origin, 6), 'axis': _vec(axis), 'rest': 0.0, 'range': travel,
+                       **({'fit': fit} if fit else {})})
     for c in asm.connections:
         if c['kind'] == 'press':
             origin, axis = axis_of(asm.instances[c['part']])
@@ -158,6 +167,20 @@ def tree(asm):
             ident = parent[ident]
             seen.append(ident)
         return seen
+    checked = {r['id']: r for r in (report or {}).get('joints') or []}
+    for c in asm.connections:   # printed parts joined part to part (#54)
+        if c['kind'] != 'joint' or c['b'] is None or c['type'] == 'screw_insert':
+            continue
+        child, host = child_of(asm, c)
+        if parent[child] is not None or child in ancestors(host):
+            continue
+        row = checked.get(c['id'], {})
+        fit = {'class': c['fit'], 'material': c['material'], 'clearance_mm': c['clearance'],
+               'measured_mm': min((g for g in row.get('measured') or [] if g is not None), default=None),
+               'tier': row.get('tier', 'needs physical test')}
+        swing = c['checks'].get('swing_deg')
+        join(child, host, 'revolute' if c['revolute'] else 'prismatic', c['type'], Vector(*c['sites'][0]['origin']),
+             manifest_axis(c, child), travel=[-swing, swing] if swing else None, fit=fit)
     for c in asm.connections:
         if c['kind'] != 'fastener' or not c.get('insert'):
             continue
@@ -199,7 +222,7 @@ def _digest(path):
 
 def build(asm, report, path, project, name=None):
     """The manifest dict for an evaluated assembly and its gate report."""
-    parent, joints = tree(asm)
+    parent, joints = tree(asm, report)
     by_child = {j['child']: j for j in joints}
     nodes = []
     for ident, inst in asm.instances.items():

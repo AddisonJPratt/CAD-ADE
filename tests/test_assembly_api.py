@@ -50,7 +50,7 @@ def test_passing_assembly(api, tmp):
     check("verdict carries the assembly gate, and it passes", entry.get("pass") is True and verdict["pass"],
           str(entry.get("gates")))
     check("the gate reports each of its checks",
-          [c["name"] for c in entry["checks"]] == ["Assembly file", "Collisions", "Fasteners", "Derived entries"])
+          [c["name"] for c in entry["checks"]] == ["Assembly file", "Collisions", "Fasteners", "Joints", "Derived entries"])
     names = [n for n, _ in events]
     check("assembly runs after the designs, before run_finished",
           names.index("assembly_started") > max(i for i, n in enumerate(names) if n == "design_finished")

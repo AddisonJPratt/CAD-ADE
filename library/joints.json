@@ -1,0 +1,83 @@
+{
+  "_source": "Joint geometry for library/joints.py (#54), kept beside standard_parts.json so the demo snapshot that pins that file is untouched. Each joint names its fit class; the per-side clearance itself comes from library/printer_profiles.py for the project's material, never from here. Every value is an uncalibrated starting value: a joint stays at the needs-physical-test tier until a print result is recorded.",
+  "snap_fit": {
+    "_intent": {
+      "fit": "fit class whose clearance surrounds the peg in its socket",
+      "peg_dia": "split peg diameter at the neck",
+      "barb": "radial height of the barb; must exceed the clearance or the peg does not retain. Both barb faces are at the print slope: a light, reusable snap",
+      "neck": "length of the straight neck from the contact face to the barb; long, so the prongs bend gently",
+      "slot": "width of the split that lets the two prongs close; at least 2 x (barb - clearance)",
+      "max_strain": "prong root strain limit 3*c*d/L^2 (c: the D-shaped prong's far fibre). Prongs stand along Z, so bending loads layer bonds: PLA inter-layer strength ~20-35 MPa over E ~3 GPa is ~0.007-0.012. Uncalibrated.",
+      "count": "pegs per joint when the sites are found automatically: two stop the parts turning"
+    },
+    "fit": "sliding",
+    "peg_dia": 5.0,
+    "barb": 0.6,
+    "neck": 8.5,
+    "slot": 1.2,
+    "max_strain": 0.012,
+    "count": 2
+  },
+  "press_fit": {
+    "_intent": {
+      "fit": "fit class of the pin in its hole. The profile's press value is a per-side clearance (+0.10 mm), a close slip fit on paper that relies on printed holes coming out undersize",
+      "pin_dia": "pin diameter",
+      "length": "pin length above the contact face",
+      "count": "pins per joint when the sites are found automatically"
+    },
+    "fit": "press",
+    "pin_dia": 4.0,
+    "length": 6.0,
+    "count": 2
+  },
+  "dovetail": {
+    "_intent": {
+      "fit": "fit class of the tail sliding in its socket",
+      "width": "tail width at the contact face",
+      "depth": "tail height from the contact face",
+      "flank_deg": "flank angle from vertical; 15 deg is a common dovetail and stays inside the 44 deg print slope",
+      "length": "tail length along the slide axis (+Y of the joint frame); the socket runs out past the part in +Y"
+    },
+    "fit": "sliding",
+    "width": 6.0,
+    "depth": 3.0,
+    "flank_deg": 15.0,
+    "length": 20.0
+  },
+  "print_in_place_hinge": {
+    "_intent": {
+      "fit": "fit class of every gap between the two leaves' knuckles",
+      "knuckle_dia": "knuckle diameter",
+      "knuckle_height": "straight height of each of the three knuckles",
+      "spine": "how far each leaf's spine reaches out from the knuckle axis to meet its part",
+      "swing_deg": "rotation either side of the printed position the manifest declares; the gate sweeps it and fails a range the leaves cannot reach",
+      "_limit": "the cone-stacked knuckles print only with the hinge axis vertical, so the leaves swing in the bed plane like a door; a lid that folds over needs a horizontal axis this geometry cannot print",
+      "bed_relief": "how far B's spine steps back at the bed where it faces A's knuckle, so first-layer squish cannot fuse the clearance"
+    },
+    "fit": "print_in_place",
+    "knuckle_dia": 8.0,
+    "knuckle_height": 6.0,
+    "spine": 8.0,
+    "swing_deg": 90.0,
+    "bed_relief": 0.5
+  },
+  "living_hinge": {
+    "_intent": {
+      "fit": "a flexure has no mating gap; its rule is the web thickness",
+      "layer_height": "layer height of the profile's slicer process (0.20 mm Standard, printer_profiles.py)",
+      "min_layers": "thinnest web: two layers is the least that holds together",
+      "max_layers": "thickest web that still flexes; past four layers it is a wall, not a hinge",
+      "_strands": "strand direction across the hinge line is a slicer setting this check cannot see"
+    },
+    "fit": null,
+    "layer_height": 0.2,
+    "min_layers": 2,
+    "max_layers": 4
+  },
+  "screw_insert": {
+    "_intent": {
+      "fit": "the screw's clearance hole runs from ISO 273 medium to that + 2 x this fit (assembly/gate.py fastener rule)"
+    },
+    "fit": "sliding"
+  }
+}

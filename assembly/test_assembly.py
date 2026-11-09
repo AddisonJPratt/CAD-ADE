@@ -25,7 +25,7 @@ class HolderAssembly(unittest.TestCase):
 
     def test_holder_and_screws_pass_the_gate(self):
         self.assertTrue(self.report['pass'], self.report['checks'])
-        self.assertEqual([c['status'] for c in self.report['checks']], ['PASS'] * 4)
+        self.assertEqual([c['status'] for c in self.report['checks']], ['PASS'] * 5)
 
     def test_screws_land_where_the_demo_shows_them(self):
         demo = {p['id']: p['position'] for p in get_demo(ROOT)['parts']}

@@ -52,6 +52,7 @@ class Instance:
 
     def __init__(self, ident, name, kind, shape, spec):
         self.id, self.name, self.kind, self.shape, self.spec = ident, name, kind, shape, spec
+        self.original = None    # the part as its design built it, once a joint has changed it
         shape.label = ident
 
     @property
@@ -152,6 +153,11 @@ class Assembly:
         RigidJoint(f'{screw.id}_seat', host.shape, seat).connect_to(screw.shape.joints['head'])
         self.connections.append({'kind': 'fastener', 'screw': screw.id, 'host': host.id, 'into': into,
                                  'insert': insert.id if insert else None, 'max_depth': max_depth})
+
+    def join(self, kind, a, b=None, at=None, **options):
+        """Join two printed parts with a joint from library/joints.py; see assembly/joints.py."""
+        from .joints import join
+        return join(self, kind, a, b, at=at, **options)
 
     def press(self, insert, host, mouth):
         """Press an insert into `host` at `mouth` (an assembly-space Location, +Z into the hole)."""
