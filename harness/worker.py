@@ -26,6 +26,7 @@ FACE_ON_FEATURE = 0.01    # mm: a face belongs to a feature when its sample poin
 FACE_SAMPLES = ((0.5, 0.5), (0.3, 0.3), (0.7, 0.7), (0.3, 0.7), (0.7, 0.3), (0.15, 0.5), (0.5, 0.15),
                 (0.85, 0.5), (0.5, 0.85), (0.1, 0.1), (0.9, 0.9), (0.1, 0.9), (0.9, 0.1))
 EDGE_CLEARANCE = 0.1      # mm: how far inside its edges the sample point must lie
+TESSELLATE_TOLERANCE = 0.001  # mm: chord error of the mesh a thin face is sampled from
 
 
 def load_design(path, fits=None):
@@ -93,14 +94,27 @@ def _xyz(v):
 def point_on(face):
     """A point that lies on the face itself, not in one of its holes and not on its rim."""
     edges = face.edges()
+
+    def clear(point):
+        return all(edge.distance_to(point) > EDGE_CLEARANCE for edge in edges)
+
     fallback = None
     for u, v in FACE_SAMPLES:
         point = face.position_at(u, v)
         if not face.is_inside(point):
             continue
-        if all(edge.distance_to(point) > EDGE_CLEARANCE for edge in edges):
+        if clear(point):
             return point
         fallback = fallback or point
+    # A thin ring (a wall's rim round a rebate) has no fixed sample on it: try the centroids of
+    # its own mesh triangles, biggest first, which lie on the face and inside its outline.
+    vertices, triangles = face.tessellate(TESSELLATE_TOLERANCE)
+    corners = [[vertices[i] for i in triangle] for triangle in triangles]
+    corners.sort(key=lambda c: (c[1] - c[0]).cross(c[2] - c[0]).length, reverse=True)
+    for a, b, c in corners:
+        point = (a + b + c) / 3
+        if face.is_inside(point) and clear(point):
+            return point
     return fallback or face.position_at(0.5, 0.5)
 
 
@@ -140,7 +154,7 @@ def face_map(part_name, shape, features, parameters=None):
             if face.geom_type == GeomType.CYLINDER:
                 entry["radius"] = face.radius
         faces.append(entry)
-    names = [name for name, _ in features]
+    names = list(dict.fromkeys(name for name, _ in features))   # a feature named twice is listed once
     parameters = parameters or {}
     return {"part": part_name, "features": names,
             "parameters": {name: parameters.get(name, {}) for name in names}, "faces": faces}

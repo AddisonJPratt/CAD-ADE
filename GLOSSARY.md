@@ -19,7 +19,8 @@ axis, a rest value and an optional range of motion. Its type is `fixed`, `revolu
 
 **Feature**: a named region of a part that a design declares while building, by wrapping the
 cutter or boss that makes it in `library.feature(name, shape)`. The harness names every face of
-the finished part that lies on that shape's boundary.
+the finished part that lies on that shape's boundary. Every starter design names its main features;
+projects created before #65 keep their own library and name none (ADR 0004).
 
 **Face map**: `<part>.faces.json`, written by the harness worker beside each STL and kept with the
 exports: every B-rep face of the part with its kind, centre, normal or axis, area, bounding box and
