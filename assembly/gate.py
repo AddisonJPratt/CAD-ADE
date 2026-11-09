@@ -14,6 +14,12 @@ Fastener rules (starting values, not calibrated on a real print):
   the hole floor measured on the part.
 - into the substrate (a wall, not modelled): the screw reaches past the clamped part, and no
   further than max_depth when the assembly states one.
+
+Joint rules (assembly/joints.py; library/joints.py for the geometry): each joint's measured gap
+is its material's per-side clearance for the joint's fit class from the printer profile, within
+two STL tolerances; it adds no unsupported overhang to either part as printed; a snap-fit's
+prongs stay under their strain limit and its barb exceeds the clearance; a living hinge's web
+is one to two perimeters; a screw + insert joint passes the fastener rules.
 """
 import hashlib
 import importlib.util
@@ -30,7 +36,7 @@ ROOT = Path(__file__).resolve().parent.parent
 OVERLAP_LIMIT = 0.1   # mm^3: parts touching at a face measure ~0; same limit as gate 2
 ENGAGEMENT = 1.5      # minimum thread engagement in an insert, in nominal diameters (brass rule of thumb)
 EPS = 1e-3            # mm
-CHECKS = ('Assembly file', 'Collisions', 'Fasteners', 'Derived entries')
+CHECKS = ('Assembly file', 'Collisions', 'Fasteners', 'Joints', 'Derived entries')
 GATE = '6 Assembly'
 
 
@@ -106,9 +112,18 @@ def derive(asm):
     steps = []
     def step(text, ids):
         steps.append({'number': len(steps) + 1, 'text': text, 'part_ids': ids})
+    from .joints import STEP_TEXT, child_of
+    joined = {}
+    for c in asm.connections:
+        if c['kind'] == 'joint' and c['type'] in STEP_TEXT:
+            child, parent = child_of(asm, c)
+            n = len(c['sites'])
+            joined.setdefault(child, STEP_TEXT[c['type']].format(
+                child=lower(asm.instances[child].name), parent=lower(asm.instances[parent].name),
+                n=n, s='s' if n > 1 else ''))
     for inst in asm.instances.values():
         if inst.kind != 'hardware':
-            step(f'Place the {lower(inst.name)}.', [inst.id])
+            step(joined.get(inst.id, f'Place the {lower(inst.name)}.'), [inst.id])
     def grouped(kind, key):
         out = OrderedDict()
         for c in asm.connections:
@@ -235,7 +250,7 @@ def evaluate(path, project, overrides=None, parts_only=False, out=None):
     report = {'assembly': path.name, 'project': str(project.resolve()), 'source_sha256': source_hash(path),
               'pass': False, 'checks': [],
               'params': {}, 'instances': [], 'connections': [], 'collisions': [], 'fasteners': [],
-              'bom': [], 'steps': []}
+              'joints': [], 'bom': [], 'steps': []}
     add = lambda name, ok, detail: report['checks'].append(
         {'name': name, 'status': 'PASS' if ok else 'FAIL', 'detail': detail})
     lint = lint_design(path)
@@ -277,6 +292,16 @@ def evaluate(path, project, overrides=None, parts_only=False, out=None):
     problems = [p for r in rows for p in r['problems']]
     add('Fasteners', not problems, '; '.join(problems) or (f'{len(rows)} screws fit their holes and lengths' if len(rows) != 1 else '1 screw fits its hole and length'))
 
+    from .joints import check as joint_check
+    report['joints'] = joints = joint_check(asm, rows)
+    problems = [p for r in joints for p in r['problems']]
+    add('Joints', not problems, '; '.join(problems) or (
+        'no joints' if not joints else
+        '; '.join(f"{r['label']} {r['a']}{'/' + r['b'] if r['b'] else ''}"
+                  + (f": gap {min(g for g in r['measured']):.2f} mm = {r['material']} {r['fit']} fit"
+                     if r.get('measured') else f": web {r['web']:.2f} mm" if 'web' in r else ': fasteners fit')
+                  for r in joints)))
+
     bom, steps = derive(asm)
     report['bom'], report['steps'] = bom, steps
     try:
@@ -314,6 +339,9 @@ def finish(report):
     report['pass'] = all(c['status'] == 'PASS' for c in report['checks'])
     report['claims'] = [{'claim': f"Assembly: {c['name']}", 'tier': 'computed', 'status': c['status'],
                          'detail': c['detail']} for c in report['checks']]
+    for joint in report.get('joints') or []:
+        report['claims'].append({'claim': f"Joint {joint['id']}: {joint['label']} fit and retention",
+                                 'tier': joint['tier'], 'status': joint['physical'], 'detail': joint['evidence']})
     report['claims'].append({'claim': 'Physical assembly, fit and retention', 'tier': 'needs physical test',
                              'status': 'NOT TESTED', 'detail': 'Hardware is a simplified envelope; nothing was assembled.'})
     report['gate'] = {'name': GATE, 'status': 'PASS' if report['pass'] else 'FAIL',

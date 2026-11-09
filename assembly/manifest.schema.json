@@ -68,14 +68,22 @@
       "properties": {
         "id": {"$ref": "#/$defs/ident"},
         "type": {"enum": ["fixed", "revolute", "prismatic"]},
-        "role": {"enum": ["fastener", "press", "clamp"]},
+        "role": {"enum": ["fastener", "press", "clamp", "snap_fit", "press_fit", "dovetail", "print_in_place_hinge"]},
         "parent": {"$ref": "#/$defs/ident"},
         "child": {"$ref": "#/$defs/ident"},
         "origin": {"$ref": "#/$defs/vec3"},
         "axis": {"$ref": "#/$defs/vec3"},
         "rest": {"type": "number", "description": "Assembled joint value: mm for prismatic, degrees for revolute."},
         "range": {"oneOf": [{"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}, {"type": "null"}],
-                  "description": "[min, max] travel; null until motion is declared (#30)."}
+                  "description": "[min, max] travel; null until motion is declared (#30)."},
+        "fit": {"type": "object", "additionalProperties": false,
+                "required": ["class", "material", "clearance_mm", "measured_mm", "tier"],
+                "description": "A part-to-part joint's fit (#54): the fit class, the material whose profile clearance it uses, the gap the gate measured, and the evidence tier.",
+                "properties": {"class": {"enum": ["sliding", "press", "print_in_place"]},
+                               "material": {"type": "string"},
+                               "clearance_mm": {"type": "number"},
+                               "measured_mm": {"type": ["number", "null"]},
+                               "tier": {"enum": ["needs physical test", "physically tested"]}}}
       }
     },
     "explode": {

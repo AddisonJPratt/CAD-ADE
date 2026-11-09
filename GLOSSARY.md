@@ -14,8 +14,20 @@ in the assembly tree, a transform and a mesh.
 
 **Joint**: a connection between a parent instance and a child instance, with an origin, a unit
 axis, a rest value and an optional range of motion. Its type is `fixed`, `revolute` or
-`prismatic`; its role is `fastener` (a screw in its host), `press` (an insert in its host) or
-`clamp` (a part screwed down onto another part through an insert).
+`prismatic`; its role is `fastener` (a screw in its host), `press` (an insert in its host),
+`clamp` (a part screwed down onto another part through an insert), or the joint kind of a
+part-to-part joint (`snap_fit`, `press_fit`, `dovetail`, `print_in_place_hinge`), which also
+carries its fit.
+
+**Fit class**: how two printed surfaces meet: `sliding`, `press` or `print_in_place`. Each
+material in the printer profile (`library/printer_profiles.py`) gives each class a per-side
+clearance; a joint names its class and never its own number. Uncalibrated until print results say
+otherwise.
+
+**Evidence tier**: how far a claim is proven: `computed` (a gate checked the model), `needs
+physical test` (only a print can tell) or `physically tested` (a recorded print result, #15). A
+joint stays at `needs physical test` until a print result rates that joint type in that material;
+then it is `physically tested`, PASS only if the latest rating was perfect.
 
 **Feature**: a named region of a part that a design declares while building, by wrapping the
 cutter or boss that makes it in `library.feature(name, shape)`. The harness names every face of

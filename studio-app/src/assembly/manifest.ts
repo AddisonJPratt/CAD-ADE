@@ -22,13 +22,22 @@ export interface Instance {
 export interface Joint {
   id: string;
   type: 'fixed' | 'revolute' | 'prismatic';
-  role: 'fastener' | 'press' | 'clamp';
+  role: 'fastener' | 'press' | 'clamp' | 'snap_fit' | 'press_fit' | 'dovetail' | 'print_in_place_hinge';
   parent: string;
   child: string;
   origin: Vec3;
   axis: Vec3;
   rest: number;
   range: [number, number] | null; // null until motion is declared
+}
+
+/** Optional on a joint: a part-to-part joint's fit (#54). Not in JOINT_KEYS: older manifests lack it. */
+export interface JointFit {
+  class: 'sliding' | 'press' | 'print_in_place';
+  material: string;
+  clearance_mm: number;      // per side, from the printer profile for the material
+  measured_mm: number | null; // the gap the assembly gate measured
+  tier: 'needs physical test' | 'physically tested';
 }
 
 export interface ExplodeRow { instance: string; direction: Vec3; distance: number; offset: Vec3 }
@@ -65,7 +74,7 @@ export interface AssemblyManifest {
   params: Record<string, number>;
   provenance: Provenance;
   instances: Instance[];
-  joints: Joint[];
+  joints: (Joint & { fit?: JointFit })[];
   explode: ExplodeRow[];
   steps: Step[];
   bom: BomRow[];
