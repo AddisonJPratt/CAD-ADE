@@ -69,6 +69,7 @@ class FeatureProposal:
     allow_supports: bool = False
     slop_flags: list = field(default_factory=list)
     notes: list = field(default_factory=list)
+    mesh_texture: dict = None    # a fine texture applied to the exported STL (library/textures.py)
 
     @property
     def adds_overhang_mm2(self):
@@ -81,7 +82,7 @@ class FeatureProposal:
                 "overhang_before_mm2": round(self.overhang_before_mm2, 3),
                 "overhang_after_mm2": round(self.overhang_after_mm2, 3),
                 "allow_supports": self.allow_supports, "slop_flags": list(self.slop_flags),
-                "notes": list(self.notes)}
+                "notes": list(self.notes), "mesh_texture": self.mesh_texture}
 
 
 def unsupported_area(shape):
@@ -651,6 +652,9 @@ FEATURES = {
     "thread": thread,
     "print_draft": print_draft,
 }
+
+
+from . import textures  # noqa: E402,F401  textures builds on the helpers above and registers in FEATURES
 
 
 def propose(feature, shape, **kwargs):

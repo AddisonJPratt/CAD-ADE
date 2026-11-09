@@ -203,8 +203,11 @@ def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=1
         problems = [f"{n}: {x}" for n, r in printed.items() for x in r["problems"]]
         for part in result["parts"]:
             mesh_volume = printed[part["name"]]["metrics"]["mesh_volume"]
-            if abs(mesh_volume - part["volume"]) > MESH_VOLUME_REL * part["volume"]:
-                problems.append(f"{part['name']}: STL volume {mesh_volume:.0f} vs STEP {part['volume']:.0f}")
+            # a fine texture is in the STL only: expect the STEP volume plus what it removed or added
+            expected = part["volume"] + part.get("mesh_texture_volume", 0.0)
+            if abs(mesh_volume - expected) > MESH_VOLUME_REL * part["volume"]:
+                problems.append(f"{part['name']}: STL volume {mesh_volume:.0f} vs STEP {part['volume']:.0f}"
+                                + (f" {part['mesh_texture_volume']:+.0f} texture" if part.get("mesh_textures") else ""))
         worst = max(r["metrics"]["support_risk_pct"] for r in printed.values())
         worst_brief = max(r["metrics"]["overhang_brief_pct"] for r in printed.values())
         printable = add_gate(report, "3 Printability", not problems, "; ".join(problems) or

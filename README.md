@@ -119,6 +119,22 @@ unsupported overhang before and after. A feature that adds unsupported overhang 
 `FeatureError` unless `allow_supports=True`. `review_flags()` names default-everything
 edge breaks for the reviewer. There is one fixture per feature in `tests/fixtures/features/`.
 
+`library/textures.py` adds patterns and ingrained textures through the same `propose()` and
+`FeatureProposal`. Layouts (`linear_pattern`, `grid_pattern`, `circular_pattern`,
+`path_pattern`) feed `pattern()`, which places or cuts a tool on a face and refuses webs
+under `min_wall()`. Textures: `knurl` (straight V grooves), `diamond_knurl`, `ribbing`
+(flat-floored grooves), `hex_texture`, `emboss_text` and `emboss_outline` (logos), on a
+planar face or a vertical cylinder. Their bounds come from `print_rules` and `texture_rules`:
+nothing narrower than one nozzle line, pitch at least two, depth from half a nozzle to
+`max_depth`, and flanks, roofs and raised undersides at the self-supporting slope, so a
+texture on a wall needs no support in any direction. Coarse textures are B-rep. One finer than
+two perimeters, or with more than `brep_max_features` features, is recorded as a mesh
+texture: the STEP stays smooth, the worker displaces the exported STL, and Gate 3 checks the
+displaced STL reloaded from disk (the STL/STEP volume check allows for the texture's
+volume). The slicer's fuzzy skin is the cheap alternative for a purely visual grip. A
+diamond knurl's half-downward flanks count against the brief-wording overhang share, so it
+suits parts with a generous footprint; the straight knurl adds no downward area.
+
 ## Flagged assumptions and blockers
 
 - **Overhang definition.** The brief says "% of downward faces >45° from straight down".
