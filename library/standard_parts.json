@@ -19,6 +19,19 @@
     "self_supporting_deg": 44.0,
     "overhang_tolerance_mm2": 0.25
   },
+  "texture_rules": {
+    "_source": "Bounds for library/textures.py. Feature width, pitch and flank slope derive from print_rules; these are the extra choices.",
+    "_intent": {
+      "min_depth_nozzles": "shallowest texture, in nozzle diameters; shallower vanishes in the perimeter's own wobble",
+      "max_depth": "deepest texture (mm); deeper is a pocket, not a texture: use lightening_cutouts",
+      "brep_max_features": "most grooves/cells built as B-rep; past this the booleans crawl, so the texture goes to the export mesh",
+      "mesh_samples_per_pitch": "mesh texture refinement: vertices per pitch, enough to resolve a V groove"
+    },
+    "min_depth_nozzles": 0.5,
+    "max_depth": 2.0,
+    "brep_max_features": 120,
+    "mesh_samples_per_pitch": 6
+  },
   "brief_constants": {
     "_source": "Values an eval brief pins without declaring them as params, so the design can't take them from PARAMS.",
     "phone_stand": {

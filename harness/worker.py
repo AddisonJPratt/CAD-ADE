@@ -128,6 +128,12 @@ def feature_parameter_values(driving, params):
     return {name: {p: params[p] for p in keys} for name, keys in driving.items()}
 
 
+def near_box(point, box):
+    """True when `point` lies inside `box` grown by FACE_ON_FEATURE on every side."""
+    return all(low - FACE_ON_FEATURE <= value <= high + FACE_ON_FEATURE
+               for low, value, high in zip(box.min, point, box.max))
+
+
 def face_map(part_name, shape, features, parameters=None):
     """Every face of `shape` with its geometry and the named feature it belongs to, if any.
 
@@ -136,12 +142,15 @@ def face_map(part_name, shape, features, parameters=None):
     faces are its own. Unnamed faces keep their geometry so a pick still has a description.
     """
     from build123d import GeomType
-    feature_faces = [(name, feature.faces()) for name, feature in features]
+    # Each feature face with its bounding box: a cheap reject before the exact distance, which
+    # matters when a feature has hundreds of faces (a gear's teeth).
+    feature_faces = [(name, [(f, f.bounding_box()) for f in feature.faces()]) for name, feature in features]
     faces = []
     for index, face in enumerate(shape.faces()):
         centre = point_on(face)
         name = next((n for n, fs in feature_faces
-                     if any(f.distance_to(centre) <= FACE_ON_FEATURE for f in fs)), None)
+                     if any(near_box(centre, box) and f.distance_to(centre) <= FACE_ON_FEATURE
+                            for f, box in fs)), None)
         box = face.bounding_box()
         entry = {"id": index, "kind": face.geom_type.name.lower(), "feature": name,
                  "centre": _xyz(centre), "normal": None, "axis": None, "area": face.area,
@@ -167,6 +176,10 @@ def build_and_measure(design_path, out_dir, overrides, fits=None):
     reset = getattr(feature_registry, "reset_features", lambda: None)
     declared_features = getattr(feature_registry, "declared_features", list)
     driving_parameters = getattr(feature_registry, "feature_parameters", dict)
+    try:   # fine textures (#52) displace the exported STL; a project library may predate them
+        import library.textures as texture_registry
+    except ImportError:
+        texture_registry = None
     declared = {k: list(v) for k, v in module.PARAMS.items()}
     params = {k: v[0] for k, v in module.PARAMS.items()}
     unknown = set(overrides) - set(params)
@@ -175,12 +188,18 @@ def build_and_measure(design_path, out_dir, overrides, fits=None):
     params.update(overrides)
     parts = []
     reset()
+    if texture_registry:
+        texture_registry.reset_mesh_textures()
     built = named_parts(module.build(**params))
+    mesh_textures = texture_registry.declared_mesh_textures() if texture_registry else []
     features = declared_features()
     parameters = feature_parameter_values(driving_parameters(), params)
     for name, shape in built:
         stl, step, faces = out_dir / f"{name}.stl", out_dir / f"{name}.step", out_dir / f"{name}.faces.json"
         export_stl(shape, str(stl), tolerance=STL_TOLERANCE, angular_tolerance=STL_ANGULAR)
+        textures = texture_registry.mesh_textures_for(shape, mesh_textures) if mesh_textures else []
+        # The STL carries the fine texture; the STEP stays smooth. Gate 3 gates the textured STL.
+        texture_delta = texture_registry.apply_mesh_textures(stl, textures) if textures else 0.0
         export_step(shape, str(step))
         faces.write_text(json.dumps(face_map(name, shape, features, parameters), indent=1))
         reloaded = import_step(str(step))
@@ -190,6 +209,7 @@ def build_and_measure(design_path, out_dir, overrides, fits=None):
             "solids": [{"valid": bool(s.is_valid), "closed": is_closed(s), "volume": s.volume}
                        for s in solids],
             "volume_in_memory": shape.volume, "volume": sum(s.volume for s in solids),
+            "mesh_textures": [t["kind"] for t in textures], "mesh_texture_volume": texture_delta,
             "bbox": bbox_dict(reloaded), "cylinders": internal_cylinders(reloaded),
         })
     section = getattr(module, "section_plane", None)
