@@ -12,7 +12,7 @@ const FITS: Record<string, string> = { sliding: 'sliding', press: 'press', print
 export const jointLabel = (kind: string) => LABELS[kind] ?? kind.replace(/_/g, ' ');
 
 export function fitText(fit: { class: string; material: string; clearance_mm: number }) {
-  return `${fit.material} ${FITS[fit.class] ?? fit.class} fit, ${fit.clearance_mm} mm per side`;
+  return `${fit.material} ${FITS[fit.class] ?? fit.class} fit, ${fit.clearance_mm}\u00a0mm per side`;
 }
 
 /** A proposed joint: the change an assembly.py edit makes, before it is kept. */
@@ -40,7 +40,7 @@ export function JointList({ manifest }: { manifest: AssemblyManifest }) {
       {joints.map(j => <li key={j.id}>
         <span className="joint-name">{jointLabel(j.role)}</span>
         <span className="joint-parts">{name(j.child)} to {name(j.parent)}</span>
-        <small>{fitText(j.fit)}{j.fit.measured_mm !== null ? `; measured ${j.fit.measured_mm.toFixed(2)} mm` : ''}</small>
+        <small>{fitText(j.fit)}{j.fit.measured_mm !== null ? `; measured ${j.fit.measured_mm.toFixed(2)}\u00a0mm` : ''}</small>
         <span className={`joint-tier${j.fit.tier === 'print tested' ? ' tested' : ''}`}>{j.fit.tier === 'print tested' ? 'Print tested' : 'Needs physical test'}</span>
       </li>)}
     </ul>

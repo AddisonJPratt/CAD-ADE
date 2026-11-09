@@ -37,8 +37,12 @@ test('two picks and "join with a snap-fit" preview a joint; kept, it is measured
   await expect(canvas).toBeVisible();
   const cameras = page.getByRole('group', { name: 'Camera controls' });
   const settled = async () => { await page.waitForTimeout(700); let last = await canvas.screenshot(); await expect.poll(async () => { await page.waitForTimeout(400); const next = await canvas.screenshot(); const same = next.equals(last); last = next; return same; }, { timeout: 15000 }).toBe(true); };
+  // Both bodies must be loaded before the first click, or it lands on whichever came first.
+  await expect(page.getByRole('group', { name: 'Bodies' }).getByRole('button')).toHaveCount(2);
+  await expect(page.getByText('Loading model…')).toHaveCount(0, { timeout: 30000 });
   await cameras.getByRole('button', { name: 'Top', exact: true }).click();
   await settled();
+  await expect(page.getByText('Loading model…')).toHaveCount(0);
   const at = async (fx: number, fy: number) => { const box = (await canvas.boundingBox())!; return { x: box.width * fx, y: box.height * fy }; };
   await canvas.click({ position: await at(0.5, 0.5) });
   const chips = page.getByRole('list', { name: 'Selected on the model' });
@@ -57,7 +61,7 @@ test('two picks and "join with a snap-fit" preview a joint; kept, it is measured
   expect((await posted).ok()).toBeTruthy();
   const review = page.getByRole('region', { name: 'Proposed edit' });
   await expect(review).toContainText('Add a snap-fit: cap to base', { timeout: 240000 });
-  await expect(review).toContainText('PLA sliding fit, 0.25 mm per side');
+  await expect(review).toContainText(/PLA sliding fit, 0\.25\smm per side/);
   await expect(review).toContainText('Needs a physical test');
   // Nothing is written until the change is kept.
   expect(readFileSync(`${folder}/assembly.py`, 'utf8')).not.toContain('asm.join');
@@ -71,7 +75,7 @@ test('two picks and "join with a snap-fit" preview a joint; kept, it is measured
   const joints = page.getByRole('region', { name: 'Joints' });
   await expect(joints).toContainText('Snap-fit');
   await expect(joints).toContainText('Cap to Base');
-  await expect(joints).toContainText('PLA sliding fit, 0.25 mm per side; measured 0.2');
+  await expect(joints).toContainText(/PLA sliding fit, 0\.25\smm per side; measured 0\.2/);
   await expect(joints).toContainText('Needs physical test');
   await page.screenshot({ path: test.info().outputPath('magic-join-assembly.png') });
 });
