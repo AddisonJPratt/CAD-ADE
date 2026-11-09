@@ -1,6 +1,7 @@
 import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Icon } from '../icons';
 import { GATES } from '../Verdict';
+import { PrintForm, PrintRecord, ProveEvidence, RESULTS, type Claim, type Feature, type Fit, type Outcome, type PrintBody } from './PrintResult';
 import './make.css';
 
 const PartView = lazy(() => import('./PartView'));
@@ -12,15 +13,12 @@ type Field = { name: string; min: number; max: number; default: number; sizes: b
 type Shape = 'round' | 'rectangular';
 type FormSpec = { shapes: Record<Shape, { template: string; fields: Field[]; clearance_mm: number; calibrated: boolean }>; materials: string[]; printer: string };
 type Ask = { object: string; shape: Shape; material: string; readings: Record<string, number>; clearance_used_mm: number };
-type Outcome = { result: Result; adjustment_mm: number; adjustment_reason: string | null; review_needed: boolean; ts: string };
 type Version = { id: string; number: number; message: string; timestamp: string; current: boolean; verdict: null | { pass: boolean }; outcome?: Outcome | null };
-type Proof = { project: string; version: Version; make: Ask | null; checked: boolean; proven: boolean; stl: string | null; render: string | null; failure: string | null; gates: { name: string; status: string; detail: string }[]; outcome: Outcome | null; next_clearance_mm: number | null; can_remake: boolean };
+type Proof = { project: string; version: Version; make: Ask | null; checked: boolean; proven: boolean; stl: string | null; render: string | null; failure: string | null; gates: { name: string; status: string; detail: string }[]; outcome: Outcome | null; next_clearance_mm: number | null; can_remake: boolean; claims: Claim[]; fits: Fit[]; features: Feature[] };
 type ShelfItem = { name: string; path: string; modified: string; make: Ask | null; versions: Version[] };
-type Result = 'perfect' | 'too_tight' | 'too_loose' | 'broke';
 type Step = 'ask' | 'make' | 'prove' | 'shelf';
 type GateState = { name: string; status: string; detail: string };
 
-const RESULTS: Record<Result, string> = { perfect: 'Perfect', too_tight: 'Too tight', too_loose: 'Too loose', broke: 'It broke' };
 const STEPS: { id: Step; label: string }[] = [{ id: 'ask', label: 'Ask' }, { id: 'make', label: 'Make' }, { id: 'prove', label: 'Prove' }, { id: 'shelf', label: 'Shelf' }];
 const ORDER = ['1 Execute', '2 Geometry', '3 Printability', '4 Renders', 'Sweep', '5 Exports'];
 const FIELD_LABEL: Record<string, string> = { diameter: 'Diameter', length: 'Length', width: 'Width', depth: 'Depth', height: 'Height' };
@@ -208,13 +206,13 @@ function MakeStep({ object, gates, error, heading, onBack }: { object: string; g
 }
 
 function ProveStep({ proof, heading, onRecorded, onRemake, onCheck, onChange, onOpen, onLatest }: { proof: Proof; heading: React.RefObject<HTMLHeadingElement | null>; onRecorded: (p: Proof) => void; onRemake: () => Promise<void>; onCheck: () => Promise<void>; onChange: () => void; onOpen: () => void; onLatest: () => Promise<void> }) {
-  const [choice, setChoice] = useState<Result | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const ask = proof.make;
   const name = ask ? `${ask.object} holder` : proof.project.split('/').pop();
   async function act(fn: () => Promise<unknown>) { setBusy(true); setError(''); try { await fn(); } catch (err) { setError((err as Error).message); } finally { setBusy(false); } }
-  const record = (result: Result) => act(async () => onRecorded(await api<Proof>('/make/print', { project: proof.project, version: proof.version.id, result })));
+  const record = (body: PrintBody) => act(async () => onRecorded(await api<Proof>('/make/print', { project: proof.project, version: proof.version.id, ...body })));
+  const photo = `/api/make/photo?${new URLSearchParams({ project: proof.project, version: proof.version.id })}`;
   return <div className="mk-columns prove">
     <figure className="mk-render">
       {proof.stl ? <Suspense fallback={<div className="mk-norender">Loading the part…</div>}>
@@ -231,11 +229,7 @@ function ProveStep({ proof, heading, onRecorded, onRemake, onCheck, onChange, on
         {proof.version.current && <button type="button" className="mk-primary" disabled={busy} onClick={() => act(onCheck)}>Check this version<Icon name="arrow" /></button>}</section>
       : proof.proven ? <section aria-label="Verdict">
         <h2>Ready to print</h2>
-        <dl className="mk-tiers">
-          <div><dt>Computed</dt><dd>All six checks passed: it builds, is one solid piece, fits the bed without supports and exports cleanly.</dd></div>
-          <div><dt>Slicer-checked</dt><dd>Not run. Printability comes from geometry checks, not a slicer.</dd></div>
-          <div><dt>Needs a physical test</dt><dd>Fit, grip and strength. Only a real print shows these.</dd></div>
-        </dl>
+        <ProveEvidence claims={proof.claims} slicer="Not run. Printability comes from geometry checks, not a slicer." />
         {proof.stl && <a className={proof.outcome || !proof.version.current ? "mk-secondary" : "mk-primary"} href={artifact(proof.project, proof.version.id, proof.stl)} download={`${name}.stl`}><Icon name="download" />Download print file (STL)</a>}
       </section>
       : <section aria-label="Verdict"><h2>Not ready to print</h2><p>We couldn’t verify this holder. {proof.failure}</p>
@@ -244,16 +238,12 @@ function ProveStep({ proof, heading, onRecorded, onRemake, onCheck, onChange, on
       {proof.proven && ask && <section className="mk-print" aria-labelledby="mk-print-heading">
         <h2 id="mk-print-heading">{proof.outcome ? 'Your print' : 'Printed it? How did it fit?'}</h2>
         {proof.outcome ? <>
-          <p>Recorded: <strong>{RESULTS[proof.outcome.result]}</strong>, {day(proof.outcome.ts)}.</p>
+          <PrintRecord outcome={proof.outcome} photoUrl={photo} />
           {proof.outcome.adjustment_reason ? <p>{proof.outcome.adjustment_reason} Your result is saved for review.</p>
             : proof.outcome.adjustment_mm ? <p>The fit gap for the next holder moves {proof.outcome.adjustment_mm > 0 ? 'up' : 'down'} by {Math.abs(proof.outcome.adjustment_mm)} mm, to {proof.next_clearance_mm} mm per side.</p>
             : proof.outcome.result === 'broke' ? <p>Saved for review. The fit gap is unchanged.</p> : null}
           {proof.can_remake && <button type="button" className="mk-primary" disabled={busy} onClick={() => act(onRemake)}>Make an adjusted version<Icon name="arrow" /></button>}
-        </> : <>
-          <div className="mk-choices" role="group" aria-label="Fit result">{(Object.keys(RESULTS) as Result[]).map(r => <button type="button" key={r} aria-pressed={choice === r} disabled={busy} onClick={() => setChoice(r)}>{RESULTS[r]}</button>)}</div>
-          <p className="mk-quiet">{choice === 'too_tight' || choice === 'too_loose' ? 'Saving this moves the fit gap for your next holder by 0.2 mm. It can’t be undone here.' : 'Your result is kept with this version and can’t be undone here.'}</p>
-          <button type="button" className={choice ? 'mk-primary' : 'mk-secondary'} disabled={!choice || busy} onClick={() => choice && record(choice)}>Save result</button>
-        </>}
+        </> : <PrintForm fits={proof.fits} features={proof.features} busy={busy} onSave={record} />}
       </section>}
       <p className="mk-error" role="alert">{error}</p>
       <p className="mk-links"><button type="button" className="mk-link" onClick={onOpen}>Open in Studio</button></p>
