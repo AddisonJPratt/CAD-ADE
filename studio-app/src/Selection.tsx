@@ -25,24 +25,55 @@ const toVec = (v: Vector3) => v.toArray() as Vec;
 type Analysis = { count: number; tri: (t: number) => [Vector3, Vector3, Vector3]; normal: Vector3[]; area: number[]; centre: Vector3[]; cluster: Int32Array; members: number[][]; size: number };
 const cache = new WeakMap<BufferGeometry, Analysis>();
 
-/** Triangles grouped into flat faces: same plane, two or more triangles. Lone triangles are curved surface. */
+/** Triangles grouped into flat faces: connected triangles on one plane, two or more of them. Lone triangles are curved surface.
+ *
+ * A face grows from its largest triangle through shared corners, taking a neighbour when all three of its corners lie on
+ * the seed's plane. Corners, not normals, decide: CAD tessellation fans long slivers from holes to plate corners, and a
+ * sliver's normal carries float noise that once split one plate into several faces. Connectivity keeps two separate
+ * faces on one plane apart. */
 export function analyse(geometry: BufferGeometry): Analysis {
   const known = cache.get(geometry); if (known) return known;
   const pos = geometry.getAttribute('position').array; const index = geometry.getIndex()?.array;
   const count = (index ? index.length : pos.length / 3) / 3;
+  const corner = (t: number, k: number) => index ? index[3 * t + k] : 3 * t + k;
   const vertex = (i: number) => new Vector3(pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]);
-  const tri = (t: number) => [0, 1, 2].map(k => vertex(index ? index[3 * t + k] : 3 * t + k)) as [Vector3, Vector3, Vector3];
+  const tri = (t: number) => [0, 1, 2].map(k => vertex(corner(t, k))) as [Vector3, Vector3, Vector3];
   geometry.computeBoundingBox(); const size = geometry.boundingBox!.getSize(new Vector3()).length() || 1;
+  // On-plane tolerance: float32 storage noise. A triangle within a degree of the plane may sit a little further off,
+  // because the mesher borrows corners from a neighbouring curved edge (seen: 0.0007 mm). Curved facets stay out: at the
+  // harness's 0.1 rad angular deflection a 0.5 mm fillet's first facet tilts about 3° and its far corner sits 0.0025 mm off.
+  const tol = 1e-4 + size * 1e-6, loose = 2e-3, tilt = Math.cos(Math.PI / 180);
   const normal: Vector3[] = [], area: number[] = [], centre: Vector3[] = [];
-  const planes = new Map<string, number[]>();
+  // Weld corners by position (an STL repeats every vertex per triangle). Neighbours are triangles sharing a corner, not
+  // an edge: the mesher leaves T-junctions where a sliver's long edge meets several shorter ones.
+  const welded = new Map<string, number>(); const vid = (i: number) => { const key = `${Math.round(pos[3 * i] / tol)},${Math.round(pos[3 * i + 1] / tol)},${Math.round(pos[3 * i + 2] / tol)}`; let id = welded.get(key); if (id === undefined) welded.set(key, id = welded.size); return id; };
+  const touching = new Map<number, number[]>(); const ids: number[][] = [];
   for (let t = 0; t < count; t++) {
     const [a, b, c] = tri(t); const cross = b.clone().sub(a).cross(c.clone().sub(a));
-    const n = cross.clone().normalize(); normal.push(n); area.push(cross.length() / 2); centre.push(a.clone().add(b).add(c).divideScalar(3));
-    const key = `${n.x.toFixed(3)},${n.y.toFixed(3)},${n.z.toFixed(3)},${(n.dot(a) / size).toFixed(4)}`;
-    (planes.get(key) || planes.set(key, []).get(key)!).push(t);
+    normal.push(cross.clone().normalize()); area.push(cross.length() / 2); centre.push(a.clone().add(b).add(c).divideScalar(3));
+    const v = [0, 1, 2].map(k => vid(corner(t, k))); ids.push(v);
+    for (const p of v) (touching.get(p) || touching.set(p, []).get(p)!).push(t);
   }
   const cluster = new Int32Array(count).fill(-1); const members: number[][] = [];
-  planes.forEach(list => { if (list.length < 2) return; const id = members.push(list) - 1; list.forEach(t => { cluster[t] = id; }); });
+  const seen = new Uint8Array(count);
+  const order = [...Array(count).keys()].sort((x, y) => area[y] - area[x]);
+  for (const seed of order) {
+    if (seen[seed] || !(area[seed] > 0)) continue;
+    seen[seed] = 1; const n0 = normal[seed], d0 = n0.dot(tri(seed)[0]);
+    const list = [seed], queue = [seed];
+    while (queue.length) {
+      const t = queue.pop()!; const v = ids[t];
+      for (const p of v) {
+        for (const u of touching.get(p)!) {
+          if (seen[u] || normal[u].dot(n0) < 0) continue;
+          const off = Math.max(...tri(u).map(x => Math.abs(n0.dot(x) - d0)));
+          if (off < tol || (off < loose && normal[u].dot(n0) > tilt)) { seen[u] = 1; list.push(u); queue.push(u); }
+        }
+      }
+    }
+    if (list.length < 2) continue;
+    const id = members.push(list) - 1; list.forEach(t => { cluster[t] = id; });
+  }
   const result = { count, tri, normal, area, centre, cluster, members, size };
   cache.set(geometry, result); return result;
 }
