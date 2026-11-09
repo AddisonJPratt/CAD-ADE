@@ -25,7 +25,8 @@ def sweep_lines(sweep):
 
 def to_markdown(report):
     out = [f"# Magic CAD report: {report['design']}", "",
-           f"**Overall: {'PASS' if report['pass'] else 'FAIL'}** ({report.get('verification', 'unknown')})  ",
+           f"**Overall: {'PASS' if report['pass'] else 'FAIL'}** ({report.get('verification', 'unknown')}"
+           f"{', quick run' if report.get('mode') == 'quick' else ''})  ",
            f"Command: `{report['command']}`  ", f"Brief: `{report['brief'] or 'none'}`  ",
            f"Parameters: `{json.dumps(report.get('params', {}))}`", "",
            "## Checks", "", "| Gate | Status | Detail |", "|---|---|---|"]

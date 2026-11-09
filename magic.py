@@ -2,6 +2,7 @@
 """Magic CAD harness CLI. Exit code 0 only if all gates pass.
 
   python magic.py run <design.py> [--brief brief.yaml] [--out runs/<name>] [--samples N]
+  python magic.py run <design.py> --quick      build, geometry, printability only (seconds); a draft
   python magic.py sweep <design.py> [--brief brief.yaml] [--out dir] [--samples N]
   python magic.py check <design.py> [--brief brief.yaml] [--out dir] [--samples N] [--no-sweep]
   python magic.py evals [--quick] [--out dir] [--timeout S]
@@ -42,22 +43,31 @@ def main():
     parser.add_argument("--timeout", type=int, default=180, help="seconds per build subprocess")
     parser.add_argument("--no-sweep", action="store_true",
                         help="check only: skip the sweep; the report marks it NOT RUN, so this verifies nothing parametric")
+    parser.add_argument("--quick", action="store_true",
+                        help="run/check: build, geometry and printability only, for mid-session iteration; "
+                             "renders, sweep and exports are NOT RUN, nothing is kept, so it verifies nothing "
+                             "for release. Default output runs/<design stem>-quick")
     args = parser.parse_args()
     command = " ".join(["magic.py"] + sys.argv[1:])
     try:
         if args.no_sweep and args.command != "check":
             raise ValueError("--no-sweep is only allowed with check")
+        if args.quick and (args.command == "sweep" or args.no_sweep):
+            raise ValueError("--quick is only allowed with run or check, and already skips the sweep")
         if args.command == "sweep":
             code, report = sweep_only(args.design, args.brief, args.out, args.samples, args.timeout)
         else:
             code, report = run(args.design, args.brief, args.out, args.samples,
-                               args.command == "run", args.timeout, command, args.no_sweep)
+                               args.command == "run", args.timeout, command, args.no_sweep,
+                               quick=args.quick)
     except ValueError as err:   # bad CLI values, e.g. --samples too small to cover the ranges
         print(f"error: {err}", file=sys.stderr)
         return 2
     for gate in report["gates"]:
         print(f"{gate['status']:8} {gate['name']:15} {gate['detail']}")
-    print("OVERALL", "PASS" if report["pass"] else "FAIL")
+    quick = report.get("mode") == "quick"
+    print("OVERALL", ("QUICK PASS (draft: run without --quick to verify)" if quick else "PASS")
+          if report["pass"] else "FAIL")
     return code
 
 

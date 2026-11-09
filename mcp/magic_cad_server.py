@@ -24,6 +24,7 @@ EVAL_BRIEFS_DIR = ROOT / "evals" / "briefs"
 RESULTS_DIR = ROOT / "evals" / "results"
 PARTS_FILE = ROOT / "library" / "standard_parts.json"
 CHECK_TIMEOUT = 1800     # s; a check includes the sweep, about 4 min on 4 cores
+QUICK_TIMEOUT = 300      # s; a quick check is one build plus geometry and printability, ~10 s
 STEP_TIMEOUT = 180       # s; same as the harness's build timeout, importing build123d is the slow part
 STL_SUFFIXES = {".stl"}
 STEP_SUFFIXES = {".step", ".stp"}
@@ -124,18 +125,20 @@ def resolve_design(design):
     return path
 
 
-def harness_check(design, timeout=CHECK_TIMEOUT):
+def harness_check(design, timeout=None, quick=False):
+    timeout = timeout or (QUICK_TIMEOUT if quick else CHECK_TIMEOUT)
     try:
         path = resolve_design(design)
     except ToolError as err:
         return check_failure(err.code, str(err))
-    out = ROOT / "runs" / f"{path.stem}-check"
+    out = ROOT / "runs" / f"{path.stem}-{'quick' if quick else 'check'}"
     report_file = out / "report.json"
     brief = find_brief(path.stem)
     brief_name = relative(brief) if brief else None
     report_file.unlink(missing_ok=True)   # a crash must not be answered with an old report
     args = [PYTHON, ROOT / "magic.py", "check", path, "--out", out]
     args += ["--brief", brief] if brief else []
+    args += ["--quick"] if quick else []
     outcome = run_harness(args, timeout)
     context = {"exit_code": outcome["returncode"], "seconds": outcome["seconds"], "brief": brief_name}
     if outcome["timed_out"]:
@@ -155,7 +158,9 @@ def harness_check(design, timeout=CHECK_TIMEOUT):
         return check_failure("inconsistent_result", f"exit {outcome['returncode']} but report pass={report['pass']}",
                              str(report_file), **context)
     result = {"pass": report["pass"], "gates": [{"name": g["name"], "status": g["status"]} for g in gates],
-              "report_path": str(report_file), "error": None, **context}
+              "report_path": str(report_file), "error": None, "mode": "quick" if quick else "full", **context}
+    if quick:
+        result["note"] = "quick run: build, geometry and printability only; renders, sweep and exports NOT RUN"
     if not brief:
         result["warning"] = "no brief found: hard dimensions were not checked"
     return result
@@ -163,14 +168,19 @@ def harness_check(design, timeout=CHECK_TIMEOUT):
 
 @server.tool()
 @structured
-def run_check(design: str) -> dict[str, Any]:
+def run_check(design: str, quick: bool = False) -> dict[str, Any]:
     """Run `magic.py check` on a design, sweep included (takes minutes), and return its gates.
 
     design: a name in designs/ ("wall_bracket") or a .py path inside the project. Writes to
     runs/<stem>-check/. Uses the brief from briefs/ or evals/briefs/ when one exists. A pass is
     a gate result: exports are not kept, and a design is only verified by `magic.py run`.
+
+    quick=True is the mid-session loop (seconds, not minutes): build, geometry and printability
+    only, with the same thresholds; renders, sweep and exports are NOT RUN. Writes to
+    runs/<stem>-quick/. Use it while iterating; run the full check before proposing a design,
+    since a quick pass never saves a version or proves anything.
     """
-    return harness_check(design)
+    return harness_check(design, quick=quick)
 
 
 def bbox_mm(low, high):

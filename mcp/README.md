@@ -23,7 +23,7 @@ claude mcp add build123d --scope user -- "$PWD/.venv/bin/build123d-mcp"
 Check with `claude mcp list`: both should show `✓ Connected`. If you move the repo, remove and
 re-add them (`claude mcp remove magic-cad --scope user`).
 
-`run_check` takes minutes. If your client cuts it off, raise its tool timeout; for Claude Code
+`run_check` takes minutes (`run_check(design, quick=True)` takes seconds). If your client cuts it off, raise its tool timeout; for Claude Code
 that is the `MCP_TOOL_TIMEOUT` environment variable, in milliseconds.
 
 ## Tools
@@ -34,7 +34,7 @@ Every tool returns a dict. Failures are `{"error": {"code", "message"}}`, not ex
 |---|---|
 | `list_designs()` | Each design in `designs/`, with `has_brief` and `brief_path` |
 | `list_eval_briefs()` | Each eval brief, with `design_present`; `total` and `designs_present` |
-| `run_check(design)` | `{pass, gates: [{name, status}], report_path, brief, exit_code, seconds, error}` |
+| `run_check(design, quick=False)` | `{pass, gates: [{name, status}], mode, report_path, brief, exit_code, seconds, error}` |
 | `measure_file(path)` | `volume_mm3`, `bbox_mm`; STL adds `watertight`, `components`, `faces`; STEP adds `solids`, `valid` |
 | `min_gap(path_a, path_b)` | `gap_mm`, `overlap_volume_mm3`, `search_length_mm`. STL only |
 | `library_lookup(query)` | Matching `library/standard_parts.json` entries |
@@ -46,7 +46,9 @@ Notes on what the numbers mean:
   `designs/<name>.py`. The brief comes from `briefs/`, then `evals/briefs/`; `magic.py` alone
   only looks in `briefs/`, so an eval design would skip its hard dimensions. With no brief the
   result carries a `warning`. A pass is a gate result: only `magic.py run` verifies a design,
-  and a critique still follows.
+  and a critique still follows. `quick=True` runs `magic.py check --quick`: build, geometry and
+  printability only, same thresholds, renders/sweep/exports NOT RUN, into `runs/<stem>-quick/`.
+  Use it mid-loop; a quick pass is a draft and never saves a version or proves anything.
 - **`measure_file`** reloads from disk. STL volume only means something when `watertight` is
   true. STEP runs in a subprocess, so a kernel crash can't take the server down; expect
   several seconds for the build123d import.

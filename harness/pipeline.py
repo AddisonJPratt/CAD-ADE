@@ -54,8 +54,8 @@ def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def new_report(design, brief_path, brief, command):
-    return {"design": Path(design).name, "command": command,
+def new_report(design, brief_path, brief, command, mode="full"):
+    return {"design": Path(design).name, "command": command, "mode": mode,
             "brief": str(brief_path) if brief_path else None, "pass": False, "gates": [],
             "assumptions": (brief or {}).get("assumptions", [])}
 
@@ -123,9 +123,17 @@ def finish(report, out, stem="report", events=QUIET):
     return 0 if report["pass"] else 1
 
 
+QUICK_NOT_RUN = ("4 Renders", "Sweep", "5 Exports")  # gates a quick run never reaches
+
+
 def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=180, command="run",
-        skip_sweep=False, on_event=None, printer=None):
+        skip_sweep=False, on_event=None, printer=None, quick=False):
     """Full pipeline. exports=False is `check`: identical gates, no STL/STEP kept.
+
+    quick=True is the mid-session fast loop: Execute, Geometry and Printability only, the same
+    gates with the same thresholds, then Renders, Sweep and Exports are marked NOT RUN. It keeps
+    no exports (it forces exports=False), writes to runs/<stem>-quick by default, and its report
+    is a draft (mode "quick"), so it can never stand in for a full run or a proven version.
 
     skip_sweep is opt-in, for fast feedback, and refused with exports so a design that never
     swept can't leave files that look approved. The report says the sweep did not run.
@@ -133,10 +141,13 @@ def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=1
     """
     if skip_sweep and exports:
         raise ValueError("--no-sweep is only allowed with check: exports require the sweep")
+    exports = exports and not quick
     design = Path(design)
     printer = printer if printer is not None else printer_for_design(design)
     ev = Events(on_event, design.name)
-    out = Path(out) if out else Path("runs") / (design.stem + ("" if exports else "-check"))
+    suffix = "-quick" if quick else "" if exports else "-check"
+    out = Path(out) if out else Path("runs") / (design.stem + suffix)
+    mode = "quick" if quick else "full"
     clear_outputs(out)
     brief_path = find_brief(design, brief_path)
     brief = None
@@ -144,10 +155,10 @@ def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=1
         try:
             brief = load_brief(brief_path)
         except (BriefError, OSError) as err:
-            report = new_report(design, brief_path, None, command)
+            report = new_report(design, brief_path, None, command, mode)
             add_gate(report, "1 Execute", False, f"brief invalid: {err}", ev)
             return finish(report, out, events=ev), report
-    report = new_report(design, brief_path, brief, command)
+    report = new_report(design, brief_path, brief, command, mode)
     if printer is not None:
         report["printer"] = printer
     if brief is None:
@@ -199,6 +210,12 @@ def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=1
         printable = add_gate(report, "3 Printability", not problems, "; ".join(problems) or
                              f"watertight, single component, fits bed; overhang brief {worst_brief:.1f} %, "
                              f"support risk {worst:.1f} %", ev)
+
+        if quick:
+            # Mark the rest NOT RUN even on a printability failure: SKIPPED would read as "blocked".
+            for name in QUICK_NOT_RUN:
+                add_status(report, name, "NOT RUN", "quick run: build, geometry and printability only", ev)
+            return finish(report, out, events=ev), report
 
         # Gate 4: renders, also on a printability failure, since they help diagnose it.
         ev.start("4 Renders")
