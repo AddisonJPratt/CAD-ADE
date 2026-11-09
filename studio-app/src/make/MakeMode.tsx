@@ -45,9 +45,9 @@ function Mark({ status }: { status: string }) {
   return <span className="mk-state idle">Waiting</span>;
 }
 
-type Props = { project: string; version: string; onOpen: (path: string, studio: boolean) => void };
+type Props = { project: string; version: string; onOpen: (path: string, studio: boolean) => void; onNewProject: () => void };
 
-export function MakeMode({ project, version, onOpen }: Props) {
+export function MakeMode({ project, version, onOpen, onNewProject }: Props) {
   const [step, setStep] = useState<Step>('ask');
   const [spec, setSpec] = useState<FormSpec | null>(null);
   const [specError, setSpecError] = useState('');
@@ -121,7 +121,7 @@ export function MakeMode({ project, version, onOpen }: Props) {
       <ol>{STEPS.map(s => <li key={s.id}><button type="button" aria-current={step === s.id ? 'step' : undefined} disabled={!reachable[s.id]} title={reachable[s.id] ? undefined : s.id === 'make' ? 'Shows progress while a holder is being made' : s.id === 'prove' ? 'Available once a holder has been made or opened from the Shelf' : 'Available when nothing is being made'} onClick={() => setStep(s.id)}>{s.label}</button></li>)}</ol>
     </nav>
     {step === 'ask' && project && proof?.project !== project && <p className="mk-note mk-open">{project.split('/').filter(Boolean).pop()} stays open in Studio. Making a holder starts a new project beside it.</p>}
-    {step === 'ask' && <AskStep key={prefill ? prefill.object + prefill.clearance_used_mm : "new"} spec={spec} specError={specError} prefill={prefill} heading={heading} onSubmit={start} />}
+    {step === 'ask' && <AskStep key={prefill ? prefill.object + prefill.clearance_used_mm : "new"} spec={spec} specError={specError} prefill={prefill} heading={heading} onSubmit={start} onNewProject={onNewProject} />}
     {step === 'make' && making && <MakeStep object={making.object} gates={gates} error={runError} heading={heading} onBack={() => { stream.current?.close(); stream.current = null; setMaking(null); setPrefill(lastAsk.current); setStep('ask'); }} />}
     {step === 'prove' && proof && <ProveStep key={proof.project + proof.version.id + (proof.outcome ? "r" : "")} proof={proof} heading={heading} onRecorded={setProof} onRemake={remake} onCheck={check}
       onLatest={async () => { const list = await api<{ versions: Version[] }>(`/projects/versions?${new URLSearchParams({ project: proof.project })}`); const latest = list.versions.find(v => v.current); if (latest) await loadProof(proof.project, latest.id); }}
@@ -130,7 +130,7 @@ export function MakeMode({ project, version, onOpen }: Props) {
   </section>;
 }
 
-function AskStep({ spec, specError, prefill, heading, onSubmit }: { spec: FormSpec | null; specError: string; prefill: Ask | null; heading: React.RefObject<HTMLHeadingElement | null>; onSubmit: (form: Record<string, string>) => Promise<void> }) {
+function AskStep({ spec, specError, prefill, heading, onSubmit, onNewProject }: { spec: FormSpec | null; specError: string; prefill: Ask | null; heading: React.RefObject<HTMLHeadingElement | null>; onSubmit: (form: Record<string, string>) => Promise<void>; onNewProject: () => void }) {
   const [shape, setShape] = useState<Shape>(prefill?.shape || 'round');
   const [object, setObject] = useState(prefill?.object || '');
   const [material, setMaterial] = useState(prefill?.material || 'PLA');
@@ -158,9 +158,10 @@ function AskStep({ spec, specError, prefill, heading, onSubmit }: { spec: FormSp
   const described = (field: string, own?: string) => [own, invalid === field ? 'mk-form-error' : ''].filter(Boolean).join(' ') || undefined;
   return <div className="mk-columns">
     <div className="mk-intro">
-      <h1 id="make-heading" ref={heading} tabIndex={-1}>What are we holding?</h1>
-      <p>Tell us about the object and we will size a wall holder to it, then check the design before you print.</p>
-      <p className="mk-quiet">Measure with calipers. This first version mounts with two M3 screws and fits a limited range of sizes.</p>
+      <h1 id="make-heading" ref={heading} tabIndex={-1}>Make a wall holder</h1>
+      <p>Measure the object you want to hang with calipers, and Make sizes a screw-mounted holder to it, then checks the design before you print.</p>
+      <p className="mk-quiet">Make only does wall holders for now: a clip for round things, a cradle for boxes. Holders mount with two M3 screws and fit a limited range of sizes.</p>
+      <p className="mk-quiet mk-elsewhere">Making something else? Start a <button type="button" className="mk-link" onClick={onNewProject}>New project</button> in Studio from a starter design, then shape it in chat.</p>
       {spec && spec.shapes[shape].calibrated && <p className="mk-quiet">Your past prints set this holder’s fit gap to {spec.shapes[shape].clearance_mm} mm per side.</p>}
     </div>
     {specError ? <p className="mk-error" role="alert">{specError}</p> : !spec ? <p role="status">Loading the holder templates…</p> :

@@ -25,8 +25,9 @@ function ago(iso: string) {
 const dirname = (path: string) => path.slice(0, Math.max(0, path.lastIndexOf('/'))) || '/';
 
 // children: the typed-path fallback, shown with the list and browse views but not while naming a new project.
-export function ProjectPicker({ onOpen, busy, children }: { onOpen: (path: string) => void; busy: boolean; children?: React.ReactNode }) {
-  const [view, setView] = useState<View>('list');
+// initialView: 'new' when another screen (Make) sends the user straight to New project.
+export function ProjectPicker({ onOpen, busy, children, initialView = 'list' }: { onOpen: (path: string) => void; busy: boolean; children?: React.ReactNode; initialView?: View }) {
+  const [view, setView] = useState<View>(initialView);
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [home, setHome] = useState(''); const [userHome, setUserHome] = useState('');
   const [starters, setStarters] = useState<Starter[]>([]);
@@ -46,6 +47,7 @@ export function ProjectPicker({ onOpen, busy, children }: { onOpen: (path: strin
     get<{ home: string; user_home: string; projects: Project[] }>('/api/workspace/projects')
       .then(r => { setProjects(r.projects); setHome(r.home); setUserHome(r.user_home); })
       .catch(() => { setProjects([]); setEngineDown(true); });
+    if (initialView !== 'list') show(initialView);
   }, []);
 
   // The engine runs on this Mac, so it can show the real Finder folder panel (#66).
