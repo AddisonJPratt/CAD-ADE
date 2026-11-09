@@ -4,7 +4,9 @@ Frame: Z is print-up, floor on z=0, centred in XY. Bays are cut down from the to
 above the floor is a wall with upward-facing scoops and there are no ceilings. Dividers stay as
 real walls between bays, trimmed lower than the rim by a single slab cut.
 """
-from build123d import Axis, Cylinder, Pos, Rectangle, Rot, extrude, fillet
+from build123d import Axis, Compound, Cylinder, Pos, Rectangle, Rot, extrude, fillet
+
+from library import feature
 
 PARAMS = {
     # name: (default, min, max)    mm unless noted
@@ -49,21 +51,23 @@ def build(outer_x, outer_y, height, wall, floor, divider_t, divider_ratio, split
     split_at_x = left + inner_x * split_x
     split_at_y = front + inner_y * split_y
     half_t = divider_t / 2
-    for x0, x1, y0, y1 in ((left, split_at_x - half_t, front, back),
-                           (split_at_x + half_t, right, front, split_at_y - half_t),
-                           (split_at_x + half_t, right, split_at_y + half_t, back)):
-        tray -= Pos(0, 0, floor) * bay(x0, x1, y0, y1, depth, scoop_r)
+    tray -= feature("long bay", Pos(0, 0, floor) * bay(left, split_at_x - half_t, front, back, depth, scoop_r),
+                    params=("split_x", "scoop_r"))
+    tray -= feature("small bay", Compound([
+        Pos(0, 0, floor) * bay(split_at_x + half_t, right, y0, y1, depth, scoop_r)
+        for y0, y1 in ((front, split_at_y - half_t), (split_at_y + half_t, back))]), params=("split_y", "scoop_r"))
 
     # Feature: trim all dividers below the rim, so a hand sweeps across; slab keeps the rim's plan shape.
     divider_top = floor + depth * divider_ratio
     if divider_ratio < 1:
-        tray -= Pos(0, 0, divider_top) * rounded_prism(inner_x, inner_y, height - divider_top, plan_r)
+        tray -= feature("divider top", Pos(0, 0, divider_top) * rounded_prism(inner_x, inner_y, height - divider_top, plan_r),
+                        params="divider_ratio")
 
     # Feature: finger dip in the long divider, centred on the front small bay so it clears the T
     # junction; a round cut leaves no ceiling.
     dip_r = depth * 0.5 * 0.5
     dip_y = (front + split_at_y) / 2
-    tray -= Pos(split_at_x, dip_y, divider_top) * Rot(0, 90, 0) * Cylinder(dip_r, 2 * divider_t)
+    tray -= feature("finger dip", Pos(split_at_x, dip_y, divider_top) * Rot(0, 90, 0) * Cylinder(dip_r, 2 * divider_t))
 
     tray.label = "tray"
     return tray

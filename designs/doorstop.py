@@ -7,6 +7,8 @@ Vertical tooth faces look toward the heel: they bite when the door drives the we
 """
 from build123d import Align, Cylinder, Polygon, Pos, extrude
 
+from library import feature
+
 PARAMS = {
     # name: (default, min, max)    all mm
     "length": (120.0, 90.0, 160.0),      # tip to heel along the floor (hard dimension)
@@ -40,7 +42,8 @@ def build(length, wedge_height, width, tip_t, rib_depth, rib_pitch, cord_dia):
     # Feature: cord hole through the heel, centred in the heel's solid height.
     hole_x = wedge_height * 0.5
     hole_y = (wedge_height - hole_x * slope) * 0.5
-    wedge -= Pos(hole_x, hole_y, 0) * Cylinder(cord_dia / 2, width, align=(Align.CENTER, Align.CENTER, Align.MIN))
+    wedge -= feature("cord hole", Pos(hole_x, hole_y, 0) * Cylinder(cord_dia / 2, width, align=(Align.CENTER, Align.CENTER, Align.MIN)),
+                     params="cord_dia")
 
     wedge.label = "doorstop"
     return wedge

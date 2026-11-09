@@ -5,9 +5,9 @@ screw's counterbore opens up and nothing inside has a ceiling. Only the tab unde
 """
 import math
 
-from build123d import Align, Axis, Box, Plane, Polygon, Pos, Rot, revolve
+from build123d import Align, Axis, Box, Compound, Cylinder, Plane, Polygon, Pos, Rot, revolve
 
-from library import counterbored_hole
+from library import counterbored_hole, feature
 from library.features import TEARDROP_FLANK_DEG
 
 SCREW = "M4"            # hardware choice, resolved through library/standard_parts.json
@@ -45,6 +45,11 @@ def build(flange_dia, hub_dia, spool_height, flange_t, wall, lip_reach, lip_arc,
     # Feature: load radius at the hub root, and a rounded flange edge for the hand winding past it.
     body = body.fillet(wall, [ring_edge(body, hub_r, flange_t)])
     body = body.fillet(flange_t * 0.5 * 0.5, [ring_edge(body, flange_r, flange_t)])
+    # Feature: hub, named (not cut) as the tube the profile revolves; declared before the tabs,
+    # so the hub's top, which the tab tops merge into, reads as the hub.
+    tube = Cylinder(hub_r, spool_height - flange_t, align=(Align.CENTER, Align.CENTER, Align.MIN))
+    tube -= Cylinder(bore_r, spool_height - flange_t, align=(Align.CENTER, Align.CENTER, Align.MIN))
+    feature("hub", Pos(0, 0, flange_t) * tube, params=("hub_dia", "wall"))
 
     # Feature: retaining tabs. Underside is a 44 deg cone from vertical, started inside the hub wall.
     # Reach never passes half the coil width, so a tab can't outgrow the flange on a large hub.
@@ -56,16 +61,16 @@ def build(flange_dia, hub_dia, spool_height, flange_t, wall, lip_reach, lip_arc,
         (root_r, spool_height), (hub_r + lip_reach, spool_height), (hub_r + lip_reach, spool_height - edge_t),
         (root_r, spool_height - edge_t - drop), align=None)
     tab = revolve(tab_section, axis=Axis.Z, revolution_arc=lip_arc)
-    for i in range(lip_count):
-        body += Rot(0, 0, i * 2 * 180 / lip_count) * tab
+    body += feature("retaining tab", Compound([Rot(0, 0, i * 2 * 180 / lip_count) * tab for i in range(lip_count)]),
+                    params=("lip_reach", "lip_arc", "lip_count"))
 
     # Feature: centre screw, counterbored into the flange from inside the hub.
-    body -= Pos(0, 0, flange_t) * counterbored_hole(SCREW, depth=flange_t)
+    body -= feature("centre screw hole", Pos(0, 0, flange_t) * counterbored_hole(SCREW, depth=flange_t))
 
     # Feature: cable-end notch through the flange rim, off the X and Y extremes so it can't shrink the bbox.
     notch_depth = 2 * notch_w
     notch = Pos(flange_r, 0, 0) * Box(2 * notch_depth, notch_w, 2 * flange_t, align=(Align.CENTER, Align.CENTER, Align.CENTER))
-    body -= Rot(0, 0, 90 * 0.5) * notch
+    body -= feature("cable notch", Rot(0, 0, 90 * 0.5) * notch, params="notch_w")
 
     body.label = "spool"
     return body
