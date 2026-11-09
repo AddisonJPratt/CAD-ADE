@@ -62,3 +62,17 @@ and Physical measures need later phases.
 **Pass rate (over designs present): 1/1. Coverage (designs present / total briefs): 1/5.** The
 pass rate rests on one part, and four briefs are untested. Run `20261103-201913`, full mode, with
 `evals/run_evals.py`. "Printable" is the geometric gate; no slicer has checked these parts.
+
+## Eyes: iterations with and without artefacts (#79)
+
+Since #79, every check that reaches Gate 4 hands the agent its renders, an overhang heatmap,
+sections at the thinnest wall and each named feature, the face map and per-part metrics
+(`harness/eyes.py`, returned by magic-cad `run_check`). The comparison the ticket asks for,
+wall_bracket-from-brief iterations with artefacts against without, needs the designer loop
+that writes a design from a brief (#61); M0 makes one bounded parameter edit and has no
+iterations to count. Record the two runs here when #61 lands:
+
+| Brief | Artefacts | Iterations to a pass | Wall time | Run |
+|---|---|---|---|---|
+| wall_bracket-from-brief | without | not run (needs #61) | - | - |
+| wall_bracket-from-brief | with | not run (needs #61) | - | - |
