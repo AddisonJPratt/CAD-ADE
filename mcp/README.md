@@ -34,7 +34,7 @@ Every tool returns a dict. Failures are `{"error": {"code", "message"}}`, not ex
 |---|---|
 | `list_designs()` | Each design in `designs/`, with `has_brief` and `brief_path` |
 | `list_eval_briefs()` | Each eval brief, with `design_present`; `total` and `designs_present` |
-| `run_check(design, quick=False)` | `{pass, gates: [{name, status}], report_path, brief, exit_code, seconds, error}`; quick adds `quick`, `verification` |
+| `run_check(design, quick=False)` | `{pass, gates: [{name, status}], report_path, brief, exit_code, seconds, error, artefacts}`, plus the artefact images inline; quick adds `quick`, `verification` |
 | `measure_file(path)` | `volume_mm3`, `bbox_mm`; STL adds `watertight`, `components`, `faces`; STEP adds `solids`, `valid` |
 | `min_gap(path_a, path_b)` | `gap_mm`, `overlap_volume_mm3`, `search_length_mm`. STL only |
 | `library_lookup(query)` | Matching `library/standard_parts.json` entries |
@@ -47,9 +47,18 @@ Notes on what the numbers mean:
   only looks in `briefs/`, so an eval design would skip its hard dimensions. With no brief the
   result carries a `warning`. A pass is a gate result: only `magic.py run` verifies a design,
   and a critique still follows.
+- **`run_check` artefacts** (#79, the agent's eyes): whenever the build reached Gate 4, pass or
+  fail, `artefacts` holds project-relative paths to the iso/top/front/side views, the overhang
+  heatmap (seen from below, downward faces coloured by angle; red needs support), the design's
+  own section, sections at the thinnest wall and at each named feature, each part's face map,
+  and `eyes.json`, plus per-part metrics: `bbox`, `volume_mm3`, `overhang_brief_pct`,
+  `support_risk_pct`, `unsupported_area_mm2`, `bed_contact_mm2`, `min_wall_mm`, `min_wall_where`.
+  Every PNG also comes back as an inline image with a caption, so the agent sees the part
+  without a second call. They are instruments: nothing in them changes a gate. The harness
+  writes them to `<out>/eyes/` (`harness/eyes.py`); `artefacts` is null when it stopped earlier.
 - **`run_check(design, quick=True)`** is the mid-session fast loop: `magic.py check --quick`,
   build, geometry and printability only, written to `runs/<stem>-quick/`. Renders, sweep and
-  exports are `NOT RUN` and `verification` is `draft`. Its geometry and printability verdicts
+  exports are `NOT RUN`, `verification` is `draft`, and `artefacts` is null (no renders). Its geometry and printability verdicts
   match the full run's (`tests/test_quick.py`); timings are in `docs/quick-gate-timings.md`.
   Iterate quick, then run the full check before proposing. A quick pass never verifies a design.
 - **`measure_file`** reloads from disk. STL volume only means something when `watertight` is

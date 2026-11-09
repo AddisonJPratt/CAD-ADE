@@ -11,7 +11,9 @@ import math
 
 from build123d import Align, Axis, Box, Plane, Polygon, Pos, Vector, extrude
 
-from library import standard_parts
+from library import feature, standard_parts
+
+EXPECTED_SOLIDS = 2     # stand and slot gauge, as evals/briefs/phone_stand.yaml has it
 
 PARAMS = {
     # name: (default, min, max)    all mm
@@ -56,13 +58,14 @@ def build(width, depth, slot_gap):
     # Feature: cable channel on the centreline, behind the lip. Open to the bed its whole run,
     # open above except for a short flat bridge under the rest.
     channel = Pos(lip_t, 0, 0) * Box(depth, cable_w, seat_z, align=(Align.MIN, Align.CENTER, Align.MIN))
-    stand -= channel
 
     # Feature: slot gauge bar; its height is the gap, tried in the slot by hand. Nests in the channel.
+    # Named before the channel, whose ceiling plane its top shares.
     side_gap = cable_w / 2 * 0.5
     gauge_len = depth - rest_rear_x - 2 * side_gap
-    gauge = Pos(rest_rear_x + side_gap, 0, 0) * Box(gauge_len, cable_w / 2, slot_gap,
-                                                    align=(Align.MIN, Align.CENTER, Align.MIN))
+    gauge = feature("slot gauge", Pos(rest_rear_x + side_gap, 0, 0) * Box(
+        gauge_len, cable_w / 2, slot_gap, align=(Align.MIN, Align.CENTER, Align.MIN)), params="slot_gap")
+    stand -= feature("cable channel", channel)
 
     stand.label, gauge.label = "stand", "slot_gauge"
     return {"stand": stand, "slot_gauge": gauge}

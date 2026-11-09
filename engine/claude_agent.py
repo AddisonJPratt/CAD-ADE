@@ -30,6 +30,33 @@ DESIGNER_GATE_LOOP = (
     'when that full run passes. Never propose on a quick pass alone.')
 
 
+# Eyes (#79): what the harness leaves for the agent after every build, documented in its prompt.
+ARTEFACTS_GUIDE = (
+    'Harness artefacts (read-only instruments, never gates): after every gate run, outputs/<design stem>/ '
+    '(runs/<stem>-check/ for magic-cad run_check) holds renders/iso.png, renders/top.png, renders/front.png, '
+    'renders/side.png and renders/section.png; eyes/overhang_heatmap.png, the overhang heatmap: the part seen from below with '
+    'downward faces coloured by angle (red needs support); eyes/section_*.png, sections at the thinnest wall '
+    'and at each named feature; eyes/<part>.faces.json, the face map with feature names; and eyes/eyes.json, '
+    'every path plus per-part metrics (bbox, volume, overhang shares, min wall, unsupported area). '
+    'run_check returns the same paths and metrics and the images inline. Look at the renders with Read '
+    'before deciding a change, and again after each build; do not reason about 3D shape from source alone. ')
+
+
+def tool_events(event):
+    """Plan events for the agent looking at its own artefacts, so the stream shows it (#79)."""
+    if event.get('type') == 'assistant':
+        for block in event.get('message', {}).get('content', []):
+            path = (block.get('input') or {}).get('file_path', '') if block.get('type') == 'tool_use' else ''
+            if block.get('name') == 'Read' and str(path).lower().endswith('.png'):
+                yield {'type': 'plan', 'message': 'Reading its own render: ' + Path(path).name}
+    if event.get('type') == 'user':
+        for block in event.get('message', {}).get('content', []):
+            inner = block.get('content') if block.get('type') == 'tool_result' else None
+            images = sum(1 for c in inner if isinstance(c, dict) and c.get('type') == 'image') if isinstance(inner, list) else 0
+            if images:
+                yield {'type': 'plan', 'message': f'Looked at {images} harness image' + ('s' if images > 1 else '')}
+
+
 class ClaudeCodeAgent(AgentAdapter):
     name = 'claude'
 
@@ -70,6 +97,7 @@ class ClaudeCodeAgent(AgentAdapter):
         prompt = ('You are Magic CAD designer for a local FDM CAD studio. Read the relevant project skills in '
                   + str(ROOT / '.claude/skills') + ', especially magic-kernel-pitfalls and cad-code if present. '
                   'Read magic-kernel-pitfalls/SKILL.md and call magic-cad library_lookup for the relevant hardware. Use build123d MCP to inspect or calculate relevant geometry when useful. '
+                  + ARTEFACTS_GUIDE +
                   'This M0 operation supports one bounded PARAMS default edit only. Do not write files, '
                   'change ranges, weaken gates, send print jobs, or claim physical validation. '
                   'Choose the existing parameter that implements the request and return the structured '
@@ -120,6 +148,7 @@ class ClaudeCodeAgent(AgentAdapter):
                                 yield {'type':'plan','message':block.get('text','')[:2000]}
                             elif block.get('type') == 'tool_use':
                                 yield {'type':'plan','message':'Using ' + block.get('name','CAD tool')}
+                    yield from tool_events(event)
                     if event.get('type') == 'result':
                         result = event
                         usage = usage_of(event, 'designer')
