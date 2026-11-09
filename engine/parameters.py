@@ -137,6 +137,12 @@ def accepted_brief_edit(project, design_file, changes):
     if not isinstance(brief, dict) or not isinstance(brief.get('params'), dict):
         raise ProjectError('brief has no parameter metadata')
     for change in changes:
+        if change.get('old') is None and change['parameter'] not in brief['params']:
+            # A parameter the change added (a texture's pitch, say): declare it in the brief too.
+            brief['params'][change['parameter']] = {
+                'value': change['new'], 'min': change['min'], 'max': change['max'],
+                'unit': change.get('unit'), 'intent': change.get('intent', '')}
+            continue
         metadata = brief['params'].get(change['parameter'])
         if not isinstance(metadata, dict) or metadata.get('value') != change['old']:
             raise ProjectError('brief parameter default is stale; resolve it before accepting')

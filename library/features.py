@@ -29,6 +29,9 @@ def _lookup(table, key):
 # Read by the harness worker after build().
 _DECLARED = []
 _PARAMETERS = {}
+# Textures a design applied (library/surface.py), as (spec, shape) pairs. The harness applies the
+# mesh ones to the exported STL of that shape and checks every spec against the print rules.
+_TEXTURES = []
 
 
 def feature(name, shape, params=()):
@@ -64,10 +67,26 @@ def feature_parameters():
     return dict(_PARAMETERS)
 
 
+def declare_texture(spec, shape):
+    """Record a texture spec (library/surface.py) and the shape it was applied to."""
+    _TEXTURES.append((dict(spec), shape))
+
+
+def declared_textures():
+    """Texture specs in declaration order."""
+    return [dict(spec) for spec, _ in _TEXTURES]
+
+
+def declared_texture_shapes():
+    """(spec, shape) pairs, for the harness to find the part a mesh texture belongs to."""
+    return [(dict(spec), shape) for spec, shape in _TEXTURES]
+
+
 def reset_features():
-    """Forget the features named so far (the worker calls this before each build)."""
+    """Forget the features and textures named so far (the worker calls this before each build)."""
     _DECLARED.clear()
     _PARAMETERS.clear()
+    _TEXTURES.clear()
 
 
 def _one_solid(shape):

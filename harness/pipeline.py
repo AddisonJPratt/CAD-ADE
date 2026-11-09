@@ -9,7 +9,7 @@ from .execute import run_worker
 from .geometry import check_geometry, pairwise_overlaps
 from .evidence import claims_for_report
 from .lint import lint_design
-from .printability import check_stl, DEFAULT_BUILD_VOLUME
+from .printability import check_stl, check_textures, DEFAULT_BUILD_VOLUME
 from .render import render_all
 from .report import write_reports
 from .sweep import run_sweep
@@ -190,10 +190,16 @@ def run(design, brief_path=None, out=None, samples=None, exports=True, timeout=1
         printed = {name: check_stl(path, allow, build_volume=volume) for name, path in stls.items()}
         report["printability"] = printed
         problems = [f"{n}: {x}" for n, r in printed.items() for x in r["problems"]]
+        # Textures: each against the nozzle's bounds. A mesh texture changed the STL by its
+        # recorded delta, so the STL must match the STEP plus that delta.
+        report["textures"] = result.get("textures", [])
+        problems += [f"texture {x}" for x in check_textures(report["textures"])]
         for part in result["parts"]:
             mesh_volume = printed[part["name"]]["metrics"]["mesh_volume"]
-            if abs(mesh_volume - part["volume"]) > MESH_VOLUME_REL * part["volume"]:
-                problems.append(f"{part['name']}: STL volume {mesh_volume:.0f} vs STEP {part['volume']:.0f}")
+            expected = part["volume"] + part.get("texture_volume_delta", 0.0)
+            if abs(mesh_volume - expected) > MESH_VOLUME_REL * part["volume"]:
+                problems.append(f"{part['name']}: STL volume {mesh_volume:.0f} vs STEP {expected:.0f}"
+                                + (" with its mesh texture" if part.get("texture_volume_delta") else ""))
         worst = max(r["metrics"]["support_risk_pct"] for r in printed.values())
         worst_brief = max(r["metrics"]["overhang_brief_pct"] for r in printed.values())
         printable = add_gate(report, "3 Printability", not problems, "; ".join(problems) or

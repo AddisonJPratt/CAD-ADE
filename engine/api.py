@@ -75,6 +75,7 @@ from harness.sweep import plan_samples
 from . import make
 from .proposal_session import ProposalSession
 from .agents import ScriptedFakeAgent, ParameterEditAgent
+from .texture_request import TextureEditAgent, texture_request
 from .reviewer import ScriptedFakeReviewer, review_context, send_back_message
 from .workspace import browse, choose_folder, is_project, list_projects, new_project, remember, starters
 from .catalogue import BUILTIN, add_component, list_components, project_path
@@ -528,7 +529,10 @@ class Handler(BaseHTTPRequestHandler):
         try:
             # Previews build with the same material fits an accepted run's gates use.
             fits = material_fits(project_printer(draft))
-            agent = ParameterEditAgent() if "parameter" in body else self.engine.agent
+            # A texture named on a face pick ("Add knurling to this face") is a fixed edit: no LLM (#52).
+            agent = (ParameterEditAgent() if "parameter" in body
+                     else TextureEditAgent() if texture_request(body.get("message"), body.get("selection"))
+                     else self.engine.agent)
             proposal = agent.start(draft, body.get("brief"), body.get("selection"), body["parameter"] if "parameter" in body else body["message"])
         except Exception:
             shutil.rmtree(folder, ignore_errors=True)

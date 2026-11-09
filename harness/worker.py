@@ -153,6 +153,7 @@ def build_and_measure(design_path, out_dir, overrides, fits=None):
     reset = getattr(feature_registry, "reset_features", lambda: None)
     declared_features = getattr(feature_registry, "declared_features", list)
     driving_parameters = getattr(feature_registry, "feature_parameters", dict)
+    texture_shapes = getattr(feature_registry, "declared_texture_shapes", list)
     declared = {k: list(v) for k, v in module.PARAMS.items()}
     params = {k: v[0] for k, v in module.PARAMS.items()}
     unknown = set(overrides) - set(params)
@@ -164,9 +165,21 @@ def build_and_measure(design_path, out_dir, overrides, fits=None):
     built = named_parts(module.build(**params))
     features = declared_features()
     parameters = feature_parameter_values(driving_parameters(), params)
+    textures = texture_shapes()
+    mesh_textures = [(spec, owner) for spec, owner in textures if spec.get("representation") == "mesh"]
+    claimed = set()
     for name, shape in built:
         stl, step, faces = out_dir / f"{name}.stl", out_dir / f"{name}.step", out_dir / f"{name}.faces.json"
         export_stl(shape, str(stl), tolerance=STL_TOLERANCE, angular_tolerance=STL_ANGULAR)
+        # Fine textures (library.surface.mesh_texture) go into this part's STL only; the STEP stays smooth.
+        texture_delta = 0.0
+        for index, (spec, owner) in enumerate(mesh_textures):
+            if owner is shape or spec.get("part") == name:
+                from library.surface import apply_mesh_texture
+                applied = apply_mesh_texture(stl, spec)
+                spec.update(applied, part=name)
+                texture_delta += applied["volume_delta_mm3"]
+                claimed.add(index)
         export_step(shape, str(step))
         faces.write_text(json.dumps(face_map(name, shape, features, parameters), indent=1))
         reloaded = import_step(str(step))
@@ -177,10 +190,16 @@ def build_and_measure(design_path, out_dir, overrides, fits=None):
                        for s in solids],
             "volume_in_memory": shape.volume, "volume": sum(s.volume for s in solids),
             "bbox": bbox_dict(reloaded), "cylinders": internal_cylinders(reloaded),
+            "texture_volume_delta": texture_delta,
         })
+    unclaimed = [spec["name"] for i, (spec, _) in enumerate(mesh_textures) if i not in claimed]
+    if unclaimed:
+        raise ValueError(f"mesh texture {unclaimed} is on a shape build() did not return; "
+                         "call mesh_texture last, on the returned part")
     section = getattr(module, "section_plane", None)
     return {"ok": True, "declared": declared, "params": params, "parts": parts,
             "expected_solids": getattr(module, "EXPECTED_SOLIDS", None),
+            "textures": [{k: v for k, v in spec.items() if k != "region"} for spec, _ in textures],
             "section": section(**params) if section else None}
 
 
