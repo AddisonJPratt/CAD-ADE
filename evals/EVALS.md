@@ -82,6 +82,7 @@ spends model usage on the logged-in account. The repo's own design for the brief
 | Brief | Attempts | Gate runs (quick / full) | Gates on the saved version | Review | Designer time | Usage | Run |
 |---|---|---|---|---|---|---|---|
 | wall_bracket (design file withheld) | 1 of 6 | 1 / 1 | PASS, sweep included, version 2 | 15/20, direction approved | 11 min 17 s (15 min with accept + review) | $4.17, 2.7 M tokens (mostly cache reads) | `designer-20261108-200049-wall_bracket` |
+| wall_bracket, with Eyes (#79) | 1 of 6 | 1 / 1 | PASS, sweep included, version 2 | 16/20, direction approved, but see the function error below | 11 min 5 s (16 min with accept + review) | $4.29, 1.8 M tokens | `designer-20261108-203842-wall_bracket` |
 
 Notes on the wall_bracket run:
 - The part is a real bracket, not a box with holes. It has an inner stress-relief fillet and a
@@ -97,6 +98,13 @@ Notes on the wall_bracket run:
   as intended.
 - Eyes (#79) had not landed when this ran, so this is the "without artefacts" row in the table below.
   The designer still read its renders, because the prompt tells it to look at its own check.
+- **Function error in the second run, which passed both gates and review.** Its shelf counterbores
+  open on the z=0 face, the face that meets the shelf, so the screw heads would sit between bracket
+  and shelf. The first run and the repo's reference design open them on the far face (z=thickness),
+  where a screw driven up from below the bracket seats its head. No gate checks which face a
+  counterbore opens on, the reviewer didn't catch it, and the brief's "counterbored from below the
+  shelf" can be misread. Found by reading the source after looking at the iso render. Follow-ups: a
+  measurable interface probe (counterbore side), or a clearer interface line in the brief.
 - Not yet run: the ESP32-DevKitC base-plate brief (catalogue board, M2.5 inserts), and a real
   negative control. The scripted test covers the negative control.
 
@@ -112,4 +120,9 @@ iterations to count. Record the two runs here when #61 lands:
 | Brief | Artefacts | Iterations to a pass | Wall time | Run |
 |---|---|---|---|---|
 | wall_bracket-from-brief | without (renders only) | 1 attempt (1 quick + 1 full gate run) | 11 min 17 s designer, 15 min with accept + review | `designer-20261108-200049-wall_bracket` |
-| wall_bracket-from-brief | with | not run (needs #61) | - | - |
+| wall_bracket-from-brief | with | 1 attempt (1 quick + 1 full gate run) | 11 min 5 s designer, 16 min with accept + review | `designer-20261108-203842-wall_bracket` |
+
+On this brief Eyes made no difference to the iteration count: both runs passed on the first attempt.
+The designer read 3 of its own images with Eyes (`Reading its own render` events). The second run
+also shows a pass that is wrong on function (see the designer notes above). A harder brief, such as
+the ESP32 base plate, is needed to see whether the artefacts save attempts.

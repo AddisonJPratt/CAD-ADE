@@ -1,0 +1,108 @@
+{
+  "brief": "wall_bracket",
+  "project": "/private/var/folders/jf/5crtmt7n2rl3tww1rbt55bd80000gn/T/magic-designer-eval-1tycrpoj/wall_bracket",
+  "state": "ready",
+  "error": null,
+  "attempts": 1,
+  "budget": {
+    "attempts": 6,
+    "seconds": 3000.0
+  },
+  "designer_seconds": 665.3,
+  "gate_runs": {
+    "quick": 1,
+    "full": 1
+  },
+  "refused_edits": 0,
+  "designer_usage": {
+    "runs": 1,
+    "cost_usd": 4.2872,
+    "tokens": 1816737
+  },
+  "last_gate_report": {
+    "id": 90,
+    "type": "gate_report",
+    "attempt": 1,
+    "mode": "full",
+    "pass": true,
+    "designs": [
+      {
+        "design": "wall_bracket.py",
+        "pass": true,
+        "gates": [
+          {
+            "name": "1 Execute",
+            "status": "PASS",
+            "detail": "built in 2.77 s; no hard-coded literals"
+          },
+          {
+            "name": "2 Geometry",
+            "status": "PASS",
+            "detail": "1/1 solids, volume 78220 mm\u00b3, 7/7 dims in \u00b10.1"
+          },
+          {
+            "name": "3 Printability",
+            "status": "PASS",
+            "detail": "watertight, single component, fits bed; overhang brief 4.6 %, support risk 2.3 %"
+          },
+          {
+            "name": "4 Renders",
+            "status": "PASS",
+            "detail": "5 PNGs from reloaded STL"
+          },
+          {
+            "name": "Sweep",
+            "status": "PASS",
+            "detail": "31/31 pass; dead params: none"
+          },
+          {
+            "name": "5 Exports",
+            "status": "PASS",
+            "detail": "wall_bracket.stl, wall_bracket.step, wall_bracket.faces.json"
+          }
+        ]
+      }
+    ]
+  },
+  "pass": true,
+  "version": 2,
+  "review": {
+    "scores": {
+      "looks_like_the_thing": 4,
+      "detail": 3,
+      "dimensions": 3,
+      "proportion": 3,
+      "print_intent": 3
+    },
+    "total": 16,
+    "band": "direction approved",
+    "pass": true,
+    "tells": [
+      "Paired fillet values: inner_radius 4.0 = corner_radius 4.0 and outer_radius 1.0 = gusset_edge_radius 1.0. Four separately named radii collapse to two numbers, which reads as convenience rather than four decisions.",
+      "gusset_edge_radius exists because filleting the rib is easy; its stated reason ('fillet on the rib's two ramp edges') names the geometry, not a function.",
+      "gusset_thickness 5.0 and gusset_reach 0.7 have no stated basis; the load assumption (5 kg, under 2 MPa) is for the plate, not the rib that is claimed to make the weak print orientation acceptable."
+    ],
+    "fixes": [
+      {
+        "rank": 1,
+        "text": "Print orientation is stated but not argued against the obvious alternative. Printed shelf-face-down, layers cross the wall leg and the heel at x=0, where the closing moment puts the outer fibres in tension. Lying the bracket on its Y=-30 side keeps it support-free (all four holes become horizontal teardrops, the rib is flush inside the plan outline) and puts layers along both legs and the rib. Either adopt that, or write down why shelf-face-down wins (counterbore mouths on the bed, cleaner shelf"
+      },
+      {
+        "rank": 2,
+        "text": "Wall holes sit at z=44, the midpoint of the free leg, leaving 36 mm of plate above them that carries nothing. Pull-out tension on the two wall screws scales with 1/z about the bottom heel; placing them higher (e.g. two thirds up the free leg) is a one-line change to wall_z and makes the 80 mm wall leg earn its height. Low load either way at 5 kg, so this is about design intent, not failure."
+      },
+      {
+        "rank": 3,
+        "text": "Give the rib numbers a reason or drop the pretence of one. gusset_thickness 5.0 on a 60 mm plate reads as a stiffener rather than a gusset; a hand estimate of the rib's diagonal compression and buckling at the stated 5 kg load would either justify 5 or move it to the 6-8 range. Keep gusset_reach 0.7 only if the driver-clearance argument (17.5 mm from rib face to counterbore edge at y=\u00b120) is the thing setting it."
+      },
+      {
+        "rank": 4,
+        "text": "Either justify gusset_edge_radius 1.0 as a handling or layer-start detail, or remove the parameter. If kept, decouple it from outer_radius so the two 1.0 values are visibly separate choices (outer_radius=max 3.0 nearly doubles support risk in the sweep, so the heel radius has a real printability ceiling the ramp edge does not).",
+        "parameter": "gusset_edge_radius",
+        "value": 0.8
+      }
+    ],
+    "good": "The hole strategy is fully reasoned and verified in section: shelf counterbores open to the bed with a 3.8 mm floor under the M4 head, wall counterbores are 8 mm teardrops peaked print-up, and the rib heel is inset half a plate so the union never lands edge-on."
+  },
+  "seconds": 957.3
+}
