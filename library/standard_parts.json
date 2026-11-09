@@ -12,12 +12,24 @@
       "nozzle": "nozzle diameter; the smallest wall is min_wall_perimeters of these",
       "min_wall_perimeters": "two perimeters is the thinnest wall that prints solid",
       "self_supporting_deg": "slope from vertical for every printed slope; 1 deg inside the 45 deg gate so float noise cannot tip it into the support bucket",
-      "overhang_tolerance_mm2": "unsupported area a feature may add before it is refused: tessellation noise and sub-nozzle slivers such as a faded thread tip, not a design allowance"
+      "overhang_tolerance_mm2": "unsupported area a feature may add before it is refused: tessellation noise and sub-nozzle slivers such as a faded thread tip, not a design allowance",
+      "layer_height": "layer height of the profile's standard process (printer_profiles slicer process '0.20mm Standard'); vertical resolution of any relief",
+      "texture_min_lines": "extrusion lines across the narrowest texture feature (ridge, groove, stud gap, letter stroke); one line smears or detaches, two hold",
+      "texture_min_layers": "layers in the shallowest texture relief; one layer reads as a seam, not a texture",
+      "texture_max_aspect": "deepest relief as a multiple of its feature width; taller, thinner ridges wobble and string",
+      "texture_brep_max_cells": "texture cells kept as real B-rep geometry; past this the booleans get slow and the STEP heavy, so the texture is applied to the mesh at export instead",
+      "text_stroke_share": "stroke width of the default sans font as a share of its font size; sets the smallest legible text from the minimum feature width"
     },
     "nozzle": 0.4,
     "min_wall_perimeters": 2,
     "self_supporting_deg": 44.0,
-    "overhang_tolerance_mm2": 0.25
+    "overhang_tolerance_mm2": 0.25,
+    "layer_height": 0.2,
+    "texture_min_lines": 2,
+    "texture_min_layers": 2,
+    "texture_max_aspect": 1.0,
+    "texture_brep_max_cells": 400,
+    "text_stroke_share": 0.1
   },
   "brief_constants": {
     "_source": "Values an eval brief pins without declaring them as params, so the design can't take them from PARAMS.",
@@ -110,6 +122,19 @@
       "boss_od": 7.0,
       "hole_extra_depth": 1.0,
       "floor": 1.2
+    }
+  },
+  "nuts": {
+    "_source": "ISO 4032 hex nuts: width across flats and height. Unverified starting values.",
+    "M3": {
+      "across_flats": 5.5,
+      "thickness": 2.4,
+      "sides": 6
+    },
+    "M4": {
+      "across_flats": 7.0,
+      "thickness": 3.2,
+      "sides": 6
     }
   },
   "bearings": {
@@ -218,6 +243,18 @@
     "grids": {
       "gridfinity": {
         "pitch": "unverified"
+      }
+    },
+    "nuts": {
+      "M3": {
+        "across_flats": "unverified",
+        "thickness": "unverified",
+        "sides": "standard"
+      },
+      "M4": {
+        "across_flats": "unverified",
+        "thickness": "unverified",
+        "sides": "standard"
       }
     }
   }

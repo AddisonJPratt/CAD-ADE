@@ -238,10 +238,26 @@ def test_feature_fixtures():
             check(f"feature fixture passes gates + sweep: {name}", code == 0, f"exit {code}")
 
 
+TEXTURE_FIXTURES = ["knurled_knob", "vent_panel", "diamond_coaster"]
+
+
+def test_texture_fixtures():
+    """Patterns and textures (#52) pass every gate, sweep over counts, spacings, pitches and depths included;
+    the too-fine negative control fails Gate 3 on its texture bounds."""
+    for name in TEXTURE_FIXTURES:
+        with tempfile.TemporaryDirectory() as tmp:
+            code = magic("check", f"tests/fixtures/textures/{name}.py", "--out", tmp, "--timeout", "600")
+            check(f"texture fixture passes gates + sweep: {name}", code == 0, f"exit {code}")
+    with tempfile.TemporaryDirectory() as tmp:
+        code = magic("check", "tests/fixtures/textures/too_fine.py", "--out", tmp, "--no-sweep", "--timeout", "600")
+        report = (Path(tmp) / "report.md").read_text()
+        check("too-fine texture refused by Gate 3", code != 0 and "minimum feature" in report, f"exit {code}")
+
+
 if __name__ == "__main__":
     for test in (test_database, test_counterbored_hole, test_heatset_boss, test_snap_cantilever,
                  test_metrics, test_engineering, test_briefs, test_studio_fixtures, test_harness,
-                 test_feature_fixtures):
+                 test_feature_fixtures, test_texture_fixtures):
         print(f"--- {test.__name__}")
         test()
     print(f"\n{sum(results)}/{len(results)} passed")

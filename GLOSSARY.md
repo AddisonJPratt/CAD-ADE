@@ -56,3 +56,15 @@ It is stored in `.magic/reviews/<version id>.json`. A review is not a print.
 
 **Send-back**: when a review fails, the engine turns its top fix into a new designer proposal, once
 per change. The owner still decides whether to keep it.
+
+**Pattern**: copies of one tool (a hole, a boss, a slot) placed linearly, on a grid, round a circle
+or along a path, then cut or added together (`library.surface.pattern`). Its count and spacing are
+PARAMS, and the web left between two copies must reach the minimum feature.
+
+**Texture**: a repeating relief on one face: knurl, diamond, hex, ribbing, or embossed or engraved
+text (`library.surface`). It has a pitch, a depth and a narrowest feature, all bounded by the print
+rules. A **B-rep texture** is real geometry; a **mesh texture** is applied to the STL at export
+and leaves the STEP smooth (ADR 0004).
+
+**Minimum feature**: the narrowest ridge, groove, gap or stroke the printer lays down reliably:
+nozzle x `texture_min_lines` from `print_rules` (0.8 mm at a 0.4 mm nozzle).

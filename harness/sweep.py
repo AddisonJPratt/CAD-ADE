@@ -13,7 +13,7 @@ import os
 
 from .execute import run_worker
 from .geometry import check_geometry
-from .printability import check_stl, DEFAULT_BUILD_VOLUME
+from .printability import check_stl, check_textures, DEFAULT_BUILD_VOLUME
 
 COMBOS_DEFAULT = 6
 SAMPLES_LIMIT = 64
@@ -77,8 +77,9 @@ def run_sample(design, brief, label, params, timeout, allow_supports, build_volu
             row.update({"pass": False, "problems": [problem], "printable": None})
             return row, None
         geo = check_geometry(result, brief)
+        texture_problems = [f"texture {x}" for x in check_textures(result.get("textures"))]
         printed = [check_stl(p["stl"], allow_supports, sections=False, build_volume=build_volume) for p in result["parts"]]
-        row.update({"pass": geo["pass"], "problems": geo["problems"],
+        row.update({"pass": geo["pass"] and not texture_problems, "problems": geo["problems"] + texture_problems,
                     "volume": geo["volume"], "bbox": geo["bbox"],
                     "printable": all(p["pass"] for p in printed),
                     "support_risk_pct": max(p["metrics"]["support_risk_pct"] for p in printed),

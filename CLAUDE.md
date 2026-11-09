@@ -23,7 +23,8 @@ Designs are parametric build123d Python; the harness (`magic.py`) verifies them.
   or boss in `feature("name", shape, params="driving_param")` from `library` so Studio can name
   its faces, and the parameter behind them, when picked.
 - Fillet before boolean where possible.
-- Use `library/` helpers before writing custom geometry.
+- Use `library/` helpers before writing custom geometry. Patterns and textures: `library/surface.py`
+  (bounds from `print_rules`; fine textures go to the mesh at export, ADR 0004).
 
 ## Guardrails
 - No weapon or firearm components; decline those briefs.

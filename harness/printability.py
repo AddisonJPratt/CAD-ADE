@@ -112,6 +112,16 @@ def min_feature(mesh, slices=8, max_pixels=500):
     return {"mm": float(best), "resolution_mm": 2 * pixel, "where": where}
 
 
+def check_textures(textures):
+    """Every declared texture against the nozzle's bounds (library.surface.texture_problems).
+
+    A B-rep texture is refused by the library before it is built; a mesh texture is applied at
+    export, so this is where its bounds are enforced. Returns problem strings.
+    """
+    from library.surface import texture_problems
+    return [p for spec in textures or [] for p in texture_problems(spec)]
+
+
 def check_stl(path, allow_supports=False, sections=True, build_volume=DEFAULT_BUILD_VOLUME):
     """Reload an STL from disk and return {pass, problems, metrics}."""
     mesh = trimesh.load_mesh(path)
