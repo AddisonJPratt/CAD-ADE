@@ -51,6 +51,21 @@ def designs_of(project):
     return designs
 
 
+def briefs_of(project):
+    """The project's brief cards, in name order (possibly none)."""
+    return sorted(p for p in (Path(project) / "briefs").glob("*.yaml") if not p.name.startswith("_"))
+
+
+def require_project(project):
+    """A project folder holds designs, or brief cards the designer (#61) has yet to design.
+    Raises ProjectError for anything else."""
+    project = Path(project)
+    if project.is_dir() and briefs_of(project):
+        return project
+    designs_of(project)
+    return project
+
+
 def artifacts_of(project, stem):
     """Files a run left for one design, as paths relative to the project's outputs folder."""
     folder = Path(project) / OUTPUTS / stem

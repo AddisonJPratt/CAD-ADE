@@ -26,7 +26,12 @@
                                          {"design", "picks":[{instance, kind, feature, parameters, description, point,
                                          normal, centroid, area, ...}], "measurement"?} and is handed to the
                                          agent as sent; GET /proposals/<id> echoes it back
-    POST /projects                       {"folder", "from_design"}: a new project as version 1 (201)
+                                         {"project", "design":{"brief", "attempts"?, "seconds"?, "samples"?}} asks
+                                         the designer (#61, engine/designer.py) for a new or rewritten design
+                                         from briefs/<brief>.yaml; it loops on the gates within the budget and
+                                         the passing files are held for acceptance like any proposal
+    POST /projects                       {"folder", "from_design"} or {"folder", "from_brief"}: a new project
+                                         as version 1, holding a design or only a brief card (201)
     GET  /projects/printer?project=...   current printer and material
     POST /projects/printer               {"project", "material", "printer"?}: select project settings
     GET  /projects/versions?project=...  the version timeline, newest first, with each version's verdict
@@ -75,6 +80,7 @@ from harness.sweep import plan_samples
 from . import make
 from .proposal_session import ProposalSession
 from .agents import ScriptedFakeAgent, ParameterEditAgent
+from .designer import DesignLoop, ScriptedFakeDesigner
 from .reviewer import ScriptedFakeReviewer, review_context, send_back_message
 from .workspace import browse, choose_folder, is_project, list_projects, new_project, remember, starters
 from .catalogue import BUILTIN, add_component, list_components, project_path
@@ -83,7 +89,7 @@ from .printers import PROFILE, project_printer, select_printer
 from .pins import pin_document, save_pins
 from .projects import (ARTIFACT_TYPES, ProjectError, artifact_path, designs_of, project_parts_list,
                        run_project, verdict_artifacts)
-from .versions import (Conflict, create_project, list_versions, record_review, require_versioned,
+from .versions import (Conflict, create_project, create_project_from_brief, list_versions, record_review, require_versioned,
                        restore_version, save_version, find_version, rebuild_version_artifacts, head, unsaved, git)
 
 HOST = "127.0.0.1"
@@ -131,10 +137,11 @@ class Busy(Conflict):
 class Engine:
     """The run registry and its single worker thread."""
 
-    def __init__(self, agent=None, reviewer=None):
+    def __init__(self, agent=None, reviewer=None, designer=None):
         self.runs, self.pending = {}, queue.Queue()
         self.proposals = {}
         self.agent = agent or ScriptedFakeAgent()
+        self.designer = designer or DesignLoop(ScriptedFakeDesigner([]))
         self.reviewer = reviewer or ScriptedFakeReviewer()
         self.artifacts = tempfile.TemporaryDirectory(prefix="magic-cad-runs-")
         self.lock = threading.Lock()
@@ -509,9 +516,13 @@ class Handler(BaseHTTPRequestHandler):
             dimensions = {side: [part["bbox"]["size"] for part in parts]
                           for side, parts in session.previews.items()}
             return {"id": session.id, "state": session.state, "error": session.error,
+                    "kind": proposal.get("kind", "change"),
                     "origin": proposal.get("origin"), "message": proposal.get("message"),
                     "changes": proposal["changes"], "previews": previews, "preview_dimensions": dimensions,
-                    "selection": proposal.get("selection")}
+                    "selection": proposal.get("selection"),
+                    # A designer proposal (#61): the files it writes and the gate report that passed them.
+                    "files": sorted(proposal["files"]) if proposal.get("files") else [],
+                    "gate_report": proposal.get("report")}
 
     def post_proposal(self, body, origin=None, ignore=None):
         """origin: set when the engine itself proposes, sending a failed review's top fix back (#28)."""
@@ -528,26 +539,57 @@ class Handler(BaseHTTPRequestHandler):
         try:
             # Previews build with the same material fits an accepted run's gates use.
             fits = material_fits(project_printer(draft))
-            agent = ParameterEditAgent() if "parameter" in body else self.engine.agent
-            proposal = agent.start(draft, body.get("brief"), body.get("selection"), body["parameter"] if "parameter" in body else body["message"])
+            if "design" in body:
+                agent, request = self.engine.designer, body["design"]
+            elif "parameter" in body:
+                agent, request = ParameterEditAgent(), body["parameter"]
+            else:
+                agent, request = self.engine.agent, body["message"]
+            proposal = agent.start(draft, body.get("brief"), body.get("selection"), request)
         except Exception:
             shutil.rmtree(folder, ignore_errors=True)
             raise
         proposal.update({"id": ident, "project": str(project), "state": "pending", "base": base, "agent": agent,
-                         "origin": origin, "review_round": (origin or {}).get("round", 0), "message": body.get("message")})
+                         "origin": origin, "review_round": (origin or {}).get("round", 0), "message": body.get("message"),
+                         "execution": self.engine.execution})  # designer gate runs share the one execution lock
+        def worker(design, out, cancel):
+            while not self.engine.execution.acquire(timeout=0.2):
+                if cancel.is_set():
+                    return {"ok": False, "interrupted": True}
+            try:
+                return run_worker(design, out, fits=fits, cancel_event=cancel)
+            finally:
+                self.engine.execution.release()
+        def build_design(side, cancel):
+            """Previews of a designer proposal: each design file as it was (often nothing) and as written."""
+            parts = []
+            for relative, sources in sorted(proposal["files"].items()):
+                if not relative.startswith("designs/") or sources[side] is None:
+                    continue
+                target, out = draft / relative, folder / side / Path(relative).stem
+                shutil.rmtree(out, ignore_errors=True)
+                out.mkdir(parents=True)
+                target.write_text(sources[side])
+                try:
+                    result = worker(target, out, cancel)
+                finally:
+                    if sources["after"] is None:
+                        target.unlink(missing_ok=True)
+                    else:
+                        target.write_text(sources["after"])
+                if not result["ok"] or result.get("interrupted"):
+                    return result
+                parts += result["parts"]
+            return {"ok": True, "parts": parts}
         def build(side, cancel):
+            if proposal.get("kind") == "design":
+                return build_design(side, cancel)
             if side == "after":
                 (draft / proposal["file"]).write_text(proposal["source"])
             out = folder / side
             shutil.rmtree(out, ignore_errors=True)
             out.mkdir(parents=True)
-            while not self.engine.execution.acquire(timeout=0.2):
-                if cancel.is_set():
-                    return {"ok": False, "interrupted": True}
-            try:
-                return run_worker(draft / proposal["file"], out, fits=fits, cancel_event=cancel)
-            finally:
-                self.engine.execution.release()
+            return worker(draft / proposal["file"], out, cancel)
         proposal["session"] = ProposalSession(ident, build, lambda: proposal["agent"].stream_events(proposal))
         with self.engine.lock:
             self.engine.proposals[ident] = proposal
@@ -587,11 +629,40 @@ class Handler(BaseHTTPRequestHandler):
         options = self.run_options(body)
         if options[0] is not None and options[0] <= 0 or options[1] <= 0:
             raise ProjectError("samples and timeout must be positive")
-        tree = ast.parse(proposal["source"])
-        params = next(node.value for node in tree.body if isinstance(node, ast.Assign)
-                      and any(isinstance(target, ast.Name) and target.id == "PARAMS" for target in node.targets))
-        plan_samples(ast.literal_eval(params), options[0])
-        def accept(project):
+        designed = proposal.get("kind") == "design"
+        sources = ([s["after"] for r, s in proposal["files"].items() if r.startswith("designs/") and s["after"]]
+                   if designed else [proposal["source"]])
+        for source in sources:
+            tree = ast.parse(source)
+            params = next(node.value for node in tree.body if isinstance(node, ast.Assign)
+                          and any(isinstance(target, ast.Name) and target.id == "PARAMS" for target in node.targets))
+            plan_samples(ast.literal_eval(params), options[0])
+        def accept_design(project):
+            """Write a designer proposal's files and save them as one version (#61)."""
+            if proposal["state"] != "pending" or proposal["session"].state != "ready":
+                raise Conflict("proposal is no longer ready")
+            if head(project) != proposal["base"] or unsaved(project):
+                raise Conflict("project changed since this proposal; make a new proposal")
+            originals = {r: (project / r).read_bytes() if (project / r).is_file() else None for r in proposal["files"]}
+            try:
+                for relative, source in proposal["files"].items():
+                    target = project / relative
+                    if source["after"] is None:
+                        target.unlink(missing_ok=True)
+                    else:
+                        target.parent.mkdir(parents=True, exist_ok=True)
+                        target.write_text(source["after"])
+                verb = "Redesigned" if any(s["before"] for s in proposal["files"].values()) else "Designed"
+                version = save_version(project, f"{verb} {proposal['brief_name']} from its brief")
+            except Exception:
+                for relative, data in originals.items():
+                    if data is None:
+                        (project / relative).unlink(missing_ok=True)
+                    else:
+                        (project / relative).write_bytes(data)
+                raise
+            return version
+        def accept_change(project):
             if proposal["state"] != "pending" or proposal["session"].state != "ready":
                 raise Conflict("proposal is no longer ready")
             if head(project) != proposal["base"] or unsaved(project):
@@ -609,6 +680,9 @@ class Handler(BaseHTTPRequestHandler):
                 if brief_edit:
                     brief_edit[0].write_text(brief_edit[1])
                 raise
+            return version
+        def accept(project):
+            version = accept_design(project) if designed else accept_change(project)
             proposal["state"] = "accepted"
             run = self.engine.queue(project, *options)
             run.review_request = {"file": proposal["file"], "changes": proposal["changes"],
@@ -664,7 +738,10 @@ class Handler(BaseHTTPRequestHandler):
         return self.finished(run, body.get("wait")), run.summary()
 
     def post_project(self, body):
-        folder = create_project(body["folder"], body["from_design"])
+        if "from_brief" in body:
+            folder = create_project_from_brief(body["folder"], body["from_brief"])
+        else:
+            folder = create_project(body["folder"], body["from_design"])
         return HTTPStatus.CREATED, {"project": str(folder), "versions": list_versions(folder)}
 
     def post_workspace_project(self, body):
@@ -742,10 +819,12 @@ def make_server(port=PORT, engine=None):
 
 def serve(port=PORT, agent="claude"):
     from .claude_agent import ClaudeCodeAgent
+    from .claude_designer import ClaudeCodeDesigner
     from .reviewer import ClaudeCodeReviewer
     real = agent == "claude"
     server = make_server(port, Engine(agent=ClaudeCodeAgent() if real else ScriptedFakeAgent(),
-                                      reviewer=ClaudeCodeReviewer() if real else ScriptedFakeReviewer()))
+                                      reviewer=ClaudeCodeReviewer() if real else ScriptedFakeReviewer(),
+                                      designer=DesignLoop(ClaudeCodeDesigner()) if real else None))
     print(f"Magic CAD engine API on http://{HOST}:{server.server_address[1]}  (Ctrl-C stops)")
     try:
         server.serve_forever()

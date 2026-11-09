@@ -1,0 +1,109 @@
+{
+  "brief": "wall_bracket",
+  "project": "/private/var/folders/jf/5crtmt7n2rl3tww1rbt55bd80000gn/T/magic-designer-eval-d5efs8s4/wall_bracket",
+  "state": "ready",
+  "error": null,
+  "attempts": 1,
+  "budget": {
+    "attempts": 6,
+    "seconds": 3000.0
+  },
+  "designer_seconds": 676.9,
+  "gate_runs": {
+    "quick": 1,
+    "full": 1
+  },
+  "refused_edits": 0,
+  "designer_usage": {
+    "runs": 1,
+    "cost_usd": 4.1654,
+    "tokens": 2697507
+  },
+  "last_gate_report": {
+    "id": 95,
+    "type": "gate_report",
+    "attempt": 1,
+    "mode": "full",
+    "pass": true,
+    "designs": [
+      {
+        "design": "wall_bracket.py",
+        "pass": true,
+        "gates": [
+          {
+            "name": "1 Execute",
+            "status": "PASS",
+            "detail": "built in 11.63 s; no hard-coded literals"
+          },
+          {
+            "name": "2 Geometry",
+            "status": "PASS",
+            "detail": "1/1 solids, volume 78220 mm\u00b3, 7/7 dims in \u00b10.1"
+          },
+          {
+            "name": "3 Printability",
+            "status": "PASS",
+            "detail": "watertight, single component, fits bed; overhang brief 4.6 %, support risk 0.9 %"
+          },
+          {
+            "name": "4 Renders",
+            "status": "PASS",
+            "detail": "5 PNGs from reloaded STL"
+          },
+          {
+            "name": "Sweep",
+            "status": "PASS",
+            "detail": "31/31 pass; dead params: none"
+          },
+          {
+            "name": "5 Exports",
+            "status": "PASS",
+            "detail": "wall_bracket.stl, wall_bracket.step, wall_bracket.faces.json"
+          }
+        ]
+      }
+    ]
+  },
+  "pass": true,
+  "version": 2,
+  "review": {
+    "scores": {
+      "looks_like_the_thing": 3,
+      "detail": 3,
+      "dimensions": 3,
+      "proportion": 3,
+      "print_intent": 3
+    },
+    "total": 15,
+    "band": "direction approved",
+    "pass": true,
+    "tells": [
+      "Fillet on a bed-contact edge: outer_radius rounds the L's outer corner, which lies on the bed along Y, so layer one is inset and the first millimetre overhangs toward 90 degrees; sweep support risk tracks this radius alone (0.47% at 0.5 mm, 0.95% at 1.0 mm, 2.8% at 3.0 mm).",
+      "Two cosmetic radii left at 1.0 mm because 1 is pretty: outer_radius and gusset_edge_radius have no stated reason, unlike thickness and inner_radius which are derived.",
+      "Wall screws placed side by side at mid-height of the wall leg instead of stacked vertically; forced by the brief's centreline gusset so the brief wins, but it halves the prying lever arm against the free end of the wall leg and the assumptions do not say so.",
+      "gusset_thickness 5 and gusset_reach 0.7 are chosen numbers without a one-clause justification, while the load estimate (under 2 MPa) is only given for the plate beyond the gusset."
+    ],
+    "fixes": [
+      {
+        "rank": 1,
+        "text": "Drop the outer corner fillet to the minimum (or better, replace it with a small chamfer in the sketch) so the bed-contact edge does not overhang at layer one; this is the only feature driving support risk in the sweep.",
+        "parameter": "outer_radius",
+        "value": 0.5
+      },
+      {
+        "rank": 2,
+        "text": "State in the assumptions that both wall screws sit at mid-height of the wall leg because the centreline gusset rules out a stacked pair, and note the resulting prying lever (36 mm from the free end). If the load case grows, derive wall_z from a fraction of the leg nearer the shelf rather than its midpoint."
+      },
+      {
+        "rank": 3,
+        "text": "Give gusset_thickness and gusset_reach one clause of reason each (e.g. rib thickness as a multiple of nozzle width walls, reach chosen to clear the wall screw counterbores by a margin) so none of the rib dimensions read as defaults."
+      },
+      {
+        "rank": 4,
+        "text": "Justify gusset_edge_radius 1.0 as a hand-feel break or remove it; the ramp edges are not a stress feature and the fillet adds nothing to printability."
+      }
+    ],
+    "good": "The gusset triangle is extended into each plate's mid-plane so the union never meets at a tangent, and plate thickness is derived as counterbore depth plus an explicit 3.8 mm floor, confirmed in the Y=20 section."
+  },
+  "seconds": 901.7
+}

@@ -62,3 +62,40 @@ and Physical measures need later phases.
 **Pass rate (over designs present): 1/1. Coverage (designs present / total briefs): 1/5.** The
 pass rate rests on one part, and four briefs are untested. Run `20261103-201913`, full mode, with
 `evals/run_evals.py`. "Printable" is the geometric gate; no slicer has checked these parts.
+
+## Designer evals (#61)
+
+A brief card in, a design out, with no design file to start from. The real Claude Code designer
+(`engine/claude_designer.py`) runs through the engine API's proposal seam, the same one Studio uses.
+It loops on the gates (`engine/designer.py`, ADR 0004), then the proposal is accepted: the gates run
+again on the saved version and the independent reviewer scores it (ADR 0003).
+
+```bash
+.venv/bin/python evals/run_designer.py --brief briefs/wall_bracket.yaml [--attempts 6] [--seconds 2700]
+```
+
+Each run writes `evals/results/designer-<timestamp>-<brief>/` with `events.jsonl` (every designer,
+gate and review event), the design file, the renders of the accepted run, and `result.json`. It
+spends model usage on the logged-in account. The repo's own design for the brief (and `runs/`,
+`evals/results/`, `proof/`) is denied to the designer's Read tool, so it can't copy the answer.
+
+| Brief | Attempts | Gate runs (quick / full) | Gates on the saved version | Review | Designer time | Usage | Run |
+|---|---|---|---|---|---|---|---|
+| wall_bracket (design file withheld) | 1 of 6 | 1 / 1 | PASS, sweep included, version 2 | 15/20, direction approved | 11 min 17 s (15 min with accept + review) | $4.17, 2.7 M tokens (mostly cache reads) | `designer-20261108-200049-wall_bracket` |
+
+Notes on the wall_bracket run:
+- The part is a real bracket, not a box with holes. It has an inner stress-relief fillet and a
+  centreline gusset whose ramp is self-supporting. The wall screws use teardrop counterbores from
+  the room side, so the horizontal holes print without supports. The shelf screws are counterbored
+  from below. The section render confirms the floor under each screw head.
+- Reviewer tells: the 1 mm fillet on the bed-contact outer corner drives the sweep's support risk,
+  and two cosmetic radii and the rib proportions have no stated reason. Its top fix is
+  `outer_radius` → 0.5. That fix was not sent back, because the review passed.
+- In its attempt, the designer read both skills, looked up M4 in the library, read four repo designs
+  for house style, and ran `magic.py check` on its draft (no-sweep, then with the sweep). It also
+  read its own renders. A try at running its own build script was denied by the permission rules,
+  as intended.
+- Eyes (#79) had not landed. The designer read renders only because the prompt tells it to look at
+  its own check. Record the iteration count again with #79 for the comparison the issue asks for.
+- Not yet run: the ESP32-DevKitC base-plate brief (catalogue board, M2.5 inserts), and a real
+  negative control. The scripted test covers the negative control.

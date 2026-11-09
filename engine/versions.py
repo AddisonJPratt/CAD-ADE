@@ -14,7 +14,7 @@ import tarfile
 import tempfile
 from pathlib import Path
 
-from .projects import OUTPUTS, ProjectError, designs_of
+from .projects import OUTPUTS, ProjectError, designs_of, require_project
 
 ROOT = Path(__file__).resolve().parent.parent
 STATE = ".magic"
@@ -48,7 +48,7 @@ def is_versioned(project):
 
 def require_versioned(project):
     project = Path(project).expanduser().resolve()
-    designs_of(project)
+    require_project(project)   # a brief-only project (#61) has versions too
     if not is_versioned(project):
         raise VersionError(f"{project} has no versions; create it as a project first")
     return project
@@ -94,6 +94,26 @@ def create_project(folder, from_design):
     (folder / ".gitignore").write_text("\n".join(IGNORED) + "\n")
     git(folder, "init", "--quiet", "--initial-branch=main")
     save_version(folder, f"Created from {design.stem}")
+    return folder
+
+
+def create_project_from_brief(folder, brief):
+    """A new project holding one brief card and no design, as version 1: the designer's input (#61)."""
+    from harness.brief import BriefError, load_brief
+    folder = Path(folder).expanduser().resolve()
+    brief = Path(brief).expanduser()
+    if folder.exists() and any(folder.iterdir()):
+        raise ProjectError(f"{folder} already exists and is not empty")
+    try:
+        name = load_brief(brief)["name"]
+    except (BriefError, OSError) as err:
+        raise ProjectError(f"brief card invalid: {err}") from err
+    (folder / "briefs").mkdir(parents=True, exist_ok=True)
+    shutil.copy2(brief, folder / "briefs" / f"{name}.yaml")
+    shutil.copytree(ROOT / "library", folder / "library", ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    (folder / ".gitignore").write_text("\n".join(IGNORED) + "\n")
+    git(folder, "init", "--quiet", "--initial-branch=main")
+    save_version(folder, f"Brief for {name}")
     return folder
 
 

@@ -6,7 +6,7 @@ with project source so versions and rollback preserve the settings used for a ru
 import json
 from pathlib import Path
 
-from .projects import ProjectError, designs_of
+from .projects import ProjectError, designs_of, require_project
 from .versions import git, is_versioned
 
 from library.printer_profiles import PROFILE
@@ -16,7 +16,7 @@ SETTINGS = 'printer.json'
 
 def project_printer(project):
     project = Path(project).expanduser().resolve()
-    designs_of(project)
+    require_project(project)
     path = project / SETTINGS
     try:
         settings = json.loads(path.read_text()) if path.exists() else {'printer': PROFILE['id'], 'material': 'PLA'}

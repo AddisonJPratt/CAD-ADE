@@ -43,7 +43,16 @@ other pairs measure centre to centre. The angle is between the faces' planes (0Â
 included. It's derived by the explode rule in `assembly/manifest.py` and scaled by Studio's slider.
 
 **Designer**: the agent that turns a request into a proposal (`AgentAdapter`: Claude Code, or the
-scripted fake in tests). In M0 it proposes one bounded parameter change.
+scripted fake in tests). In M0 it proposes one bounded parameter change. Given only a brief card it
+writes a whole new design (`engine/designer.py`, #61): the engine runs the gates after each attempt
+and feeds the report back until the design passes or the budget runs out. See ADR 0004.
+
+**Brief-only project**: a project holding a brief card and no design yet, the designer's input. It
+has versions like any project (`create_project_from_brief`); running its gates waits for a design.
+
+**Attempt**: one pass of the designer's loop: the agent writes the design files, the engine reverts
+any edit outside `designs/*.py` and `assembly.py`, then runs the quick gates and, once they pass, the
+full run with the sweep. The **budget** is a number of attempts and a wall time.
 
 **Reviewer**: the independent agent that judges a kept, gate-passing change with the
 magic-cad-reviewer rubric (`engine/reviewer.py`). It has a fresh context and read-only tools, and
