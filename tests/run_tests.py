@@ -187,7 +187,10 @@ def test_engineering():
         return ""
 
     check("features registry", set(FEATURES) == {"edge_break", "shell", "rib", "gusset", "lightening_cutouts",
-                                                  "insert_boss", "thread", "print_draft"})
+                                                  "insert_boss", "thread", "print_draft",
+                                                  # patterns and textures (#52), tested in tests/test_textures.py
+                                                  "knurl", "diamond_knurl", "ribbing", "hex_texture",
+                                                  "emboss_text", "emboss_outline", "pattern"})
     top = propose("shell", block, open_faces=[(0, 0, 20)], wall=2.0)
     check("shell open top: no new overhang", top.adds_overhang_mm2 <= 0.25 and top.volume_delta_mm3 < 0,
           f"{top.adds_overhang_mm2:.3f} mm^2")
@@ -213,7 +216,7 @@ def test_engineering():
           abs(profile["apex_width"] + profile["root_width"] + 2 * profile["axial_clearance"] - 4.0) < 1e-9
           and profile["radial_clearance"] == fit and abs(mating_radius(40, 1.0, False) - (41 + fit)) < 1e-9)
     check("thread too deep for its pitch refused", raises(thread_profile, 2.0, 0.9))
-    check("unknown feature refused", raises(propose, "knurl", block))
+    check("unknown feature refused", raises(propose, "sandblast", block))
     from build123d import Cylinder
     from library.engineering import gusset, insert_boss, print_draft, thread
     tall = Box(20, 20, 40, align=(Align.CENTER, Align.CENTER, Align.MIN))
@@ -227,7 +230,8 @@ def test_engineering():
     check("horizontal thread refused", "print-up" in refused(thread, lying, (0, 0, 20), 3.0, 0.9))
 
 
-FEATURE_FIXTURES = ["edge_break", "shell", "rib", "gusset", "lightening", "insert_boss", "thread", "draft"]
+FEATURE_FIXTURES = ["edge_break", "shell", "rib", "gusset", "lightening", "insert_boss", "thread", "draft",
+                    "knurl", "pattern", "nameplate", "grip"]   # the last four: patterns and textures (#52)
 
 
 def test_feature_fixtures():

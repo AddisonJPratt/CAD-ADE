@@ -35,6 +35,29 @@ Every item below cost real debugging time. Match the symptom, apply the fix.
 - Importing build123d costs 7–15 s under load. Budget subprocess timeouts accordingly;
   never shrink a timeout to "make it pass."
 
+## Texture and pattern traps (#52, library/textures.py)
+
+- **Many helical sweeps unioned never finish** (94 knurl grooves: minutes, killed). A
+  diamond knurl on a cylinder is two twisted star prisms intersected
+  (`Solid.extrude_linear_with_rotation`): ~4 s, watertight. That call divides by the twist:
+  use a plain `extrude` at 0.
+- **`extrude(..., taper=)` fails on faces with holes** ("2D offset failed"): OCC picks the
+  offset side from wire orientation. For self-supporting engravings use a sheared extrude
+  (`dir=` tilted by the self-supporting slope): every face is parallel to the shear, so none
+  points nearer straight down. Intersecting a straight and a sheared prism instead leaves
+  flat roof slivers where the shift slides along a slanted edge.
+- **Selecting a cylinder rim by a point on the seam** (`(r, 0, z)`) can return the seam
+  edge, so the edge break silently lands elsewhere. Pick rim points off the seam (`(0, r, z)`).
+- **A cylindrical face's `bounding_box()` can be loose** (it reported z0 = 0 under a
+  chamfer). Take its z range from its edges.
+- **Rejoining a refined mesh piece to the rest along a cut fails**: coincident cuts glue two
+  shells by position (hundreds of bodies on reload), and an overlap band across a curved
+  surface leaves non-manifold edges after float32 STL reload. Refine the whole manifold
+  (`refine_to_length`), `warp_batch`, then `simplify(1e-5)`: fast and watertight.
+- **The brief-wording overhang share counts printable faces.** A diamond knurl's
+  half-downward flanks or a 46 deg foot chamfer can take a small part past 15 %; a
+  straight knurl adds none.
+
 ## Convex hull traps
 
 - A radius profile that **narrows then runs straight** (cone into a stub, countersink
