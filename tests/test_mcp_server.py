@@ -184,6 +184,33 @@ def test_run_check_failures():
         srv.run_harness = lambda args, timeout: {"returncode": None, "stdout": "", "stderr": "", "timed_out": False,
                                                  "error": "could not start harness", "seconds": 0.0}
         check("run_check: unstartable harness", code_of(srv.harness_check("tests/fixtures/hang.py")) == "harness_error")
+
+        calls = []
+        quick_out = ROOT / "runs" / "hang-quick"
+
+        def quick_fake(args, timeout):
+            calls.append(([str(a) for a in args], timeout))
+            quick_out.mkdir(exist_ok=True)
+            (quick_out / "report.json").write_text(json.dumps(
+                {"pass": True, "quick": True, "verification": "draft",
+                 "gates": [{"name": "1 Execute", "status": "PASS"}, {"name": "Sweep", "status": "NOT RUN"}]}))
+            return {"returncode": 0, "stdout": "", "stderr": "", "timed_out": False, "error": None, "seconds": 1.0}
+
+        srv.run_harness = quick_fake
+        try:
+            result = srv.run_check("tests/fixtures/hang.py", quick=True)
+        finally:
+            for leftover in sorted(quick_out.rglob("*"), reverse=True) if quick_out.exists() else []:
+                leftover.rmdir() if leftover.is_dir() else leftover.unlink()
+            if quick_out.exists():
+                quick_out.rmdir()
+        args, timeout = calls[0]
+        check("run_check quick: passes --quick to its own folder", "--quick" in args
+              and args[args.index("--out") + 1].endswith("runs/hang-quick"), str(args))
+        check("run_check quick: short timeout", timeout == srv.QUICK_TIMEOUT < srv.CHECK_TIMEOUT, str(timeout))
+        check("run_check quick: result says quick and draft, never verified",
+              result.get("quick") is True and result.get("verification") == "draft" and result["pass"] is True, str(result))
+        check("run_check: full run unchanged, no --quick", "--quick" not in harness_args_of(srv, "hang"))
     finally:
         srv.run_harness = saved
         (out / "report.json").unlink(missing_ok=True)
@@ -191,6 +218,19 @@ def test_run_check_failures():
             leftover.rmdir() if leftover.is_dir() else leftover.unlink()
         if out.exists():
             out.rmdir()
+
+
+def harness_args_of(server, stem):
+    """The argv a full run_check would pass to the harness, captured without running it."""
+    seen = []
+    saved = server.run_harness
+    server.run_harness = lambda args, timeout: seen.append([str(a) for a in args]) or {
+        "returncode": None, "stdout": "", "stderr": "", "timed_out": False, "error": "captured", "seconds": 0.0}
+    try:
+        server.harness_check(f"tests/fixtures/{stem}.py")
+    finally:
+        server.run_harness = saved
+    return seen[0]
 
 
 async def protocol():

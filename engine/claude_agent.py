@@ -21,6 +21,13 @@ ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = {'type':'object', 'properties':{
     'supported':{'type':'boolean'}, 'parameter':{'type':'string'}, 'value':{'type':'number'}, 'reason':{'type':'string','minLength':1}},
     'required':['supported','reason'], 'additionalProperties':False}
+# How a designer that writes or rewrites a design (#61) iterates against the gates (#80). The
+# M0 parameter edit below runs no gates itself, so it does not use this; the #61 prompt must.
+DESIGNER_GATE_LOOP = (
+    'Iterate with the fast loop: after each edit call magic-cad run_check(design, quick=true), which runs build, '
+    'geometry and printability only, in seconds. A quick pass is a draft, never a verified or proven result. '
+    'Before proposing, run the full gates: run_check(design) with quick=false, sweep included, and only propose '
+    'when that full run passes. Never propose on a quick pass alone.')
 
 
 class ClaudeCodeAgent(AgentAdapter):
