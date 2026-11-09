@@ -10,6 +10,15 @@ from tests import test_parameters as parameter_cases
 ROOT = parameter_cases.ROOT
 
 
+class DesignerGateLoopTest(unittest.TestCase):
+    def test_quick_mid_loop_full_before_proposing(self):
+        from engine.claude_agent import DESIGNER_GATE_LOOP as text
+        self.assertIn('run_check(design, quick=true)', text)
+        self.assertIn('quick=false', text)
+        self.assertLess(text.index('quick=true'), text.index('Before proposing'))
+        self.assertIn('Never propose on a quick pass alone', text)
+
+
 class ClaudeAdapterTest(unittest.TestCase):
     request = parameter_cases.ParameterApiTest.request
     tearDown = parameter_cases.ParameterApiTest.tearDown

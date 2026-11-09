@@ -32,6 +32,8 @@ Designs are parametric build123d Python; the harness (`magic.py`) verifies them.
 
 ## Workflow
 `.venv/bin/python magic.py run designs/<x>.py` must exit 0 before calling a design verified.
+Mid-session, `magic.py check designs/<x>.py --quick` (build, geometry, printability; seconds) is
+for iterating only: a quick pass is a draft and never counts as verified.
 If a gate fails, fix the design or the harness; never weaken the gate.
 
 ## Tools wired into this project
