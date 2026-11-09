@@ -19,8 +19,12 @@ from evals.run_evals import PYTHON, discover, read_report, run_harness
 from mcp.server.mcpserver import Image, MCPServer
 from mcp_types import CallToolResult, TextContent
 
-DESIGNS_DIR = ROOT / "designs"
-BRIEFS_DIR = ROOT / "briefs"
+# The folder the design tools work in: the repo by default, or a project folder (a designer's
+# proposal draft, #61) when MAGIC_CAD_PROJECT names one. Paths resolve against it and must stay in
+# it; the harness, library and eval corpus always come from the repo.
+PROJECT = Path(os.environ.get("MAGIC_CAD_PROJECT") or ROOT).resolve()
+DESIGNS_DIR = PROJECT / "designs"
+BRIEFS_DIR = PROJECT / "briefs"
 EVAL_BRIEFS_DIR = ROOT / "evals" / "briefs"
 RESULTS_DIR = ROOT / "evals" / "results"
 PARTS_FILE = ROOT / "library" / "standard_parts.json"
@@ -58,10 +62,10 @@ def safe_path(raw):
     """Resolve a path (symlinks included) against the project root; refuse anything outside it."""
     try:
         path = Path(raw)
-        path = (path if path.is_absolute() else ROOT / path).resolve()
+        path = (path if path.is_absolute() else PROJECT / path).resolve()
     except (ValueError, OSError, RuntimeError) as err:
         raise ToolError("invalid_path", f"unusable path {raw!r}: {err}") from err
-    if not path.is_relative_to(ROOT):
+    if not path.is_relative_to(PROJECT):
         raise ToolError("path_outside_project", f"{raw!r} resolves outside the project root")
     return path
 
@@ -74,12 +78,12 @@ def existing_file(raw):
 
 
 def relative(path):
-    return str(Path(path).relative_to(ROOT))
+    return str(Path(path).relative_to(PROJECT))
 
 
 def find_brief(stem):
     """briefs/ first, as the harness does, then evals/briefs/, which the harness would not find."""
-    for folder in (BRIEFS_DIR, EVAL_BRIEFS_DIR):
+    for folder in (BRIEFS_DIR, EVAL_BRIEFS_DIR) if PROJECT == ROOT else (BRIEFS_DIR,):
         candidate = folder / f"{stem}.yaml"
         if candidate.is_file():
             return candidate
@@ -104,7 +108,7 @@ def list_designs() -> dict[str, Any]:
 @structured
 def list_eval_briefs() -> dict[str, Any]:
     """List each eval brief in evals/briefs/ and whether its design exists. Coverage, not a pass rate."""
-    entries = discover(EVAL_BRIEFS_DIR, DESIGNS_DIR)
+    entries = discover(EVAL_BRIEFS_DIR, ROOT / "designs")   # the eval corpus is the repo's
     briefs = [{"name": e["name"], "path": relative(e["brief"]), "is_symlink": e["brief_is_symlink"],
                "design_present": e["design_present"],
                "design_path": relative(e["design"]) if e["design_present"] else None} for e in entries]
@@ -124,7 +128,7 @@ def project_paths(value):
         return {k: project_paths(v) for k, v in value.items()}
     if isinstance(value, list):
         return [project_paths(v) for v in value]
-    if isinstance(value, str) and value.startswith(str(ROOT) + os.sep):
+    if isinstance(value, str) and value.startswith(str(PROJECT) + os.sep):
         return relative(value)
     return value
 
@@ -173,7 +177,8 @@ def harness_check(design, timeout=CHECK_TIMEOUT, quick=False):
         path = resolve_design(design)
     except ToolError as err:
         return check_failure(err.code, str(err))
-    out = ROOT / "runs" / f"{path.stem}-{'quick' if quick else 'check'}"
+    # In a project folder, checks write under outputs/, which is never versioned or proposed.
+    out = (ROOT / "runs" if PROJECT == ROOT else PROJECT / "outputs") / f"{path.stem}-{'quick' if quick else 'check'}"
     report_file = out / "report.json"
     brief = find_brief(path.stem)
     brief_name = relative(brief) if brief else None

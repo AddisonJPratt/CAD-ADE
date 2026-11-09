@@ -1,0 +1,105 @@
+{
+  "brief": "wall_bracket",
+  "project": "/private/var/folders/jf/5crtmt7n2rl3tww1rbt55bd80000gn/T/magic-designer-eval-shneciv_/wall_bracket",
+  "state": "ready",
+  "error": null,
+  "attempts": 1,
+  "budget": {
+    "attempts": 6,
+    "seconds": 3000.0
+  },
+  "designer_seconds": 862.5,
+  "gate_runs": {
+    "quick": 1,
+    "full": 1
+  },
+  "refused_edits": 0,
+  "designer_usage": {
+    "runs": 1,
+    "cost_usd": 4.9404,
+    "tokens": 1591833
+  },
+  "last_gate_report": {
+    "id": 81,
+    "type": "gate_report",
+    "attempt": 1,
+    "mode": "full",
+    "pass": true,
+    "designs": [
+      {
+        "design": "wall_bracket.py",
+        "pass": true,
+        "gates": [
+          {
+            "name": "1 Execute",
+            "status": "PASS",
+            "detail": "built in 20.96 s; no hard-coded literals"
+          },
+          {
+            "name": "2 Geometry",
+            "status": "PASS",
+            "detail": "1/1 solids, volume 78116 mm\u00b3, 7/7 dims in \u00b10.1"
+          },
+          {
+            "name": "3 Printability",
+            "status": "PASS",
+            "detail": "watertight, single component, fits bed; overhang brief 5.4 %, support risk 1.4 %"
+          },
+          {
+            "name": "4 Renders",
+            "status": "PASS",
+            "detail": "5 PNGs from reloaded STL"
+          },
+          {
+            "name": "Sweep",
+            "status": "PASS",
+            "detail": "31/31 pass; dead params: none"
+          },
+          {
+            "name": "5 Exports",
+            "status": "PASS",
+            "detail": "wall_bracket.stl, wall_bracket.step, wall_bracket.faces.json"
+          }
+        ]
+      }
+    ]
+  },
+  "pass": true,
+  "version": 2,
+  "review": {
+    "scores": {
+      "looks_like_the_thing": 4,
+      "detail": 4,
+      "dimensions": 3,
+      "proportion": 4,
+      "print_intent": 4
+    },
+    "total": 19,
+    "band": "adopt-ready",
+    "pass": true,
+    "tells": [
+      "Paired radii: inner_radius equals corner_radius (both 4) and outer_radius equals gusset_edge_radius (both 1). Each has a stated role, so this is a near-miss rather than a default-everything fillet, but the coincidence is worth one sentence in the docstring.",
+      "gusset_thickness 5 and gusset_reach 0.7 are chosen round numbers with no reason given in the brief or source (perimeter count, screw clearance, or stiffness target). Not a default, but not justified either."
+    ],
+    "fixes": [
+      {
+        "rank": 1,
+        "text": "State why gusset_thickness is 5 and gusset_reach is 0.7. A 5 mm rib is about 12 perimeters at 0.4 mm and the ramp foot at x=58 clears the shelf screws at x=44 by 14 mm; write that down or change the values to ones you can defend. No geometry change needed."
+      },
+      {
+        "rank": 2,
+        "text": "The wall holes sit at z=44, the centre of the free leg, because the brief's assumption says 'centred'. For pull-out the moment arm from the bottom edge would be longer with the pair nearer the top. Brief wins today; flag it for the next brief revision rather than changing the design."
+      },
+      {
+        "rank": 3,
+        "text": "The shelf counterbore floors are two 8 mm bridged rings at z=4.2 (the 68.7 mm2 of flat underside in the report). This is acknowledged and acceptable, but confirm on the first print that the ring did not sag into the counterbore, since a sagged floor lifts the screw head."
+      },
+      {
+        "rank": 4,
+        "text": "If a load test shows the wall leg delaminating across layers, print on a side face (y=-30 down) instead. That aligns both legs and the rib with the load and keeps all four counterbores as teardrops. Only do this if the test fails; the brief pins shelf-face-down."
+      }
+    ],
+    "good": "Thickness is derived from the M4 counterbore depth plus a floor rather than guessed, and the print orientation is carried all the way through: teardrop wall counterbores, a self-supporting chamfer instead of a fillet on the bed corner, sharp bed and wall faces, and the rib sunk half a plate so the u"
+  },
+  "seconds": 1129.2
+}

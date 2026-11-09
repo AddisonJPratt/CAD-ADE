@@ -6,8 +6,8 @@ The engine owns the loop and the agent owns the writing. Each attempt:
    the project, given the brief card, the printer and clearance table, and the last gate report;
 2. any change outside `designs/*.py` and `assembly.py` (the brief, the library, the printer
    settings) is reverted and reported back as refused: the designer never edits those;
-3. the engine runs the quick gates (build, geometry, printability, renders, no sweep) and, once
-   they pass, the full project run with the sweep. Gate events stream live; a gate report closes
+3. the engine runs the quick gates (#80: build, geometry, printability; seconds) and, once they
+   pass, the full project run with renders, Eyes and the sweep. Gate events stream live; a gate report closes
    each run. A failing report is the next attempt's feedback.
 
 A full pass ends the loop with the changed files as a proposal (before may be empty). Running out
@@ -251,7 +251,6 @@ class DesignLoop(AgentAdapter):
             session["feedback"] = f"Attempt {attempt} wrote no {session['file']}; write the design there."
             return "failed"
         for mode in ("quick", "full"):
-            # TODO(#80): once the quick gate subset lands, run it here instead of the no-sweep check.
             report = yield from self.gates(session, attempt, mode)
             if report is None:
                 return "interrupted"
@@ -344,13 +343,13 @@ class DesignLoop(AgentAdapter):
             return {}
 
     def quick(self, workspace, session, emit):
-        """Build, geometry, printability and renders for every design; no sweep, nothing exported."""
+        """The quick gate subset (#80) on every design: build, geometry, printability. A draft only."""
         from .printers import project_printer
         printer = project_printer(workspace)
         designs = []
         for design in designs_of(workspace):
             out = workspace / OUTPUTS / design.stem
-            _, report = run_design(design, out=out, exports=False, skip_sweep=True, timeout=session["timeout"],
+            _, report = run_design(design, out=out, exports=False, quick=True, timeout=session["timeout"],
                                    command="designer quick check", on_event=emit, printer=printer)
             designs.append({"design": design.name, "pass": report["pass"], "gates": report["gates"],
                             "details": report})

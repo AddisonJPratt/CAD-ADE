@@ -83,6 +83,11 @@ spends model usage on the logged-in account. The repo's own design for the brief
 |---|---|---|---|---|---|---|---|
 | wall_bracket (design file withheld) | 1 of 6 | 1 / 1 | PASS, sweep included, version 2 | 15/20, direction approved | 11 min 17 s (15 min with accept + review) | $4.17, 2.7 M tokens (mostly cache reads) | `designer-20261108-200049-wall_bracket` |
 | wall_bracket, with Eyes (#79) | 1 of 6 | 1 / 1 | PASS, sweep included, version 2 | 16/20, direction approved, but see the function error below | 11 min 5 s (16 min with accept + review) | $4.29, 1.8 M tokens | `designer-20261108-203842-wall_bracket` |
+| wall_bracket, shipped config: Eyes + quick gates (#80) + magic-cad on the draft, no shell | 1 of 6 | 1 / 1 | PASS, sweep included, version 2 | 19/20, adopt-ready, but see the function error below | 14 min 23 s (19 min with accept + review) | $4.94, 1.6 M tokens | `designer-20261108-220759-wall_bracket` |
+
+The first two runs checked their drafts with `magic.py check` through a scoped Bash rule. The third
+is the configuration this PR ships: magic-cad runs in the draft (`MAGIC_CAD_PROJECT`), and the
+designer called `run_check` twice (quick, then full) and `library_lookup` once.
 
 Notes on the wall_bracket run:
 - The part is a real bracket, not a box with holes. It has an inner stress-relief fillet and a
@@ -98,13 +103,17 @@ Notes on the wall_bracket run:
   as intended.
 - Eyes (#79) had not landed when this ran, so this is the "without artefacts" row in the table below.
   The designer still read its renders, because the prompt tells it to look at its own check.
-- **Function error in the second run, which passed both gates and review.** Its shelf counterbores
-  open on the z=0 face, the face that meets the shelf, so the screw heads would sit between bracket
-  and shelf. The first run and the repo's reference design open them on the far face (z=thickness),
-  where a screw driven up from below the bracket seats its head. No gate checks which face a
-  counterbore opens on, the reviewer didn't catch it, and the brief's "counterbored from below the
-  shelf" can be misread. Found by reading the source after looking at the iso render. Follow-ups: a
-  measurable interface probe (counterbore side), or a clearer interface line in the brief.
+- **Function error in runs 2 and 3, both of which passed every gate and the review (16 and 19/20).**
+  Their shelf counterbores open on the z=0 face, the face that meets the shelf, so the screw heads
+  would sit between bracket and shelf. Run 3's own docstring says the head "sits below the plate",
+  so the geometry contradicts its stated intent. Run 1 and the repo's reference design open them on
+  the far face (z=thickness), where a screw driven up from below the bracket seats its head. No gate
+  checks which face a counterbore opens on, the reviewer missed it three times out of three
+  chances, and a prompt line asking the designer to check interface direction (added before run 3)
+  didn't prevent it. The brief's "counterbored from below the shelf" can be misread. Found by
+  reading the source after looking at the iso render. Follow-ups: a measurable interface probe
+  (which face each counterbore opens on), a reviewer check of every interface line against the
+  geometry, and a clearer interface line in the brief.
 - Not yet run: the ESP32-DevKitC base-plate brief (catalogue board, M2.5 inserts), and a real
   negative control. The scripted test covers the negative control.
 
@@ -121,6 +130,7 @@ iterations to count. Record the two runs here when #61 lands:
 |---|---|---|---|---|
 | wall_bracket-from-brief | without (renders only) | 1 attempt (1 quick + 1 full gate run) | 11 min 17 s designer, 15 min with accept + review | `designer-20261108-200049-wall_bracket` |
 | wall_bracket-from-brief | with | 1 attempt (1 quick + 1 full gate run) | 11 min 5 s designer, 16 min with accept + review | `designer-20261108-203842-wall_bracket` |
+| wall_bracket-from-brief | with, plus #80 and magic-cad on the draft | 1 attempt (1 quick + 1 full gate run) | 14 min 23 s designer, 19 min with accept + review | `designer-20261108-220759-wall_bracket` |
 
 On this brief Eyes made no difference to the iteration count: both runs passed on the first attempt.
 The designer read 3 of its own images with Eyes (`Reading its own render` events). The second run

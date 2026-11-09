@@ -21,8 +21,8 @@ untouched, a bounded budget that ends in a clear failure, and a proposal the own
   Code's permission rules scope `Edit` to those paths, and the engine diffs the draft after every
   attempt: any other change is reverted, streamed as `refused_edit` and fed back. The brief card,
   library, printer settings and harness never change.
-- **Gates.** Quick first (build, geometry, printability, renders; no sweep, nothing exported), then
-  the full project run with the sweep once quick passes. Every gate event streams on the proposal's
+- **Gates.** Quick first (#80: build, geometry, printability; seconds), then the full project run
+  with renders, Eyes (#79) and the sweep once quick passes. Every gate event streams on the proposal's
   event stream, framed by `attempt_started`, `gate_run_started` and a `gate_report`. A failing report,
   as text with the traceback tail, failing sweep samples and the render paths, is the next
   attempt's input. Designer gate runs hold the engine's one execution lock, like every other run.
@@ -41,9 +41,10 @@ untouched, a bounded budget that ends in a clear failure, and a proposal the own
   the environment changed.
 - Every attempt starts a fresh Claude context with the brief, the printer and clearance table, the
   previous source (in the draft) and the last gate report. Nothing carries over except files.
-- Within an attempt Claude checks its own draft with `magic.py check --no-sweep`. The magic-cad MCP
-  tools (`run_check`, `measure_file`, `min_gap`) only see paths inside the repo, so they can't check
-  the draft yet. Switching to `run_check(quick=True)` (#80) needs a project-root option there.
+- Within an attempt Claude has no shell. It checks its own draft through magic-cad, which the
+  designer starts with `MAGIC_CAD_PROJECT` set to the draft, so `run_check` (quick mid-loop, full
+  before finishing), `measure_file` and `min_gap` resolve paths there and refuse anything outside,
+  the repo included. Their checks write under the draft's `outputs/`, which is never proposed.
 - The unit of work is a set of files, so the planner's multi-part briefs (#82) need no new seam.
 - A project can hold only a brief card (`create_project_from_brief`); `require_versioned` and
   `project_printer` accept it, and `run_project` still refuses it until a design exists.

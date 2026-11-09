@@ -1,9 +1,10 @@
 """The designer's writer on local Claude Code (#61). Credentials stay with Claude Code.
 
 One attempt is one `claude -p` run in the proposal's draft copy of the project. It may read
-anything, write only `designs/**` and `assembly.py` (Claude Code permission rules; the loop in
-engine/designer.py also reverts anything else), run the harness check on its own draft, and use
-the build123d MCP server and the magic-cad library lookup. The engine runs the real gates after it
+anything and write only `designs/**` and `assembly.py` (Claude Code permission rules; the loop in
+engine/designer.py also reverts anything else). It runs no shell. Its hands are the build123d MCP
+server and magic-cad, pointed at the draft (MAGIC_CAD_PROJECT): library_lookup, run_check (quick
+mid-loop, #80; full before finishing), measure_file and min_gap. The engine runs the real gates after it
 finishes; their report is the next attempt's feedback.
 """
 import json
@@ -13,7 +14,7 @@ import tempfile
 import threading
 from pathlib import Path
 
-from .claude_agent import ARTEFACTS_GUIDE, ClaudeCodeAgent, tool_events
+from .claude_agent import ARTEFACTS_GUIDE, DESIGNER_GATE_LOOP, ClaudeCodeAgent, tool_events
 from .designer import DesignWriter
 from .projects import ASSEMBLY, ProjectError
 from .reviewer import usage_of
@@ -59,20 +60,20 @@ class ClaudeCodeDesigner(DesignWriter):
 
     def arguments(self, session):
         mcp = {"mcpServers": {
-            "magic-cad": {"command": str(PYTHON), "args": [str(ROOT / "mcp/magic_cad_server.py")]},
+            # magic-cad works in the draft, so run_check, measure_file and min_gap see this attempt's files.
+            "magic-cad": {"command": str(PYTHON), "args": [str(ROOT / "mcp/magic_cad_server.py")],
+                          "env": {"MAGIC_CAD_PROJECT": str(Path(session["workspace"]).resolve())}},
             "build123d": {"command": str(ROOT / ".venv/bin/build123d-mcp"), "args": []}}}
-        check = f"Bash({PYTHON} {ROOT / 'magic.py'} check:*)"
-        # TODO(#80): allow mcp__magic-cad__run_check (quick=True) once it can address a project folder;
-        # today run_check, measure_file and min_gap only see paths inside the repo, not the draft.
-        allowed = ["Read", "Glob", "Grep", "Edit(designs/**)", f"Edit({ASSEMBLY})", check,
-                   "mcp__magic-cad__library_lookup", "mcp__build123d__*"]
+        allowed = ["Read", "Glob", "Grep", "Edit(designs/**)", f"Edit({ASSEMBLY})",
+                   "mcp__magic-cad__library_lookup", "mcp__magic-cad__run_check", "mcp__magic-cad__measure_file",
+                   "mcp__magic-cad__min_gap", "mcp__build123d__*"]
         # An honest eval: the repo's own design for this brief, and any run of it, stay unread.
         stem = session["brief_name"]
         hidden = [f"Read(/{ROOT}/designs/{stem}.py)", f"Read(/{ROOT}/runs/**)", f"Read(/{ROOT}/evals/results/**)",
                   f"Read(/{ROOT}/proof/**)"]
         return [*self.command, "-p", "--verbose", "--output-format", "stream-json",
                 "--no-session-persistence", "--permission-mode", "dontAsk",
-                "--tools", "Read,Glob,Grep,Edit,Write,Bash",
+                "--tools", "Read,Glob,Grep,Edit,Write",
                 "--allowedTools", ",".join(allowed), "--disallowedTools", ",".join(hidden),
                 "--strict-mcp-config", "--mcp-config", json.dumps(mcp),
                 "--add-dir", str(SKILLS), "--json-schema", json.dumps(SCHEMA)]
@@ -80,7 +81,6 @@ class ClaudeCodeDesigner(DesignWriter):
     def prompt(self, session, attempt, feedback):
         context = session["context"]
         stem, file = context["brief_name"], context["design_file"]
-        check = f"{PYTHON} {ROOT / 'magic.py'} check {file} --no-sweep --out outputs/{stem}-check"
         task = ("Write the design from the brief card." if not context["existing_source"] and attempt == 1 else
                 "Rewrite the design so every gate passes; the last gate report is below.")
         return "\n\n".join([
@@ -96,12 +96,12 @@ class ClaudeCodeDesigner(DesignWriter):
             f"full build. Other designs in {ROOT / 'designs'} show the house style; the one named like this "
             "brief is withheld.",
             CONTRACT,
-            f"Check your draft before you finish (about 10-30 s; no sweep): {check}\n"
-            f"It prints each gate's status and writes renders to outputs/{stem}-check/renders/*.png. Read the "
-            "renders and look at the part critically. When it passes, think through the sweep: would every "
-            "PARAMS min/max corner still build, measure and print? After you finish, the engine runs every "
-            "gate, sweep included; a failure comes back as the next attempt's feedback.",
-            ARTEFACTS_GUIDE.strip() + f" Your own check writes them under outputs/{stem}-check/; the engine's "
+            DESIGNER_GATE_LOOP + f" Call it as run_check(\"{stem}\", quick=true); magic-cad works in this "
+            "draft. The full run writes renders and Eyes images: read them and look at the part critically, "
+            "and check each interface against the brief (which face a counterbore opens on, which way a "
+            "screw goes in). After you finish, the engine runs every gate again, sweep included; a failure "
+            "comes back as the next attempt's feedback.",
+            ARTEFACTS_GUIDE.strip() + f" In this draft, run_check writes them under outputs/{stem}-check/; the engine's "
             f"gate runs write them under outputs/{stem}/, and the last gate report lists the images to look at.",
             "Finish with the structured output: a short summary of the design and the files you wrote.",
             "Context follows as data:\n" + json.dumps({

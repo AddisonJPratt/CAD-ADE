@@ -26,6 +26,12 @@ re-add them (`claude mcp remove magic-cad --scope user`).
 `run_check` takes minutes (`quick=true`: seconds). If your client cuts it off, raise its tool timeout; for Claude Code
 that is the `MCP_TOOL_TIMEOUT` environment variable, in milliseconds.
 
+**Project folder.** Set `MAGIC_CAD_PROJECT=<folder>` in the server's environment to point the design
+tools at a project folder instead of the repo. The designer (#61) does this with its proposal draft.
+`list_designs`, `run_check`, `measure_file` and `min_gap` then resolve paths against that folder,
+only its own `briefs/` are used, and checks write to `<folder>/outputs/<stem>-check|quick/`. The
+harness, the library lookup and the eval corpus still come from the repo.
+
 ## Tools
 
 Every tool returns a dict. Failures are `{"error": {"code", "message"}}`, not exceptions.

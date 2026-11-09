@@ -53,7 +53,12 @@ class ClaudeDesignerTest(unittest.TestCase):
         self.assertIn('Edit(designs/**)', allowed)
         self.assertIn('Edit(assembly.py)', allowed)
         self.assertNotIn('Edit', allowed)               # no unscoped writes
-        self.assertTrue(any(a.startswith('Bash(') and 'magic.py check' in a for a in allowed))
+        self.assertIn('mcp__magic-cad__run_check', allowed)      # quick mid-loop, full before finishing (#80)
+        self.assertIn('mcp__magic-cad__measure_file', allowed)
+        self.assertNotIn('Bash', argv[argv.index('--tools') + 1])   # no shell
+        mcp = json.loads(argv[argv.index('--mcp-config') + 1])['mcpServers']['magic-cad']
+        self.assertEqual(Path(mcp['env']['MAGIC_CAD_PROJECT']), Path(first['cwd']).resolve())
+        self.assertIn('quick=true', first['prompt'])
         hidden = argv[argv.index('--disallowedTools') + 1]
         self.assertIn(f'Read(/{ROOT}/designs/block.py)', hidden)   # the eval can't copy the answer
         self.assertIn('width: 20.0', first['prompt'])               # the brief card
