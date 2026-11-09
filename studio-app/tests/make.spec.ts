@@ -8,7 +8,7 @@ const PHOTO = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQ
 test('makes a holder, proves it, records a print and finds it on the Shelf', async ({ page, request }) => {
   await page.goto('/');
   await page.getByRole('navigation', { name: 'Workspace modes' }).getByRole('button', { name: 'Make' }).click();
-  await expect(page.getByRole('heading', { name: 'What are we holding?' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Make a wall holder' })).toBeVisible();
 
   // Ask refuses out-of-range measurements with the engine's own message.
   await page.getByLabel('Object name').fill('Bike pump');
@@ -112,4 +112,16 @@ test('makes a holder, proves it, records a print and finds it on the Shelf', asy
   const tested = page.getByRole('region', { name: 'Physically tested' });
   await expect(tested).toContainText('Physical fit: Clip around the object');
   await expect(tested).toContainText('Measured: Clip bore');
+});
+
+// #102: Ask says Make only does wall holders and sends anything else to Studio's New project form.
+test('Ask points anything that is not a holder to New project in Studio', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('navigation', { name: 'Workspace modes' }).getByRole('button', { name: 'Make' }).click();
+  await expect(page.getByText('Make only does wall holders for now')).toBeVisible();
+  await page.getByRole('button', { name: 'New project', exact: true }).click();
+  const form = page.getByRole('form', { name: 'New project' });
+  await expect(form).toBeVisible();
+  await expect(form.getByLabel('Name')).toBeFocused();
+  await expect(form.getByRole('radio').first()).toBeChecked();
 });
