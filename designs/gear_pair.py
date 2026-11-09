@@ -53,12 +53,21 @@ def tooth_outline(module, teeth, pressure, thinning, steps):
 
 def gear(module, teeth, pressure, thickness, web, hub_wall, thinning, steps, bore_dia, at=Location()):
     """One gear, a tooth on local +X, flat on z=0, placed at `at` (its cutters too, so they name its faces)."""
-    body = at * extrude(Polygon(*tooth_outline(module, teeth, pressure, thinning, steps), align=None), amount=thickness)
+    outline = Polygon(*tooth_outline(module, teeth, pressure, thinning, steps), align=None)
+    # Feature: teeth. Names the flank and root faces only: the outline, run past both flat faces
+    # so its ends name nothing.
+    feature("teeth", at * Pos(0, 0, -thickness) * extrude(outline, amount=thickness * (1 + 2)),
+            params=("module", "flank_clearance"))
+    body = at * extrude(outline, amount=thickness)
     root_r = module * teeth / 2 - module * (1 + 0.5 * 0.5)
     # Feature: thin web between hub and rim, as an open-top pocket; the rim stays full height under the teeth.
     hub_r = bore_dia / 2 + hub_wall
     rim_inner_r = root_r - 2 * module
     if rim_inner_r > hub_r + hub_wall:   # small pinions stay solid: no room for a useful web
+        # Feature: hub, standing proud of the web. Names faces only, and before the pocket, whose
+        # inner wall is the hub's outside.
+        feature("hub", at * Cylinder(hub_r, thickness, align=(Align.CENTER, Align.CENTER, Align.MIN)),
+                params="hub_wall")
         pocket = Cylinder(rim_inner_r, thickness, align=(Align.CENTER, Align.CENTER, Align.MIN))
         pocket -= Cylinder(hub_r, thickness, align=(Align.CENTER, Align.CENTER, Align.MIN))
         body -= feature("web pocket", at * Pos(0, 0, web) * pocket, params=("web", "hub_wall"))
