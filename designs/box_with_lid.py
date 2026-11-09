@@ -6,7 +6,9 @@ Design intent: the lip's sliding clearance sets the fit, its depth keeps the lid
 """
 from build123d import Align, Axis, Box, Pos, Rectangle, Vector, chamfer, extrude, fillet
 
-from library import standard_parts
+from library import feature, standard_parts
+
+EXPECTED_SOLIDS = 2     # tray and lid, as evals/briefs/box_with_lid.yaml has it
 
 PARAMS = {
     # name: (default, min, max)    all mm
@@ -32,23 +34,25 @@ def build(outer_x, outer_y, box_height, lid_height, wall):
     # Feature: tray shell, floor down; plan corners concentric so the wall stays even round the bend.
     tray = rounded_prism(outer_x, outer_y, box_height, outer_r)
     cavity = rounded_prism(outer_x - 2 * wall, outer_y - 2 * wall, box_height, outer_r - wall)
-    tray -= Pos(0, 0, wall) * cavity
+    tray -= feature("cavity", Pos(0, 0, wall) * cavity, params="wall")
     # Feature: outside chamfer around the rim only; the bed edge stays square for first-layer contact.
     rim = [e for e in tray.edges() if abs(e.center().Z - box_height) < edge and is_outer(e, outer_x, outer_y, wall)]
     tray = chamfer(rim, edge)
     # Feature: thumb notch in one long rim, so the lid can be lifted off a fit that has no handle.
     notch = wall + lid_height
-    tray -= Pos(0, -outer_y / 2, box_height) * Box(2 * notch, 2 * wall, 2 * notch * 0.5)
+    tray -= feature("thumb notch", Pos(0, -outer_y / 2, box_height) * Box(2 * notch, 2 * wall, 2 * notch * 0.5),
+                    params="lid_height")
 
-    # Feature: lid plate, top face on the bed.
-    plate = rounded_prism(outer_x, outer_y, wall, outer_r)
+    # Feature: lid plate, top face on the bed, beside the tray; the lip is placed there too, so
+    # its name lands on the lid's faces.
+    beside = Pos(0, outer_y + 2 * wall, 0)
+    plate = beside * rounded_prism(outer_x, outer_y, wall, outer_r)
     # Feature: locating lip, sliding clearance per side inside the tray cavity; depth stops rocking.
     lip_x, lip_y = outer_x - 2 * (wall + clearance), outer_y - 2 * (wall + clearance)
     lip_r = outer_r - wall - clearance
     lip = rounded_prism(lip_x, lip_y, lid_height - wall, lip_r)
     bore = rounded_prism(lip_x - 2 * wall, lip_y - 2 * wall, lid_height - wall, lip_r * 0.5)
-    lid = plate + Pos(0, 0, wall) * (lip - bore)
-    lid = Pos(0, outer_y + 2 * wall, 0) * lid
+    lid = plate + feature("locating lip", beside * Pos(0, 0, wall) * (lip - bore), params="lid_height")
 
     tray.label, lid.label = "box", "lid"
     return {"box": tray, "lid": lid}

@@ -6,6 +6,7 @@ Each proof/tests/test_proof.py case has its equivalent here; verdicts are writte
 in the last test, which makes a real holder through the HTTP API and runs every gate on it.
 """
 import ast
+import base64
 import json
 import os
 import sys
@@ -28,6 +29,10 @@ from engine.api import make_server  # noqa: E402
 from engine.projects import ProjectError  # noqa: E402
 from engine.versions import STATE, head, list_versions  # noqa: E402
 
+PNG = "data:image/png;base64," + base64.b64encode(b"\x89PNG\r\n\x1a\n" + b"\0" * 64).decode()
+PHYSICAL = {"claim": "Physical fit and performance", "tier": "needs physical test", "status": "NOT TESTED",
+            "detail": "No physical print result recorded."}
+
 ROUND = {"object": "Pump <script>", "shape": "round", "diameter": "42", "length": "200",
          "mount": "screws", "material": "PETG"}
 
@@ -43,7 +48,7 @@ def pass_verdict(project, gates=None, stls=1):
     stem = make.record(project)["template"]
     gates = gates or {name: "PASS" for name in make.GATES}
     artifacts = [f"{stem}/{stem}{'' if i == 0 else i}.stl" for i in range(stls)] + [f"{stem}/renders/iso.png"]
-    verdict = {"pass": True, "designs": [{"design": f"{stem}.py", "pass": True, "claims": [],
+    verdict = {"pass": True, "designs": [{"design": f"{stem}.py", "pass": True, "claims": [PHYSICAL],
                                           "gates": [{"name": n, "status": s, "detail": ""} for n, s in gates.items()],
                                           "artifacts": artifacts}]}
     folder = Path(project) / STATE / "verdicts"
@@ -52,7 +57,7 @@ def pass_verdict(project, gates=None, stls=1):
     return head(project)
 
 
-class MakeTests(unittest.TestCase):
+class MakeCase(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         root = Path(self.temp.name)
@@ -72,6 +77,8 @@ class MakeTests(unittest.TestCase):
     def profile(self):
         return json.loads((make.calibration_dir() / "profile.json").read_text())["adjustments_mm"]
 
+
+class MakeTests(MakeCase):
     def test_generated_design_uses_requested_value_and_matching_brief(self):
         folder = self.made()
         self.assertEqual(folder.name, "Pump script holder")
@@ -200,6 +207,161 @@ class MakeTests(unittest.TestCase):
         self.assertEqual(len(item["versions"]), 2)
         self.assertEqual(item["versions"][0]["outcome"]["result"], "perfect")
         self.assertIsNone(item["versions"][1]["outcome"])
+
+
+class PrintResultTests(MakeCase):
+    """#15: rate each fit in a few taps, optional caliper readings and photo, claims upgraded."""
+
+    def test_proof_offers_each_fit_and_the_named_features_to_measure(self):
+        folder = self.made()
+        proof = make.proof(folder, pass_verdict(folder))
+        self.assertEqual([(f["id"], f["primary"]) for f in proof["fits"]], [("grip", True), ("screws", False)])
+        features = {f["id"]: f for f in proof["features"]}
+        self.assertAlmostEqual(features["bore"]["modelled_mm"], 42.5)  # 42 + 2 x 0.25 per side
+        self.assertAlmostEqual(features["screw_hole"]["modelled_mm"], 3.4)  # M3 clearance, standard_parts
+        cradle = self.made({"object": "Router", "shape": "rectangular", "width": "100", "depth": "30",
+                            "height": "90", "material": "PLA"})
+        proof = make.proof(cradle, pass_verdict(cradle))
+        self.assertEqual([f["id"] for f in proof["fits"]], ["seat", "screws"])
+        widths = {f["id"]: f["modelled_mm"] for f in proof["features"]}
+        self.assertAlmostEqual(widths["inner_width"], 100.5)
+        self.assertAlmostEqual(widths["inner_depth"], 30.25)
+
+    def test_each_fit_measurements_and_photo_land_in_the_outcomes_log(self):
+        folder = self.made()
+        version = pass_verdict(folder)
+        recorded = make.record_print(folder, version, fits={"grip": "perfect", "screws": "too_loose"},
+                                     measurements={"bore": "42.31", "screw_hole": ""}, photo=PNG)
+        outcome = recorded["outcome"]
+        self.assertEqual(outcome["result"], "perfect")  # the primary fit drives the clearance, as before
+        self.assertEqual(outcome["adjustment_mm"], 0)
+        self.assertEqual([(f["id"], f["result"]) for f in outcome["fits"]], [("grip", "perfect"), ("screws", "too_loose")])
+        self.assertEqual(outcome["measurements"], [{"id": "bore", "label": "Clip bore", "modelled_mm": 42.5,
+                                                    "measured_mm": 42.31, "difference_mm": -0.19}])
+        self.assertTrue((make.calibration_dir() / outcome["photo"]).is_file())
+        line = json.loads((make.calibration_dir() / "outcomes.jsonl").read_text().splitlines()[0])
+        self.assertEqual((line["project"], line["project_name"], line["version"], line["version_number"]),
+                         (str(folder), folder.name, version, 2))
+        self.assertEqual(line["fits"], outcome["fits"])
+        log = make.print_log().read_text()
+        self.assertIn("Modelled vs measured: Clip bore 42.5 mm modelled, 42.31 mm measured (-0.19 mm)", log)
+        self.assertIn("Clip around the object: Perfect; Screws in the mounting holes: Too loose", log)
+        self.assertIn(f"Photo: {outcome['photo']}", log)
+        self.assertEqual(self.profile().get("holder_clip", 0), 0)
+
+    def test_only_the_primary_fit_is_required_and_measurements_never_calibrate(self):
+        folder = self.made()
+        outcome = make.record_print(folder, pass_verdict(folder), fits={"grip": "too_tight"},
+                                    measurements={"bore": 41.9})["outcome"]
+        self.assertEqual([f["id"] for f in outcome["fits"]], ["grip"])
+        self.assertIsNone(outcome["photo"])
+        self.assertAlmostEqual(self.profile()["holder_clip"], .2)  # the existing 0.2 mm nudge, nothing more
+
+    def test_matching_claims_become_physically_tested(self):
+        folder = self.made()
+        version = pass_verdict(folder)
+        before = make.proof(folder, version)["claims"]
+        self.assertEqual([c["tier"] for c in before], ["needs physical test"])
+        make.record_print(folder, version, fits={"grip": "too_tight"}, measurements={"bore": 42.31})
+        claims = {c["claim"]: c for c in make.proof(folder, version)["claims"]}
+        grip = claims["Physical fit: Clip around the object"]
+        self.assertEqual((grip["tier"], grip["status"]), ("physically tested", "FAIL"))
+        self.assertIn("Too tight", grip["detail"])
+        screws = claims["Physical fit: Screws in the mounting holes"]
+        self.assertEqual((screws["tier"], screws["status"]), ("needs physical test", "NOT TESTED"))
+        bore = claims["Measured: Clip bore"]
+        self.assertEqual((bore["tier"], bore["status"]), ("physically tested", "RECORDED"))
+        self.assertNotIn("Physical fit and performance", claims)
+        # Studio reads claims from the version list: the same upgrade shows there.
+        studio = list_versions(folder)[0]["verdict"]["designs"][0]["claims"]
+        self.assertIn("physically tested", [c["tier"] for c in studio])
+        perfect = self.made()
+        v = pass_verdict(perfect)
+        make.record_print(perfect, v, fits={"grip": "perfect", "screws": "perfect"})
+        tiers = {c["claim"]: (c["tier"], c["status"]) for c in make.proof(perfect, v)["claims"]}
+        self.assertEqual(tiers["Physical fit: Screws in the mounting holes"], ("physically tested", "PASS"))
+
+    def test_old_single_result_events_still_read_as_the_primary_fit(self):
+        folder = self.made()
+        version = pass_verdict(folder)
+        make.record_print(folder, version, "perfect")
+        path = make.calibration_dir() / "events" / f"{make.event_key(folder, version)}.json"
+        event = json.loads(path.read_text())
+        for key in ("fits", "measurements", "photo", "project_name"):
+            event.pop(key)
+        path.write_text(json.dumps(event))
+        claims = {c["claim"]: c for c in make.proof(folder, version)["claims"]}
+        self.assertEqual(claims["Physical fit: Clip around the object"]["status"], "PASS")
+        make.reconcile()
+
+    def test_bad_print_results_are_refused_and_nothing_is_recorded(self):
+        folder = self.made()
+        version = pass_verdict(folder)
+        bad = [dict(fits={"screws": "perfect"}),                         # the primary fit is required
+               dict(fits={"grip": "perfect", "hinge": "perfect"}),     # not a fit of this holder
+               dict(fits={"grip": "wobbly"}),
+               dict(result="perfect", fits={"grip": "too_tight"}),     # two answers for one fit
+               dict(fits={"grip": "perfect"}, measurements={"wall": 2}),
+               dict(fits={"grip": "perfect"}, measurements={"bore": "nan"}),
+               dict(fits={"grip": "perfect"}, measurements={"bore": 0}),
+               dict(fits={"grip": "perfect"}, measurements={"bore": 5000}),
+               dict(fits={"grip": "perfect"}, photo="data:text/html;base64,PGh0bWw+"),
+               dict(fits={"grip": "perfect"}, photo="data:image/png;base64,PGh0bWw+"),  # not really a PNG
+               dict(fits={"grip": "perfect"}, photo="data:image/png;base64," + base64.b64encode(
+                   b"\x89PNG\r\n\x1a\n" + b"\0" * (7 * 1024 * 1024)).decode())]
+        for kwargs in bad:
+            with self.subTest(kwargs=str(kwargs)[:80]), self.assertRaises(ProjectError):
+                make.record_print(folder, version, **kwargs)
+        self.assertIsNone(make.outcome(folder, version))
+        self.assertFalse((make.calibration_dir() / "photos").exists())
+
+
+class PrintResultApiTests(unittest.TestCase):
+    """#15 at the HTTP seam: rate fits, measure, attach a photo, read the upgraded claims."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        root = Path(self.temp.name)
+        self.env = patch.dict(os.environ, {"MAGIC_PROJECTS_HOME": str(root / "home"),
+                                           "MAGIC_PRINT_LOG": str(root / "PRINT_LOG.md")})
+        self.env.start()
+        self.server = make_server(port=0)
+        threading.Thread(target=self.server.serve_forever, daemon=True).start()
+        self.base = f"http://127.0.0.1:{self.server.server_address[1]}"
+
+    def tearDown(self):
+        self.server.shutdown()
+        self.server.server_close()
+        self.env.stop()
+        self.temp.cleanup()
+
+    call = lambda self, path, body=None: MakeApiTests.call(self, path, body)  # noqa: E731
+
+    def test_record_fits_measurements_and_photo(self):
+        folder, ask = make.create(ROUND)
+        make.size(folder, ask)
+        version = pass_verdict(folder)
+        query = urllib.parse.urlencode({"project": str(folder), "version": version})
+        status, proof = self.call(f"/make/proof?{query}")
+        self.assertEqual([f["label"] for f in proof["fits"]], ["Clip around the object", "Screws in the mounting holes"])
+        status, error = self.call("/make/print", {"project": str(folder), "version": version, "fits": {"grip": "meh"}})
+        self.assertEqual(status, 400)
+        self.assertEqual(error["error"], "Choose a fit result for each fit you rate.")
+        status, recorded = self.call("/make/print", {"project": str(folder), "version": version,
+                                                     "fits": {"grip": "perfect", "screws": "perfect"},
+                                                     "measurements": {"bore": 42.4}, "photo": PNG})
+        self.assertEqual(status, 200, recorded)
+        tested = [c["claim"] for c in recorded["claims"] if c["tier"] == "physically tested"]
+        self.assertEqual(tested, ["Physical fit: Clip around the object", "Physical fit: Screws in the mounting holes",
+                                  "Measured: Clip bore"])
+        with urllib.request.urlopen(f"{self.base}/make/photo?{query}") as response:
+            self.assertEqual(response.headers["Content-Type"], "image/png")
+            self.assertTrue(response.read().startswith(b"\x89PNG"))
+        status, again = self.call("/make/print", {"project": str(folder), "version": version, "result": "perfect"})
+        self.assertEqual(status, 409)
+        status, versions = self.call(f"/projects/versions?{urllib.parse.urlencode({'project': str(folder)})}")
+        tiers = [c["tier"] for c in versions["versions"][0]["verdict"]["designs"][0]["claims"]]
+        self.assertNotIn("needs physical test", tiers)
 
 
 class MakeApiTests(unittest.TestCase):

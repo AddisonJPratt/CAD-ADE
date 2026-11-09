@@ -44,7 +44,10 @@
                                          project sized to the ask, gates queued (202); or {"project"}:
                                          remake it with the current calibrated clearance as a new version
     GET  /make/proof?project=&version=   one version's make record, verdict, print file and outcome
-    POST /make/print                     {"project", "version", "result"}: record a physical fit result
+    POST /make/print                     {"project", "version", "fits": {fit: result}, "measurements"?:
+                                         {feature: mm}, "photo"?: data URL} ("result" alone still
+                                         rates the primary fit): record a physical print result
+    GET  /make/photo?project=&version=   the photo recorded with that version's print
     GET  /make/shelf                     every project with its version history and print outcomes
 
 Version requests on a project that has a run queued or in progress are refused (409), so a
@@ -324,6 +327,9 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(data)
             return
+        if path == "/make/photo":
+            query = parse_qs(urlsplit(self.path).query)
+            return self.guarded(lambda: self.make_photo(query.get("project", [""])[0], query.get("version", [""])[0]))
         if path in ("/make/form", "/make/shelf", "/make/proof"):
             query = parse_qs(urlsplit(self.path).query)
             if path == "/make/form":
@@ -436,6 +442,21 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", ARTIFACT_TYPES[target.suffix])
         self.send_header("Content-Length", str(len(data)))
         self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(data)
+        return None
+
+    def make_photo(self, project, version):
+        path = make.photo_path(project, version)
+        if path is None:
+            return HTTPStatus.NOT_FOUND, {"error": "no photo was recorded with this print"}
+        data = path.read_bytes()
+        kind = next(k for k, (suffix, _) in make.PHOTO_TYPES.items() if suffix == path.suffix)
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", kind)
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
         self.end_headers()
         self.wfile.write(data)
         return None
@@ -643,7 +664,8 @@ class Handler(BaseHTTPRequestHandler):
                                                       "run": run.summary()}
 
     def post_make_print(self, body):
-        return HTTPStatus.OK, make.record_print(body["project"], body["version"], body["result"])
+        return HTTPStatus.OK, make.record_print(body["project"], body["version"], body.get("result"),
+                                                body.get("fits"), body.get("measurements"), body.get("photo"))
 
     def post_printer(self, body):
         project = Path(body["project"]).expanduser().resolve()

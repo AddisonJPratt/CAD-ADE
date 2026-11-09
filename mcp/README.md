@@ -34,7 +34,7 @@ Every tool returns a dict. Failures are `{"error": {"code", "message"}}`, not ex
 |---|---|
 | `list_designs()` | Each design in `designs/`, with `has_brief` and `brief_path` |
 | `list_eval_briefs()` | Each eval brief, with `design_present`; `total` and `designs_present` |
-| `run_check(design)` | `{pass, gates: [{name, status}], report_path, brief, exit_code, seconds, error}` |
+| `run_check(design)` | `{pass, gates: [{name, status}], report_path, brief, exit_code, seconds, error, artefacts}`, plus the artefact images inline |
 | `measure_file(path)` | `volume_mm3`, `bbox_mm`; STL adds `watertight`, `components`, `faces`; STEP adds `solids`, `valid` |
 | `min_gap(path_a, path_b)` | `gap_mm`, `overlap_volume_mm3`, `search_length_mm`. STL only |
 | `library_lookup(query)` | Matching `library/standard_parts.json` entries |
@@ -47,6 +47,15 @@ Notes on what the numbers mean:
   only looks in `briefs/`, so an eval design would skip its hard dimensions. With no brief the
   result carries a `warning`. A pass is a gate result: only `magic.py run` verifies a design,
   and a critique still follows.
+- **`run_check` artefacts** (#79, the agent's eyes): whenever the build reached Gate 4, pass or
+  fail, `artefacts` holds project-relative paths to the iso/top/front/side views, the overhang
+  heatmap (seen from below, downward faces coloured by angle; red needs support), the design's
+  own section, sections at the thinnest wall and at each named feature, each part's face map,
+  and `eyes.json`, plus per-part metrics: `bbox`, `volume_mm3`, `overhang_brief_pct`,
+  `support_risk_pct`, `unsupported_area_mm2`, `bed_contact_mm2`, `min_wall_mm`, `min_wall_where`.
+  Every PNG also comes back as an inline image with a caption, so the agent sees the part
+  without a second call. They are instruments: nothing in them changes a gate. The harness
+  writes them to `<out>/eyes/` (`harness/eyes.py`); `artefacts` is null when it stopped earlier.
 - **`measure_file`** reloads from disk. STL volume only means something when `watertight` is
   true. STEP runs in a subprocess, so a kernel crash can't take the server down; expect
   several seconds for the build123d import.
