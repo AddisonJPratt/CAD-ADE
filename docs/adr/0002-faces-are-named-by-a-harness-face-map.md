@@ -51,3 +51,21 @@ The agent still needs to hear "the lid pocket", not "a face at (0, 0, 9)".
 - Studio's chip prints the first driving parameter as a drawing would ("Mount hole Ø4 · plate",
   "Lid pocket, pocket depth 3 · plate"). Each pick in the request carries `parameters`, and its
   description says "driven by hole_dia = 4", so the agent knows which PARAMS to change.
+
+## Addendum: starter designs, and projects made before naming (#69, 2026-11-08)
+
+- Every starter design in `designs/` names its main features, so a project made from one now gets
+  named picks ("Shelf screw counterbores · bracket"). A naming-only shape is allowed: a design may
+  pass `feature()` a shape it never cuts (the `counterbore()` part of a counterbored hole, a hub
+  cylinder, a band through a gear's teeth) when the faces to name come from another operation.
+  Such a shape runs past the part's faces it should not name, or stops short of them.
+- A project keeps its own `library/` copy; opening it does **not** refresh that copy. The library
+  is project source: it is saved with each version and restored on rollback, and a design passed its
+  gates against it. Rewriting it on open would change a project outside a version and could undo
+  edits the project made to its library. A project made before #65 keeps working: the worker reads
+  the face-map hooks with `getattr`, so its faces stay unnamed and keep their geometric description.
+- To name features in such a project, the agent copies the current `library/` in as an ordinary
+  change, which is gated and saved as a version like any other. A design that imports `feature`
+  from a library without it fails gate 1 Execute with the ImportError, which says what is missing.
+- The face map rejects a feature face by its bounding box before the exact distance test, so a
+  feature with hundreds of faces (a gear's teeth) does not make the map quadratic in practice.

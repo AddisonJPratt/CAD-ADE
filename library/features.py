@@ -112,9 +112,23 @@ def counterbored_hole(screw="M4", depth=None, teardrop=False, overshoot=1.0):
         raise ValueError(f"depth {depth} must exceed {screw} counterbore depth {cb_depth}")
     if overshoot <= 0:
         raise ValueError("overshoot must be > 0")
-    head = _bore(spec["counterbore_dia"] / 2, overshoot, -cb_depth, teardrop)
+    head = counterbore(screw, teardrop, overshoot)
     shank = _bore(spec["clearance"] / 2, overshoot, -depth - overshoot, teardrop)
     return _one_solid(head + shank)
+
+
+def counterbore(screw="M4", teardrop=False, overshoot=1.0):
+    """Just the head pocket of `counterbored_hole`, in the same frame (mouth plane z=0).
+
+    Name it as its own feature before the whole hole, so a pick on the seat or the pocket wall
+    says "counterbore" and a pick in the shank says "screw hole":
+        bracket -= feature("wall hole counterbore", at * counterbore("M4"), params="thickness")
+    Params as `counterbored_hole`.
+    """
+    spec = _lookup("screws", screw)
+    if overshoot <= 0:
+        raise ValueError("overshoot must be > 0")
+    return _one_solid(_bore(spec["counterbore_dia"] / 2, overshoot, -spec["counterbore_depth"], teardrop))
 
 
 def heatset_boss(screw="M4", height=None):

@@ -5,9 +5,9 @@ screw's counterbore opens up and nothing inside has a ceiling. Only the tab unde
 """
 import math
 
-from build123d import Align, Axis, Box, Plane, Polygon, Pos, Rot, revolve
+from build123d import Align, Axis, Box, Compound, Cylinder, Plane, Polygon, Pos, Rot, revolve
 
-from library import counterbored_hole
+from library import counterbore, counterbored_hole, feature
 from library.features import TEARDROP_FLANK_DEG
 
 SCREW = "M4"            # hardware choice, resolved through library/standard_parts.json
@@ -38,6 +38,16 @@ def build(flange_dia, hub_dia, spool_height, flange_t, wall, lip_reach, lip_arc,
     flange_r, hub_r = flange_dia / 2, hub_dia / 2
     bore_r = hub_r - wall
 
+    # Named first, so they win a face they share with a later name: the screw, then the hub.
+    hole_at = Pos(0, 0, flange_t)
+    feature("centre screw counterbore", hole_at * counterbore(SCREW), params="flange_t")   # names faces only
+    screw_hole = feature("centre screw hole", hole_at * counterbored_hole(SCREW, depth=flange_t), params="flange_t")
+    # Hub naming shapes; the revolve below makes these faces.
+    feature("hub bore", Pos(0, 0, flange_t) * Cylinder(bore_r, spool_height - flange_t, align=(
+        Align.CENTER, Align.CENTER, Align.MIN)), params=("hub_dia", "wall"))
+    feature("hub", Pos(0, 0, flange_t) * Cylinder(hub_r, spool_height - flange_t, align=(
+        Align.CENTER, Align.CENTER, Align.MIN)), params="hub_dia")
+
     # Feature: flange and hollow hub, one revolved profile. Floor is the flange; hub open at the top.
     body = revolve(Plane.XZ * Polygon(
         (0, 0), (flange_r, 0), (flange_r, flange_t), (hub_r, flange_t), (hub_r, spool_height),
@@ -56,16 +66,16 @@ def build(flange_dia, hub_dia, spool_height, flange_t, wall, lip_reach, lip_arc,
         (root_r, spool_height), (hub_r + lip_reach, spool_height), (hub_r + lip_reach, spool_height - edge_t),
         (root_r, spool_height - edge_t - drop), align=None)
     tab = revolve(tab_section, axis=Axis.Z, revolution_arc=lip_arc)
-    for i in range(lip_count):
-        body += Rot(0, 0, i * 2 * 180 / lip_count) * tab
+    body += feature("retaining tabs", Compound([Rot(0, 0, i * 2 * 180 / lip_count) * tab for i in range(lip_count)]),
+                    params=("lip_reach", "lip_count", "lip_arc"))
 
     # Feature: centre screw, counterbored into the flange from inside the hub.
-    body -= Pos(0, 0, flange_t) * counterbored_hole(SCREW, depth=flange_t)
+    body -= screw_hole
 
     # Feature: cable-end notch through the flange rim, off the X and Y extremes so it can't shrink the bbox.
     notch_depth = 2 * notch_w
     notch = Pos(flange_r, 0, 0) * Box(2 * notch_depth, notch_w, 2 * flange_t, align=(Align.CENTER, Align.CENTER, Align.CENTER))
-    body -= Rot(0, 0, 90 * 0.5) * notch
+    body -= feature("cable-end notch", Rot(0, 0, 90 * 0.5) * notch, params="notch_w")
 
     body.label = "spool"
     return body

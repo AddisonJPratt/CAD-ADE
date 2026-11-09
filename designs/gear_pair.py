@@ -7,9 +7,9 @@ the flank clearance. Tooth form is not gated by the harness; see the brief's ass
 """
 import math
 
-from build123d import Align, Cylinder, Polygon, Pos, Rot, extrude
+from build123d import Align, Cylinder, Location, Polygon, Pos, Rot, extrude
 
-from library import standard_parts
+from library import feature, standard_parts
 
 AXLE = "M4"             # axle screw, resolved through library/standard_parts.json
 
@@ -51,20 +51,31 @@ def tooth_outline(module, teeth, pressure, thinning, steps):
     return points
 
 
-def gear(module, teeth, pressure, thickness, web, hub_wall, thinning, steps, bore_dia):
-    """One gear centred on the origin, a tooth on +X, flat on z=0."""
-    body = extrude(Polygon(*tooth_outline(module, teeth, pressure, thinning, steps), align=None), amount=thickness)
+def gear(name, teeth_param, at, module, teeth, pressure, thickness, web, hub_wall, thinning, steps, bore_dia):
+    """One gear placed by `at` (centred on its origin, a tooth on its +X, flat on z=0).
+
+    Built in place rather than moved afterwards, so the features it names sit where its faces do.
+    `name` prefixes each feature ("pinion teeth"); `teeth_param` is the PARAMS key of its count.
+    """
+    outline = Polygon(*tooth_outline(module, teeth, pressure, thinning, steps), align=None)
+    # Feature: teeth. Names the flank and root faces only: the outline, run past both faces.
+    feature(f"{name} teeth", at * Pos(0, 0, -thickness) * extrude(outline, amount=thickness * (1 + 2)),
+            params=(teeth_param, "module", "flank_clearance"))
+    # Feature: axle bore through the hub.
+    bore = feature(f"{name} axle bore", at * Cylinder(bore_dia / 2, 2 * thickness))   # size from the AXLE screw
+    body = at * extrude(outline, amount=thickness)
     root_r = module * teeth / 2 - module * (1 + 0.5 * 0.5)
     # Feature: thin web between hub and rim, as an open-top pocket; the rim stays full height under the teeth.
     hub_r = bore_dia / 2 + hub_wall
     rim_inner_r = root_r - 2 * module
     if rim_inner_r > hub_r + hub_wall:   # small pinions stay solid: no room for a useful web
+        # Feature: hub, standing proud of the web. Names faces only.
+        feature(f"{name} hub", at * Cylinder(hub_r, thickness, align=(Align.CENTER, Align.CENTER, Align.MIN)),
+                params="hub_wall")
         pocket = Cylinder(rim_inner_r, thickness, align=(Align.CENTER, Align.CENTER, Align.MIN))
         pocket -= Cylinder(hub_r, thickness, align=(Align.CENTER, Align.CENTER, Align.MIN))
-        body -= Pos(0, 0, web) * pocket
-    # Feature: axle bore through the hub.
-    body -= Cylinder(bore_dia / 2, 2 * thickness, align=(Align.CENTER, Align.CENTER, Align.CENTER))
-    return body
+        body -= feature(f"{name} web", at * Pos(0, 0, web) * pocket, params="web")
+    return body - bore
 
 
 def build(module, teeth_a, teeth_b, pressure_angle, thickness, web, hub_wall, flank_clearance, flank_steps):
@@ -74,11 +85,11 @@ def build(module, teeth_a, teeth_b, pressure_angle, thickness, web, hub_wall, fl
     thinning = flank_clearance / (2 * math.cos(pressure))
     args = (pressure, thickness, web, hub_wall, thinning, flank_steps, bore_dia)
 
-    gear_a = gear(module, teeth_a, *args)
+    gear_a = gear("pinion", "teeth_a", Location(), module, teeth_a, *args)
     # Feature: gear B turned half a pitch from a tooth on -X, so a space meets A's tooth.
     turn = 180 + 180 / teeth_b
     centre_distance = module * (teeth_a + teeth_b) / 2
-    gear_b = Pos(centre_distance, 0, 0) * Rot(0, 0, turn) * gear(module, teeth_b, *args)
+    gear_b = gear("wheel", "teeth_b", Pos(centre_distance, 0, 0) * Rot(0, 0, turn), module, teeth_b, *args)
 
     gear_a.label, gear_b.label = "gear_a", "gear_b"
     return {"gear_a": gear_a, "gear_b": gear_b}

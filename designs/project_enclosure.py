@@ -4,9 +4,9 @@ Frame: Z is print-up. Base prints floor-down. Lid prints inner-face-down with th
 opening up, so neither part has a ceiling beyond the connector opening's short bridge.
 Bosses sit proud of the walls with a corner filler behind them, leaving no slot a nozzle can't fill.
 """
-from build123d import Align, Axis, Box, Pos, Rectangle, extrude, fillet
+from build123d import Align, Axis, Box, Compound, Pos, Rectangle, extrude, fillet
 
-from library import counterbored_hole, heatset_boss, standard_parts
+from library import counterbore, counterbored_hole, feature, heatset_boss, standard_parts
 
 SCREW = "M3"            # hardware choice, resolved through library/standard_parts.json
 
@@ -44,42 +44,54 @@ def build(outer_x, outer_y, outer_z, lid_thickness, wall, floor, port_w, port_h,
     axis_x, axis_y = outer_x / 2 - inset, outer_y / 2 - inset
     screw_axes = [(sx * axis_x, sy * axis_y) for sx in (-1, 1) for sy in (-1, 1)]
 
-    # Feature: base shell. Cavity corners stay square, since the bosses and fillers hide them.
-    base = rounded_prism(outer_x, outer_y, outer_z, outer_r)
-    base -= Pos(0, 0, floor) * Box(outer_x - 2 * wall, outer_y - 2 * wall, outer_z,
-                                   align=(Align.CENTER, Align.CENTER, Align.MIN))
-    # Feature: lid rebate, concentric with the outside corner.
-    base -= Pos(0, 0, ledge_z) * rounded_prism(outer_x - 2 * step, outer_y - 2 * step, lid_thickness, outer_r - step)
-
+    # The bosses are named first: a face that lies on two named shapes takes the first name.
     # Feature: four heat-set bosses, tops on the lid ledge; library hole depth and floor from the DB.
     boss = heatset_boss(SCREW, height=ledge_z)
+    bosses = feature("heat-set bosses", Compound([Pos(x, y, 0) * boss for x, y in screw_axes]),
+                     params=("outer_z", "lid_thickness"))
+    # Feature: filler between each boss and its corner, up to the ledge. Unnamed: the bosses and
+    # walls cover every face it has.
     filler_from = boss_r * 0.5           # filler corner stays inside the boss wall, clear of the insert hole
     filler_size = inset - filler_from - wall * (1 - 0.5 * 0.5)  # stops inside the wall, clear of the rounded outside corner
-    for x, y in screw_axes:
-        sx, sy = (1 if x > 0 else -1), (1 if y > 0 else -1)
-        # Feature: filler between boss and corner, up to the ledge.
-        base += Pos(x + sx * (filler_from + filler_size / 2), y + sy * (filler_from + filler_size / 2), 0) * Box(
-            filler_size, filler_size, ledge_z, align=(Align.CENTER, Align.CENTER, Align.MIN))
-        base += Pos(x, y, 0) * boss
+    fillers = Compound([
+        Pos(x + (1 if x > 0 else -1) * (filler_from + filler_size / 2),
+            y + (1 if y > 0 else -1) * (filler_from + filler_size / 2), 0)
+        * Box(filler_size, filler_size, ledge_z, align=(Align.CENTER, Align.CENTER, Align.MIN))
+        for x, y in screw_axes])
+    # Feature: lid rebate, concentric with the outside corner.
+    rebate = feature("lid rebate", Pos(0, 0, ledge_z) * rounded_prism(
+        outer_x - 2 * step, outer_y - 2 * step, lid_thickness, outer_r - step), params="lid_thickness")
+    # Feature: cavity. Its corners stay square, since the bosses and fillers hide them.
+    cavity = feature("cavity", Pos(0, 0, floor) * Box(outer_x - 2 * wall, outer_y - 2 * wall, outer_z,
+                                                      align=(Align.CENTER, Align.CENTER, Align.MIN)),
+                     params=("wall", "floor"))
+
+    # Feature: base shell, with the bosses and fillers grown up from the floor.
+    base = rounded_prism(outer_x, outer_y, outer_z, outer_r) - cavity - rebate
+    base += fillers
+    base += bosses
 
     # Feature: connector opening in the -X end wall, one opening-height above the floor.
-    base -= Pos(-outer_x / 2 - wall, 0, floor + port_h) * Box(
-        2 * wall + wall, port_w, port_h, align=(Align.MIN, Align.CENTER, Align.MIN))
+    base -= feature("connector opening", Pos(-outer_x / 2 - wall, 0, floor + port_h) * Box(
+        2 * wall + wall, port_w, port_h, align=(Align.MIN, Align.CENTER, Align.MIN)), params=("port_w", "port_h"))
 
+    # The lid is built where it is laid out, beside the base, so its named cutters sit where its faces do.
+    beside = Pos(0, outer_y + 2 * wall, 0)
     # Feature: lid plate, sliding clearance per side inside the rebate.
-    lid = rounded_prism(outer_x - 2 * (step + clearance), outer_y - 2 * (step + clearance), lid_thickness,
-                        outer_r - step - clearance)
-    # Feature: four counterbored M3 holes on the same axes as the bosses.
-    hole = counterbored_hole(SCREW, depth=lid_thickness)
-    for x, y in screw_axes:
-        lid -= Pos(x, y, lid_thickness) * hole
+    lid = beside * rounded_prism(outer_x - 2 * (step + clearance), outer_y - 2 * (step + clearance), lid_thickness,
+                                 outer_r - step - clearance)
+    # Feature: four counterbored M3 holes on the same axes as the bosses; counterbores named first.
+    hole_at = [beside * Pos(x, y, lid_thickness) for x, y in screw_axes]
+    feature("lid screw counterbores", Compound([at * counterbore(SCREW) for at in hole_at]), params="lid_thickness")
+    lid -= feature("lid screw holes", Compound([at * counterbored_hole(SCREW, depth=lid_thickness) for at in hole_at]),
+                   params="lid_thickness")
     # Feature: vent slots between the screw rows, one slot width apart.
     pitch = 2 * vent_w
     slot_len = outer_y * 0.5
-    for i in range(vent_count):
-        x = (i - (vent_count - 1) / 2) * pitch
-        lid -= Pos(x, 0, 0) * Box(vent_w, slot_len, lid_thickness, align=(Align.CENTER, Align.CENTER, Align.MIN))
-    lid = Pos(0, outer_y + 2 * wall, 0) * lid
+    lid -= feature("vent slots", Compound([
+        beside * Pos((i - (vent_count - 1) / 2) * pitch, 0, 0)
+        * Box(vent_w, slot_len, lid_thickness, align=(Align.CENTER, Align.CENTER, Align.MIN))
+        for i in range(vent_count)]), params=("vent_w", "vent_count"))
 
     base.label, lid.label = "base", "lid"
     return {"base": base, "lid": lid}

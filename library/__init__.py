@@ -1,8 +1,8 @@
 """Magic CAD feature library: tested build123d helpers backed by standard_parts.json."""
-from .features import (counterbored_hole, declared_features, feature,
+from .features import (counterbore, counterbored_hole, declared_features, feature,
                        feature_parameters, heatset_boss, reset_features,
                        snap_cantilever, standard_parts)
 
-__all__ = ["counterbored_hole", "declared_features", "feature", "feature_parameters",
+__all__ = ["counterbore", "counterbored_hole", "declared_features", "feature", "feature_parameters",
            "heatset_boss", "reset_features",
            "snap_cantilever", "standard_parts"]

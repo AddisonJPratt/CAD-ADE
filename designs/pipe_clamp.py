@@ -7,9 +7,9 @@ the first version had counterbores and failed the overhang gate at 21.6 %.
 """
 import math
 
-from build123d import Align, Axis, Box, Cylinder, Plane, Polygon, Pos, Vector, extrude
+from build123d import Align, Axis, Box, Compound, Cylinder, Plane, Polygon, Pos, Vector, extrude
 
-from library import standard_parts
+from library import feature, standard_parts
 from library.features import TEARDROP_FLANK_DEG
 
 WALL_SCREW = "M4"       # hardware choice, resolved through library/standard_parts.json
@@ -63,6 +63,9 @@ def build(pipe_dia, strap_width, strap_t, base_t, hole_spacing, mouth_ratio):
                              (-land_x, land_y), (-gusset_x, base_t), align=None), amount=strap_width)
     # Feature: strap ring, cut below to the bore and above to the mouth.
     ring = Pos(0, centre_y, 0) * Cylinder(outer_r, strap_width, align=(Align.CENTER, Align.CENTER, Align.MIN))
+    # Names the strap's outside only: the ring, run past both faces so its ends name nothing.
+    feature("strap", Pos(0, centre_y, -strap_width) * Cylinder(
+        outer_r, strap_width * (1 + 2), align=(Align.CENTER, Align.CENTER, Align.MIN)), params="strap_t")
     clamp = plate + saddle + ring
 
     # Feature: fillets where the strap leaves the gussets; the flex stress peaks exactly here.
@@ -74,31 +77,33 @@ def build(pipe_dia, strap_width, strap_t, base_t, hole_spacing, mouth_ratio):
     clamp = clamp.fillet(base_t * 0.5 * 0.5, corners)
 
     # Feature: pipe bore.
-    clamp -= Pos(0, centre_y, 0) * Cylinder(bore_r, strap_width, align=(Align.CENTER, Align.CENTER, Align.MIN))
+    clamp -= feature("pipe bore", Pos(0, centre_y, 0) * Cylinder(
+        bore_r, strap_width, align=(Align.CENTER, Align.CENTER, Align.MIN)), params="pipe_dia")
     # Feature: mouth; the strap springs open to pass the pipe, then the bolt closes it.
     gap_half = pipe_dia * mouth_ratio / 2
-    clamp -= prism(-gap_half, gap_half, centre_y, centre_y + 2 * outer_r, strap_width)
+    clamp -= feature("mouth", prism(-gap_half, gap_half, centre_y, centre_y + 2 * outer_r, strap_width),
+                     params="mouth_ratio")
 
     # Feature: bolt ears on the strap tips. Twice the strap, stiff enough that the strap does the bending.
     ear_t = 2 * strap_t
     bolt_y = centre_y + outer_r + bolt["head_dia"] / 2
     ear_top = bolt_y + bolt["head_dia"] / 2 + strap_t
     ear_bottom = centre_y + math.sqrt(mid_r ** 2 - gap_half ** 2)
-    for sign in (-1, 1):
-        x0, x1 = sorted((sign * gap_half, sign * (gap_half + ear_t)))
-        clamp += prism(x0, x1, ear_bottom, ear_top, strap_width)
+    clamp += feature("bolt ears", Compound([
+        prism(*sorted((sign * gap_half, sign * (gap_half + ear_t))), ear_bottom, ear_top, strap_width)
+        for sign in (-1, 1)]), params="strap_t")
 
     # Feature: cross bolt, plain round clearance through both ears. A 3.4 mm hole bridges with slight
     # sag; a teardrop peak here tips the literal overhang gate, so this bore stays round.
     bolt_frame = Plane(origin=(gap_half + ear_t, bolt_y, mid_z), x_dir=(0, 1, 0), z_dir=(1, 0, 0))
-    clamp -= bolt_frame.location * Pos(0, 0, -(gap_half + ear_t)) * Cylinder(
-        bolt["clearance"] / 2, 2 * (gap_half + ear_t) + 2)
+    clamp -= feature("cross bolt hole", bolt_frame.location * Pos(0, 0, -(gap_half + ear_t)) * Cylinder(
+        bolt["clearance"] / 2, 2 * (gap_half + ear_t) + 2))
 
     # Feature: plain wall screw holes, teardrop peak print-up; heads seat on the plate's room face.
     wall_cutter = teardrop_bore(wall_screw["clearance"] / 2, base_t)
-    for sign in (-1, 1):
-        frame = Plane(origin=(sign * hole_spacing / 2, base_t, mid_z), x_dir=(-1, 0, 0), z_dir=(0, 1, 0))
-        clamp -= frame.location * wall_cutter
+    clamp -= feature("wall screw holes", Compound([
+        Plane(origin=(sign * hole_spacing / 2, base_t, mid_z), x_dir=(-1, 0, 0), z_dir=(0, 1, 0)).location
+        * wall_cutter for sign in (-1, 1)]), params="hole_spacing")
 
     clamp.label = "clamp"
     return clamp

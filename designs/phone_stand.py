@@ -11,7 +11,7 @@ import math
 
 from build123d import Align, Axis, Box, Plane, Polygon, Pos, Vector, extrude
 
-from library import standard_parts
+from library import feature, standard_parts
 
 PARAMS = {
     # name: (default, min, max)    all mm
@@ -43,6 +43,15 @@ def build(width, depth, slot_gap):
         (rest_top_x, top_z), (rest_foot_x, seat_z), (lip_t, seat_z), (lip_t, seat_z + lip_h),
         (0, seat_z + lip_h), align=None)
     stand = extrude(profile, amount=width / 2, both=True)
+    # Naming shapes for the lip and the rest, kept a lip thickness in from each side so they
+    # never claim the stand's side faces.
+    inside = width / 2 - lip_t
+    feature("front lip", extrude(Plane.XZ * Polygon(
+        (0, seat_z), (lip_t, seat_z), (lip_t, seat_z + lip_h), (0, seat_z + lip_h), align=None),
+        amount=inside, both=True), params="slot_gap")
+    feature("phone rest", extrude(Plane.XZ * Polygon(
+        (rest_foot_x, seat_z), (rest_rear_x, seat_z), (rest_rear_x, top_z), (rest_top_x, top_z), align=None),
+        amount=inside, both=True), params=("slot_gap", "depth"))
 
     # Feature: rounded front edges where a hand or the phone meets the part.
     lip_edges = nearest_each(stand.edges().filter_by(Axis.Y), [(0, 0, seat_z + lip_h)])
@@ -56,13 +65,14 @@ def build(width, depth, slot_gap):
     # Feature: cable channel on the centreline, behind the lip. Open to the bed its whole run,
     # open above except for a short flat bridge under the rest.
     channel = Pos(lip_t, 0, 0) * Box(depth, cable_w, seat_z, align=(Align.MIN, Align.CENTER, Align.MIN))
-    stand -= channel
-
-    # Feature: slot gauge bar; its height is the gap, tried in the slot by hand. Nests in the channel.
+    # Feature: slot gauge bar; its height is the gap, tried in the slot by hand. Nests in the channel,
+    # so it is named before the channel: its top and bottom lie in the channel's planes.
     side_gap = cable_w / 2 * 0.5
     gauge_len = depth - rest_rear_x - 2 * side_gap
-    gauge = Pos(rest_rear_x + side_gap, 0, 0) * Box(gauge_len, cable_w / 2, slot_gap,
-                                                    align=(Align.MIN, Align.CENTER, Align.MIN))
+    gauge = feature("slot gauge", Pos(rest_rear_x + side_gap, 0, 0) * Box(
+        gauge_len, cable_w / 2, slot_gap, align=(Align.MIN, Align.CENTER, Align.MIN)), params="slot_gap")
+    feature("cable channel", channel, params="slot_gap")
+    stand -= channel
 
     stand.label, gauge.label = "stand", "slot_gauge"
     return {"stand": stand, "slot_gauge": gauge}

@@ -104,6 +104,12 @@ def point_on(face):
     return fallback or face.position_at(0.5, 0.5)
 
 
+def near_box(point, box):
+    """True when `point` lies inside `box` grown by FACE_ON_FEATURE on every side."""
+    return all(low - FACE_ON_FEATURE <= value <= high + FACE_ON_FEATURE
+               for low, value, high in zip(box.min, point, box.max))
+
+
 def feature_parameter_values(driving, params):
     """{feature: {param: built value}}; raises if a feature names a parameter PARAMS lacks."""
     missing = [f"feature {name!r} names parameter {p!r}" for name, keys in driving.items()
@@ -122,12 +128,15 @@ def face_map(part_name, shape, features, parameters=None):
     faces are its own. Unnamed faces keep their geometry so a pick still has a description.
     """
     from build123d import GeomType
-    feature_faces = [(name, feature.faces()) for name, feature in features]
+    # Each feature face with its bounding box grown by the tolerance: a cheap reject before the
+    # exact distance, which matters when a feature has hundreds of faces (a gear's teeth).
+    feature_faces = [(name, [(f, f.bounding_box()) for f in feature.faces()]) for name, feature in features]
     faces = []
     for index, face in enumerate(shape.faces()):
         centre = point_on(face)
         name = next((n for n, fs in feature_faces
-                     if any(f.distance_to(centre) <= FACE_ON_FEATURE for f in fs)), None)
+                     if any(near_box(centre, box) and f.distance_to(centre) <= FACE_ON_FEATURE
+                            for f, box in fs)), None)
         box = face.bounding_box()
         entry = {"id": index, "kind": face.geom_type.name.lower(), "feature": name,
                  "centre": _xyz(centre), "normal": None, "axis": None, "area": face.area,

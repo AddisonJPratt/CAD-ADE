@@ -7,9 +7,9 @@ surface at a right angle (a drop from a desk underside), not along it. Flagged i
 """
 import math
 
-from build123d import Axis, Line, Pos, ThreePointArc, Vector, Wire, extrude, make_face
+from build123d import Align, Axis, Cylinder, Line, Pos, ThreePointArc, Vector, Wire, extrude, make_face
 
-from library import counterbored_hole, standard_parts
+from library import counterbore, counterbored_hole, feature, standard_parts
 
 SCREW = "M3"            # brief: 1x M3 counterbored, resolved through library/standard_parts.json
 
@@ -48,7 +48,11 @@ def build(clip_width, cable_dia, arm_thickness):
     # Feature: C arms. The mouth is 3/4 of the cable, so it retains by flexing each arm cable/8.
     mouth_half = cable_dia * 0.5 * (1 - 0.5 * 0.5)
     tip_angle = math.asin((mouth_half + arm_thickness / 2) / mid_r)
-    arms = extrude(make_face(c_outline(channel_r, outer_r, tip_angle)), amount=clip_width)
+    # Feature: cable channel, the bore the cable sits in. Names faces only: the arms make it.
+    feature("cable channel", Cylinder(channel_r, clip_width, align=(Align.CENTER, Align.CENTER, Align.MIN)),
+            params="cable_dia")
+    arms = feature("C arms", extrude(make_face(c_outline(channel_r, outer_r, tip_angle)), amount=clip_width),
+                   params="arm_thickness")
 
     # Feature: screw ear on -X; round end concentric with the screw, walls sized by the head,
     # never narrower than the C, so each arm root ends on the ear's flat end face.
@@ -60,7 +64,7 @@ def build(clip_width, cable_dia, arm_thickness):
         Line((hole_x, ear_half), (-mid_r, ear_half)),
         Line((-mid_r, ear_half), (-mid_r, -ear_half)),
     ]))
-    ear = extrude(ear_face, amount=clip_width)
+    ear = feature("screw ear", extrude(ear_face, amount=clip_width), params="clip_width")
     clip = arms + ear
 
     # Feature: root fillets where each arm leaves the ear; the flex stress peaks exactly here.
@@ -71,7 +75,9 @@ def build(clip_width, cable_dia, arm_thickness):
     clip = clip.fillet(arm_thickness * 0.5 * 0.5, roots)
 
     # Feature: counterbored screw hole, mouth up, so the head sits below the top face.
-    clip -= Pos(hole_x, 0, clip_width) * counterbored_hole(SCREW, depth=clip_width)
+    hole_at = Pos(hole_x, 0, clip_width)
+    feature("screw counterbore", hole_at * counterbore(SCREW), params="clip_width")   # names faces only
+    clip -= feature("screw hole", hole_at * counterbored_hole(SCREW, depth=clip_width), params="clip_width")
 
     clip.label = "clip"
     return clip

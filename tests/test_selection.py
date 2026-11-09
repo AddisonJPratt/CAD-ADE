@@ -119,6 +119,35 @@ class FaceMapTest(unittest.TestCase):
         self.assertEqual(feature_parameters(), {})
 
 
+class StarterFeatureNamesTest(unittest.TestCase):
+    """The starter designs name their features, so a pick on a real project says what it is."""
+
+    def test_the_wall_bracket_names_its_holes_counterbores_and_gusset(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result = run_worker(ROOT / 'designs/wall_bracket.py', tmp)
+            self.assertTrue(result['ok'], result.get('traceback'))
+            faces = json.loads(Path(result['parts'][0]['faces']).read_text())
+        named = {}
+        for face in faces['faces']:
+            named.setdefault(face['feature'], []).append(face)
+        self.assertEqual(set(named) - {None}, {'gusset', 'shelf screw holes', 'shelf screw counterbores',
+                                               'wall screw holes', 'wall screw counterbores'})
+        # The shelf counterbore seats face up, one counterbore depth below the shelf's top face.
+        seats = [f for f in named['shelf screw counterbores'] if f['kind'] == 'plane']
+        self.assertEqual(len(seats), 2)
+        self.assertTrue(all(f['normal'][2] > 0.99 for f in seats))
+        self.assertEqual(faces['parameters']['shelf screw holes'], {'shelf_hole_spacing': 40.0})
+
+    def test_counterbore_is_the_head_pocket_of_the_counterbored_hole(self):
+        from library import counterbore, counterbored_hole, standard_parts
+        spec = standard_parts()['screws']['M4']
+        head, hole = counterbore('M4'), counterbored_hole('M4', depth=8)
+        self.assertAlmostEqual(head.bounding_box().min.Z, -spec['counterbore_depth'], places=6)
+        self.assertAlmostEqual(head.bounding_box().max.Z, hole.bounding_box().max.Z, places=6)
+        self.assertAlmostEqual((head - hole).volume, 0, places=3)
+        self.assertGreater(counterbore('M4', teardrop=True).volume, head.volume)
+
+
 class FeatureParameterGateTest(unittest.TestCase):
     """The harness fails a design whose feature tags name a parameter PARAMS does not declare."""
 

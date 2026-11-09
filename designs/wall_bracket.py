@@ -4,9 +4,9 @@ Frame: Z is print-up, with the shelf-side face on the bed (z=0) and the wall-sid
 In service the part is flipped so z=0 is the top face carrying the shelf.
 Design intent: hold a shelf with M4 screws, printable without supports.
 """
-from build123d import Axis, Plane, Polygon, Pos, Vector, extrude
+from build123d import Axis, Compound, Plane, Polygon, Pos, Vector, extrude
 
-from library import counterbored_hole
+from library import counterbore, counterbored_hole, feature
 
 SCREW = "M4"            # hardware choice, resolved through library/standard_parts.json
 
@@ -58,21 +58,28 @@ def build(width, shelf_depth, wall_height, thickness, wall_hole_spacing, shelf_h
     ramp_edges = []
     for sign in (-1, 1):
         ramp_edges += nearest(rib.edges(), ((reach_x + t) / 2, sign * gusset_thickness / 2, (t + reach_z) / 2))
-    rib = rib.fillet(gusset_edge_radius, ramp_edges)
+    rib = feature("gusset", rib.fillet(gusset_edge_radius, ramp_edges), params=("gusset_thickness", "gusset_reach"))
     bracket = plate + rib
 
     # Feature: shelf screw holes, centred on the free shelf leg; mouth up, so no overhang.
     shelf_x = (t + inner_radius + shelf_depth) / 2
-    shelf_hole = counterbored_hole(SCREW, depth=t)
-    for sign in (-1, 1):
-        bracket -= Pos(shelf_x, sign * shelf_hole_spacing / 2, t) * shelf_hole
+    # Each hole's counterbore is named first, so its seat and pocket wall say "counterbore";
+    # the counterbore shape only names faces, the whole-hole cutter does the cutting.
+    shelf_at = [Pos(shelf_x, sign * shelf_hole_spacing / 2, t) for sign in (-1, 1)]
+    feature("shelf screw counterbores", Compound([at * counterbore(SCREW) for at in shelf_at]),
+            params="shelf_hole_spacing")
+    bracket -= feature("shelf screw holes", Compound([at * counterbored_hole(SCREW, depth=t) for at in shelf_at]),
+                       params="shelf_hole_spacing")
 
     # Feature: wall screw holes, centred on the free wall leg; teardrop peak is print-up.
     wall_z = (t + inner_radius + wall_height) / 2
-    wall_hole = counterbored_hole(SCREW, depth=t, teardrop=True)
-    for sign in (-1, 1):
-        frame = Plane(origin=(t, sign * wall_hole_spacing / 2, wall_z), x_dir=(0, 1, 0), z_dir=(1, 0, 0))
-        bracket -= frame.location * wall_hole
+    wall_at = [Plane(origin=(t, sign * wall_hole_spacing / 2, wall_z), x_dir=(0, 1, 0), z_dir=(1, 0, 0)).location
+               for sign in (-1, 1)]
+    feature("wall screw counterbores", Compound([at * counterbore(SCREW, teardrop=True) for at in wall_at]),
+            params="wall_hole_spacing")
+    bracket -= feature("wall screw holes",
+                       Compound([at * counterbored_hole(SCREW, depth=t, teardrop=True) for at in wall_at]),
+                       params="wall_hole_spacing")
 
     bracket.label = "bracket"
     return bracket
