@@ -133,7 +133,7 @@ def test_agreement(tmp, only=None, record=None):
     if only:
         cases = [c for c in cases if c[0] in only]
     # Quick runs alone first, so their timings aren't inflated by full runs sharing the cores.
-    with ThreadPoolExecutor(max_workers=2) as pool:
+    with ThreadPoolExecutor(max_workers=1) as pool:   # one at a time: a fair timing
         quick_runs = list(pool.map(lambda c: compare(*c, tmp, full_too=False), cases))
     with ThreadPoolExecutor(max_workers=4) as pool:
         full_runs = list(pool.map(lambda c: compare(*c, tmp), cases))
@@ -157,7 +157,7 @@ def test_agreement(tmp, only=None, record=None):
         lines = ["# Quick gate timings", "",
                  f"Recorded by `tests/test_quick.py --record` on {time.strftime('%Y-%m-%d')}, "
                  f"{subprocess.run(['sysctl', '-n', 'hw.ncpu'], capture_output=True, text=True).stdout.strip() or '?'} cores. "
-                 "Wall clock per `magic.py` call, Python start-up included. Quick runs went two at a time; "
+                 "Wall clock per `magic.py` call, Python start-up included. Quick runs went one at a time; "
                  "full runs (`magic.py run`, sweep included) four at a time, so full times are inflated by sharing cores. "
                  f"Load average at the end: {os.getloadavg()[0]:.0f}.",
                  "", f"Budget: quick under {QUICK_BUDGET_S} s on every starter design.", "",
